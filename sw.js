@@ -6,7 +6,7 @@
    - Apps Script: network-only
 */
 
-const VERSION = 'devfit-v3.7.1';
+const VERSION = 'devfit-v3.8.0';
 const APP_SHELL = 'devfit-shell-' + VERSION;
 const RUNTIME = 'devfit-runtime-' + VERSION;
 
@@ -15,10 +15,11 @@ const SHELL_FILES = [
   './icon-192.png',
   './icon-512.png',
   './favicon.svg',
-  './favicon.ico'
+  './favicon.ico',
+  './devfit-db.js'
 ];
 
-const CDN_HOSTS = ['cdnjs.cloudflare.com','fonts.googleapis.com','fonts.gstatic.com'];
+const CDN_HOSTS = ['cdnjs.cloudflare.com','fonts.googleapis.com','fonts.gstatic.com','cdn.jsdelivr.net','zngberygrzpkhiqrrzwj.supabase.co'];
 const APPS_SCRIPT_HOST = 'script.google.com';
 
 self.addEventListener('install', (event) => {

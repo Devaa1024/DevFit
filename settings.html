@@ -301,6 +301,27 @@
     </button>
   </div>
 
+  <!-- CLOUD SYNC -->
+  <div class="card">
+    <div class="section-label">Cloud Backup</div>
+    <button class="setting-btn" id="cloud-sync-btn" type="button">
+      <div class="icon">☁</div>
+      <div class="body">
+        <div class="title">Sync Now</div>
+        <div class="desc" id="cloud-sync-desc">Pull latest data from cloud across all devices</div>
+      </div>
+      <div class="chev">›</div>
+    </button>
+    <button class="setting-btn" id="cloud-push-btn" type="button">
+      <div class="icon">↑</div>
+      <div class="body">
+        <div class="title">Push Local to Cloud</div>
+        <div class="desc">Upload this device's data to cloud (use if just started fresh)</div>
+      </div>
+      <div class="chev">›</div>
+    </button>
+  </div>
+
   <!-- DATA -->
   <div class="card">
     <div class="section-label">Data</div>
@@ -329,7 +350,7 @@
 
   <div class="footer">
     DevFit · Dominance Through Discipline<br>
-    <a href="https://wa.me/60183679177">Contact trainer</a> · v3.7.1
+    <a href="https://wa.me/60183679177">Contact trainer</a> · v3.8.0
   </div>
 
 
@@ -1051,5 +1072,44 @@ body{padding-bottom:104px!important}
   <a href="settings.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span></a>
 </nav>
 <script>(function(){var p=(location.pathname.split('/').pop()||'index.html');if(!p||p==='/')p='index.html';document.querySelectorAll('.devfit-bottomnav a').forEach(function(a){if(a.getAttribute('href')===p)a.classList.add('active');});})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="devfit-db.js"></script>
+<script>
+(function(){
+  function toast(msg){const t=document.getElementById('toast');if(t){t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}}
+
+  const syncBtn = document.getElementById('cloud-sync-btn');
+  const pushBtn = document.getElementById('cloud-push-btn');
+  const syncDesc = document.getElementById('cloud-sync-desc');
+
+  if(syncBtn){
+    syncBtn.addEventListener('click', async function(){
+      if(typeof DevFitDB==='undefined'){toast('Cloud sync not available');return;}
+      syncBtn.disabled=true;
+      syncDesc.textContent='Syncing…';
+      const result = await DevFitDB.forceSyncAll();
+      syncBtn.disabled=false;
+      if(result.ok){
+        syncDesc.textContent='Synced ' + result.updated + ' data type(s) — reload to see changes';
+        toast('Sync complete! Tap any tab to see latest data.');
+      } else {
+        syncDesc.textContent='Sync failed: ' + (result.reason||'unknown error');
+        toast('Sync failed — check your connection');
+      }
+    });
+  }
+
+  if(pushBtn){
+    pushBtn.addEventListener('click', async function(){
+      if(typeof DevFitDB==='undefined'){toast('Cloud sync not available');return;}
+      pushBtn.disabled=true;
+      toast('Uploading local data…');
+      await DevFitDB.pushAllLocal();
+      pushBtn.disabled=false;
+      toast('Local data pushed to cloud ✓');
+    });
+  }
+})();
+</script>
 </body>
 </html>

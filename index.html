@@ -756,6 +756,7 @@ function save(){
   appData.startWeight=document.getElementById('startWeight').value;
   appData.programDuration=document.getElementById('programDuration').value;
   try{localStorage.setItem('progressLog2',JSON.stringify(appData));}catch(e){}
+  if(typeof DevFitDB!=='undefined') DevFitDB.cloudSave('progress',appData);
 }
 
 function setGoal(type){ appData.goalType=type; save(); render(); }
@@ -1789,6 +1790,15 @@ applyTierGates();
 showCountdown();
 showWelcomeScreen();
 scheduleAccessCheck();
+// Cloud sync — runs after localStorage render so UI is never blocked
+if(typeof DevFitDB!=='undefined'){
+  DevFitDB.cloudSync('progress','progressLog2',function(d){
+    appData=d;
+    totalWeeks=appData.bw.length||4;
+    currentWeek=Math.min(currentWeek,totalWeeks-1);
+    renderTabs();render();applyTierGates();
+  });
+}
 </script>
 
 <!-- ============ DevFit PWA runtime ============ -->
@@ -1862,5 +1872,7 @@ body{padding-bottom:104px!important}
   <a href="settings.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span></a>
 </nav>
 <script>(function(){var p=(location.pathname.split('/').pop()||'index.html');if(!p||p==='/')p='index.html';document.querySelectorAll('.devfit-bottomnav a').forEach(function(a){if(a.getAttribute('href')===p)a.classList.add('active');});})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="devfit-db.js"></script>
 </body>
 </html>
