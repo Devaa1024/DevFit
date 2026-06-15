@@ -1867,34 +1867,30 @@ if(typeof DevFitDB!=='undefined'){
 <script src="pwa-update.js"></script>
 <script>
 (function(){
-  if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>{
-  }
   let dp=null;
   window.addEventListener('beforeinstallprompt',(e)=>{
     e.preventDefault(); dp=e;
     if(localStorage.getItem('pwa-install-dismissed')==='1') return;
-    document.getElementById('pwa-install-bar').classList.add('show');
+    const b=document.getElementById('pwa-install-bar'); if(b) b.classList.add('show');
   });
   window.pwaInstall=async function(){
     if(!dp) return;
     dp.prompt(); await dp.userChoice; dp=null;
-    document.getElementById('pwa-install-bar').classList.remove('show');
+    const b=document.getElementById('pwa-install-bar'); if(b) b.classList.remove('show');
   };
   window.pwaDismiss=function(){
     localStorage.setItem('pwa-install-dismissed','1');
-    document.getElementById('pwa-install-bar').classList.remove('show');
+    const b=document.getElementById('pwa-install-bar'); if(b) b.classList.remove('show');
   };
   const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
   const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
   if(isIOS && !isStandalone && localStorage.getItem('ios-hint-dismissed')!=='1'){
-    setTimeout(()=>document.getElementById('ios-hint').classList.add('show'),3000);
-    document.getElementById('ios-hint').querySelector('.x').addEventListener('click',()=>localStorage.setItem('ios-hint-dismissed','1'));
+    const hint=document.getElementById('ios-hint');
+    if(hint){ setTimeout(()=>hint.classList.add('show'),3000); hint.querySelector('.x').addEventListener('click',()=>localStorage.setItem('ios-hint-dismissed','1')); }
   }
-  window.pwaApplyUpdate=function(){ if(window.__pwaWaiting) window.__pwaWaiting.postMessage({type:'SKIP_WAITING'}); };
   window.addEventListener('appinstalled',()=>{
     localStorage.setItem('pwa-installed-at',new Date().toISOString());
-    document.getElementById('pwa-install-bar').classList.remove('show');
+    const b=document.getElementById('pwa-install-bar'); if(b) b.classList.remove('show');
   });
 })();
 </script>
