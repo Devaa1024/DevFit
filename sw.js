@@ -16,7 +16,8 @@ const SHELL_FILES = [
   './icon-512.png',
   './favicon.svg',
   './favicon.ico',
-  './devfit-db.js'
+  './devfit-db.js',
+  './pwa-update.js'
 ];
 
 const CDN_HOSTS = ['cdnjs.cloudflare.com','fonts.googleapis.com','fonts.gstatic.com','cdn.jsdelivr.net','zngberygrzpkhiqrrzwj.supabase.co'];

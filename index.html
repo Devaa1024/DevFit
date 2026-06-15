@@ -1864,27 +1864,11 @@ if(typeof DevFitDB!=='undefined'){
 </script>
 
 <!-- ============ DevFit PWA runtime ============ -->
+<script src="pwa-update.js"></script>
 <script>
 (function(){
   if('serviceWorker' in navigator){
     window.addEventListener('load',()=>{
-      navigator.serviceWorker.register('sw.js').then(reg=>{
-        document.addEventListener('visibilitychange',()=>{ if(!document.hidden) reg.update(); });
-        reg.addEventListener('updatefound',()=>{
-          const sw=reg.installing; if(!sw) return;
-          sw.addEventListener('statechange',()=>{
-            if(sw.state==='installed' && navigator.serviceWorker.controller){
-              document.getElementById('pwa-update-bar').classList.add('show');
-              window.__pwaWaiting=sw;
-            }
-          });
-        });
-      }).catch(()=>{});
-      let refreshing=false;
-      navigator.serviceWorker.addEventListener('controllerchange',()=>{
-        if(refreshing) return; refreshing=true; window.location.reload();
-      });
-    });
   }
   let dp=null;
   window.addEventListener('beforeinstallprompt',(e)=>{
