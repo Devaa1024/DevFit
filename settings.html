@@ -263,7 +263,7 @@
         <div class="tier-desc" id="tier-desc">Full access · history, charts, share, reports, sync</div>
       </div>
     </div>
-    <a href="#" id="upgrade-btn" class="upgrade-btn" style="display:none">Upgrade to Pro — Contact Trainer</a>
+    <a href="#" id="upgrade-btn" class="upgrade-btn" style="display:none">Upgrade to Pro — RM19/month</a>
     <div id="upgrade-features" style="display:none;font-size:11px;color:#888;margin-top:10px;line-height:1.6">
       Pro unlocks: multi-week history · trend charts · workout share card · session logging · training progress · 7-day nutrition trends · PDF reports · trainer sync
     </div>
@@ -904,8 +904,7 @@ function isPro(){ return getUserTier() === 'pro'; }
     name.textContent = 'DevFit Free';
     desc.textContent = 'Current week only · plan view · basic logging';
     const u = JSON.parse(localStorage.getItem('devfit_user')||'{}');
-    const msg = encodeURIComponent('Hi, I\'d like to upgrade DevFit to Pro. My account: ' + (u.email||'(my email)'));
-    upgradeBtn.href = 'https://wa.me/60183679177?text=' + msg;
+    upgradeBtn.href = 'pricing.html';
     upgradeBtn.style.display = 'block';
     upgradeFeatures.style.display = 'block';
     // Hide Pro-only sections for free users
@@ -1071,7 +1070,7 @@ body{padding-bottom:104px!important}
   <a href="workouts.html"><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12"/></svg><span>Training</span></a>
   <a href="settings.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span></a>
 </nav>
-<script>(function(){var p=(location.pathname.split('/').pop()||'index.html');if(!p||p==='/')p='index.html';document.querySelectorAll('.devfit-bottomnav a').forEach(function(a){if(a.getAttribute('href')===p)a.classList.add('active');});})();</script>
+<script>(function(){var raw=location.pathname.split('/').pop();var p=raw.replace(/\.html$/,'')||'index';document.querySelectorAll('.devfit-bottomnav a').forEach(function(a){if(a.getAttribute('href').replace(/\.html$/,'')===p)a.classList.add('active');});})();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="devfit-db.js"></script>
 <script>

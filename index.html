@@ -94,10 +94,12 @@
   .bf-input{width:90px;font-family:'DM Sans',system-ui,sans-serif;font-size:18px;font-weight:700;text-align:center;padding:8px;border:1.5px solid #d1d5db;border-radius:var(--radius);background:#ffffff;color:#111111;outline:none}
   .bf-input:focus{border-color:var(--g)}
   .bf-direction{display:flex;gap:6px;flex-wrap:wrap}
-  .bf-btn{padding:6px 12px;border-radius:20px;border:1.5px solid #d1d5db;background:#ffffff;color:#444444;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
-  .bf-btn.sel-drop{border-color:#16a34a;background:#dcfce7;color:#15803d}
+  .bf-btn{padding:6px 10px;border-radius:20px;border:1.5px solid #d1d5db;background:#ffffff;color:#444444;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+  .bf-btn.sel-drop-clear{border-color:#16a34a;background:#dcfce7;color:#15803d}
+  .bf-btn.sel-drop-slight{border-color:#4ade80;background:#f0fdf4;color:#166534}
   .bf-btn.sel-same{border-color:#f59e0b;background:#fef9c3;color:#92400e}
-  .bf-btn.sel-rise{border-color:#ef4444;background:#fee2e2;color:#991b1b}
+  .bf-btn.sel-rise-slight{border-color:#fb923c;background:#fff7ed;color:#c2410c}
+  .bf-btn.sel-rise-clear{border-color:#ef4444;background:#fee2e2;color:#991b1b}
   .notes-area{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;border:1px solid #d1d5db;border-radius:var(--radius);background:#ffffff;color:#111111;outline:none;resize:vertical;min-height:70px}
   .notes-area:focus{border-color:var(--g)}
 
@@ -410,9 +412,11 @@
           <span style="font-size:12px;color:#aaaaaa;">%</span>
         </div>
         <div class="bf-direction">
-          <button class="bf-btn" id="bf-drop" onclick="setBF('drop')">Dropped</button>
-          <button class="bf-btn" id="bf-same" onclick="setBF('same')">Same</button>
-          <button class="bf-btn" id="bf-rise" onclick="setBF('rise')">Increased</button>
+          <button class="bf-btn" id="bf-drop_clear"  onclick="setBF('drop_clear')">↓↓ Clearly dropped</button>
+          <button class="bf-btn" id="bf-drop_slight" onclick="setBF('drop_slight')">↓ Slightly dropped</button>
+          <button class="bf-btn" id="bf-same"        onclick="setBF('same')">→ Same</button>
+          <button class="bf-btn" id="bf-rise_slight" onclick="setBF('rise_slight')">↑ Slightly increased</button>
+          <button class="bf-btn" id="bf-rise_clear"  onclick="setBF('rise_clear')">↑↑ Clearly increased</button>
         </div>
         <div style="margin-top:12px;">
           <div style="font-size:12px;font-weight:600;color:#ffffff;margin-bottom:6px;">Trainer notes</div>
@@ -428,8 +432,30 @@
     <div class="summary-strip" id="summary-strip"></div>
   </div>
 
-  <!-- TRUE PROGRESS SCORE -->
-  <div class="card">
+  <!-- STREAK + RECOVERY (free for all) -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:14px;text-align:center;">
+      <div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:6px;">Training This Week</div>
+      <div id="streak-count" style="font-size:32px;font-weight:800;color:#16a34a;line-height:1;">0</div>
+      <div style="font-size:10px;color:#4ade80;margin-top:3px;">/ 7 days active</div>
+    </div>
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:14px;text-align:center;">
+      <div style="font-size:11px;font-weight:700;color:#1e3a8a;margin-bottom:6px;">Recovery Score</div>
+      <div id="recovery-score" style="font-size:32px;font-weight:800;color:#2563eb;line-height:1;">—</div>
+      <div style="font-size:10px;color:#93c5fd;margin-top:3px;">Sleep + stress</div>
+    </div>
+  </div>
+
+  <!-- PRO UPGRADE BANNER (shown to free users) -->
+  <div class="pro-locked card" style="text-align:center;padding:28px 16px;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid #334155;">
+    <div style="font-size:22px;margin-bottom:8px;">🔒</div>
+    <div style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:6px;">Progress Analytics — Pro</div>
+    <div style="font-size:12px;color:#94a3b8;margin-bottom:16px;line-height:1.6;">Unlock True Progress Score, weekly analysis,<br>bodyweight trend &amp; score charts.</div>
+    <a href="pricing.html" style="display:inline-block;background:#16a34a;color:#fff;font-weight:700;font-size:13px;padding:10px 24px;border-radius:20px;text-decoration:none;">Upgrade to Pro — RM19/month</a>
+  </div>
+
+  <!-- TRUE PROGRESS SCORE (Pro) -->
+  <div class="pro-gate card">
     <div class="section-label">True progress score — Week <span id="score-week-num">1</span></div>
     <div class="score-big-wrap">
       <div class="score-big-ring">
@@ -439,18 +465,18 @@
       <div class="score-breakdown" id="score-breakdown"></div>
     </div>
     <div style="margin-top:12px;font-size:11px;color:#e2e8f0;line-height:1.6;" id="score-legend">
-      Score weighted across 7 signals — Bodyweight 17% · Body fat 11% · Overload 24% · Diet 21% · Sleep 10% · Steps 10% · Stress 7%. Untracked signals are skipped and the rest re-normalise automatically. Recomp credit applies if body-fat drops while weight stalls.
+      Score weighted across 7 signals — Overload 22% · Diet 23% · Bodyweight 17% · Body fat 10% · Sleep 10% · Steps 10% · Stress 8%. Untracked signals are skipped and the rest re-normalise automatically. Recomp credit applies if body-fat drops while weight stalls.
     </div>
   </div>
 
-  <!-- FEEDBACK -->
-  <div class="card">
+  <!-- FEEDBACK (Pro) -->
+  <div class="pro-gate card">
     <div class="section-label">Weekly analysis</div>
     <div class="feedback-box" id="feedback-box">Set a goal and enter data above to see analysis.</div>
   </div>
 
-  <!-- CHART 1: BODYWEIGHT -->
-  <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:12px;">
+  <!-- CHART 1: BODYWEIGHT (Pro) -->
+  <div class="pro-gate" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
       <div style="font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;color:#111111;">Bodyweight (kg)</div>
       <select id="bw-chart-range" onchange="updateChart()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 10px;border:1px solid #d1d5db;border-radius:20px;background:#f8fafc;color:#333;cursor:pointer;outline:none;"></select>
@@ -459,8 +485,8 @@
     <div style="position:relative;height:200px;"><canvas id="trendChart"></canvas></div>
   </div>
 
-  <!-- CHART 2: PROGRESS SCORE -->
-  <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:12px;">
+  <!-- CHART 2: PROGRESS SCORE (Pro) -->
+  <div class="pro-gate" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
       <div style="font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;color:#111111;">Progress Score (%)</div>
       <select id="score-chart-range" onchange="updateChart()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 10px;border:1px solid #d1d5db;border-radius:20px;background:#f8fafc;color:#333;cursor:pointer;outline:none;"></select>
@@ -471,28 +497,28 @@
         <div style="font-size:9px;color:#666;">Direction vs goal<br>+ recomp credit</div>
       </div>
       <div style="background:#f8fafc;border-radius:8px;padding:7px 8px;">
-        <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:2px;">Body fat 11%</div>
-        <div style="font-size:9px;color:#666;">Drop=100 · Same=50<br>Rise=0 · Optional</div>
+        <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:2px;">Body fat 10%</div>
+        <div style="font-size:9px;color:#666;">↓↓=100 · ↓=85 · →=60<br>↑=35 · ↑↑=10 · Optional</div>
       </div>
       <div style="background:#f8fafc;border-radius:8px;padding:7px 8px;">
-        <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:2px;">Overload 24%</div>
-        <div style="font-size:9px;color:#666;">Improved=100 · Form=80<br>Same=55 · Regressed=15</div>
+        <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:2px;">Overload 22%</div>
+        <div style="font-size:9px;color:#666;">Improved=100 · Form=75<br>Same=60 · Regressed=30</div>
       </div>
       <div style="background:#f8fafc;border-radius:8px;padding:7px 8px;">
-        <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:2px;">Diet 21%</div>
-        <div style="font-size:9px;color:#666;">Met=100 · Few miss=60<br>Binge=20</div>
+        <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:2px;">Diet 23%</div>
+        <div style="font-size:9px;color:#666;">Met=100 · Few miss=70<br>Binge=25</div>
       </div>
       <div style="background:#f8fafc;border-radius:8px;padding:7px 8px;">
         <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:2px;">Sleep 10%</div>
-        <div style="font-size:9px;color:#666;">7–9h=100 · 6h=75<br>5h=45 · &lt;5h=20</div>
+        <div style="font-size:9px;color:#666;">7–9h=100 · 6–7h=75<br>9–10h=75 · 10h+=50 · &lt;5h=20</div>
       </div>
       <div style="background:#f8fafc;border-radius:8px;padding:7px 8px;">
         <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:2px;">Steps 10%</div>
-        <div style="font-size:9px;color:#666;">10k+=100 · 7.5k=80<br>5k=55 · 3k=35</div>
+        <div style="font-size:9px;color:#666;">10k+=100 · 7.5k=80<br>5k=55 · 3k=35 · &lt;3k=20</div>
       </div>
       <div style="background:#f8fafc;border-radius:8px;padding:7px 8px;">
-        <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:2px;">Stress 7%</div>
-        <div style="font-size:9px;color:#666;">Low=100 · Moderate=60<br>High=20</div>
+        <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:2px;">Stress 8%</div>
+        <div style="font-size:9px;color:#666;">Low=100 · Moderate=55<br>High=30</div>
       </div>
       <div style="background:#fff7ed;border-radius:8px;padding:7px 8px;border:1px dashed #fb923c;">
         <div style="font-size:10px;font-weight:700;color:#9a3412;margin-bottom:2px;">Recomp rule</div>
@@ -720,34 +746,10 @@ function lockCard(card, title){
 
 // BLUR Pro-only UI for free tier (cards stay visible — users see what they're missing)
 function applyTierGates(){
-  if(isPro()) return;
-  // Hide week tabs (single-week only for free)
-  const wtabsBox = document.getElementById('week-tabs');
-  if(wtabsBox) wtabsBox.style.display = 'none';
-
-  // Lock bodyweight trend chart card
-  const trendCanvas = document.getElementById('trendChart');
-  if(trendCanvas){
-    const card = trendCanvas.closest('div[style*="background:#ffffff"]');
-    if(card) lockCard(card, 'Bodyweight trend chart');
-  }
-  // Lock progress score chart card
-  const progCanvas = document.getElementById('progressChart');
-  if(progCanvas){
-    const card = progCanvas.closest('div[style*="background:#ffffff"]');
-    if(card) lockCard(card, 'Progress score chart');
-  }
-  // Lock True Progress Score card
-  const scoreLegend = document.getElementById('score-legend');
-  if(scoreLegend){
-    const card = scoreLegend.closest('.card');
-    if(card) lockCard(card, 'True progress score');
-  }
-  // Lock weekly analysis card
-  const feedbackBox = document.getElementById('feedback-box');
-  if(feedbackBox){
-    const card = feedbackBox.closest('.card');
-    if(card) lockCard(card, 'Weekly analysis');
+  // Week tabs hidden for free tier (pro-gate sections handled by renderExtraCards)
+  if(!isPro()){
+    const wtabsBox = document.getElementById('week-tabs');
+    if(wtabsBox) wtabsBox.style.display = 'none';
   }
 }
 function save(){
@@ -821,13 +823,15 @@ function stepsScore(s){
   if(s>=7500)  return 80;
   if(s>=5000)  return 55;
   if(s>=3000)  return 35;
-  return 15;
+  return 20;
 }
 function sleepScore(h){
   if(h===null) return null;
-  if(h>=7 && h<=9)  return 100;
-  if(h>=6 && h<10)  return 75;
-  if(h>=5)          return 45;
+  if(h>=7 && h<=9)   return 100;
+  if(h>=9 && h<10)   return 75;
+  if(h>=6 && h<7)    return 75;
+  if(h>=10)          return 50;
+  if(h>=5 && h<6)    return 45;
   return 20;
 }
 function dotSteps(v){ return v>=10000?'ok':v>=5000?'warn':'bad'; }
@@ -857,8 +861,9 @@ function renderCheckin(){
     if(idx>=0) document.querySelectorAll('.ol-btn')[idx].className='ol-btn '+clss[idx];
   }
   document.getElementById('bf-input').value=ci.bf||'';
-  ['drop','same','rise'].forEach(d=>{
-    document.getElementById('bf-'+d).className='bf-btn'+(ci.bfDir===d?' sel-'+d:'');
+  ['drop_clear','drop_slight','same','rise_slight','rise_clear'].forEach(d=>{
+    const el=document.getElementById('bf-'+d);
+    if(el) el.className='bf-btn'+(ci.bfDir===d?' sel-'+d.replace('_','-'):'');
   });
   document.getElementById('notes-area').value=ci.notes||'';
   const dietSel=document.getElementById('diet-select');
@@ -878,40 +883,52 @@ function setBF(dir){
 
 function overloadScore(ol){
   if(ol==='improved')  return 100;
-  if(ol==='form')      return 80;
-  if(ol==='same')      return 55;
-  if(ol==='regressed') return 15;
+  if(ol==='form')      return 75;
+  if(ol==='same')      return 60;
+  if(ol==='regressed') return 30;
   return null;
 }
-function bfScore(dir){ if(dir==='drop') return 100; if(dir==='same') return 50; if(dir==='rise') return 0; return null; }
-function dietScore(d){ if(d==='met') return 100; if(d==='missed_few') return 60; if(d==='binge') return 20; return null; }
-function stressScore(s){ if(s==='low') return 100; if(s==='moderate') return 60; if(s==='high') return 20; return null; }
+function bfScore(dir){
+  if(dir==='drop_clear')  return 100;
+  if(dir==='drop_slight') return 85;
+  if(dir==='same')        return 60;
+  if(dir==='rise_slight') return 35;
+  if(dir==='rise_clear')  return 10;
+  return null;
+}
+function dietScore(d){ if(d==='met') return 100; if(d==='missed_few') return 70; if(d==='binge') return 25; return null; }
+function stressScore(s){ if(s==='low') return 100; if(s==='moderate') return 55; if(s==='high') return 30; return null; }
 
-function bwScore(bwAvg, prevBwAvg, goalType){
-  if(bwAvg===null) return null;
-  const sw=appData.startWeight?parseFloat(appData.startWeight):null;
+function bwScore(bwAvg, prevBwAvg, goalType, weekIndex){
+  if(weekIndex===0) return null; // Week 1 is baseline — no score yet
+  if(bwAvg===null || prevBwAvg===null) return null;
+  const pct=(bwAvg-prevBwAvg)/prevBwAvg*100; // % change from prev week
   const tw=appData.goal?parseFloat(appData.goal):null;
+  // Target reached override
   if(tw!==null){
     if(goalType==='loss'&&bwAvg<=tw) return 100;
     if(goalType==='gain'&&bwAvg>=tw) return 100;
-    if(goalType==='maintain'&&Math.abs(bwAvg-tw)<=0.5) return 100;
+    if(goalType==='maintain'&&Math.abs(bwAvg-tw)<=0.25) return 100;
   }
-  if(prevBwAvg===null){
-    if(sw===null||tw===null) return null;
-    const totalGap=Math.abs(tw-sw);
-    if(totalGap===0) return 100;
-    const done=Math.abs(bwAvg-sw);
-    return Math.min(100,Math.round((done/totalGap)*100));
-  }
-  const diff=bwAvg-prevBwAvg;
   if(goalType==='loss'){
-    if(diff<-0.5) return 100; if(diff<-0.2) return 90; if(diff<0) return 75; if(diff<0.3) return 50; return 20;
-  } else if(goalType==='gain'){
-    if(diff>0.5) return 100; if(diff>0.2) return 90; if(diff>0) return 75; if(diff>-0.3) return 50; return 20;
+    if(pct<=-0.25&&pct>=-1) return 100; // ideal: 0.25–1% drop/week
+    if(pct<-1)              return 75;  // dropping too fast
+    if(pct<0)               return 75;  // dropping < 0.25% — still positive
+    if(pct<=0.25)           return 50;  // flat
+    return 20;                          // gaining
   }
-  if(Math.abs(diff)<=0.3) return 100;
-  if(Math.abs(diff)<=0.7) return 65;
-  return 30;
+  if(goalType==='gain'){
+    if(pct>=0.25&&pct<=1)   return 100; // ideal lean gain
+    if(pct>1)               return 75;  // gaining too fast
+    if(pct>0)               return 75;  // gaining < 0.25%
+    if(pct>=-0.25)          return 50;  // flat
+    return 20;                          // losing
+  }
+  // maintain
+  if(Math.abs(pct)<=0.25)  return 100;
+  if(Math.abs(pct)<=0.5)   return 75;
+  if(Math.abs(pct)<=1)     return 50;
+  return 25;
 }
 
 function calcTrueScore(w){
@@ -923,14 +940,15 @@ function calcTrueScore(w){
   const gt=appData.goalType||'loss';
   const tw=appData.goal?parseFloat(appData.goal):null;
 
-  // 1. Bodyweight raw score
-  let bwVal=bwScore(bwAvg,prevBwAvg,gt);
+  // 1. Bodyweight raw score (Week 1 = baseline, returns null)
+  let bwVal=bwScore(bwAvg,prevBwAvg,gt,w);
 
   // 2. Body fat score
   let bfVal=bfScore(ci.bfDir);
 
   // 3. RECOMP CREDIT — scale stalled but body-fat dropping = working
-  if(ci.bfDir==='drop' && bwVal!==null && bwVal<75) bwVal=75;
+  const bfDropping=(ci.bfDir==='drop_clear'||ci.bfDir==='drop_slight');
+  if(bfDropping && bwVal!==null && bwVal<75) bwVal=75;
 
   // 4. Target reached overrides
   const targetReached = bwAvg!==null && tw!==null && (
@@ -939,17 +957,17 @@ function calcTrueScore(w){
     (gt==='maintain'&&Math.abs(bwAvg-tw)<=0.5)
   );
   if(targetReached) bwVal=100;
-  if(targetReached && ci.bfDir==='drop') bfVal=100;
+  if(targetReached && bfDropping) bfVal=100;
 
-  // 5. Weighted scores — every visible input now counts
+  // 5. Weighted scores — new GPT-revised weights
   const scores={
     bw:     {val:bwVal,                          weight:17, label:'Bodyweight'},
-    bf:     {val:bfVal,                          weight:11, label:'Body fat'},
-    ol:     {val:overloadScore(ci.overload),     weight:24, label:'Overload'},
-    diet:   {val:dietScore(ci.diet),             weight:21, label:'Diet'},
+    bf:     {val:bfVal,                          weight:10, label:'Body fat'},
+    ol:     {val:overloadScore(ci.overload),     weight:22, label:'Overload'},
+    diet:   {val:dietScore(ci.diet),             weight:23, label:'Diet'},
     sleep:  {val:sleepScore(sleepAvg),           weight:10, label:'Sleep'},
     steps:  {val:stepsScore(stepsAvg),           weight:10, label:'Steps'},
-    stress: {val:stressScore(ci.stress),         weight:7,  label:'Stress'}
+    stress: {val:stressScore(ci.stress),         weight:8,  label:'Stress'}
   };
 
   // 6. Adaptive normalisation — only weight what's logged
@@ -959,12 +977,53 @@ function calcTrueScore(w){
   });
 
   let overall = totalWeight>0 ? Math.round(weightedSum/totalWeight) : null;
-  if(targetReached && ci.bfDir==='drop') overall=100;
+  if(targetReached && bfDropping) overall=100;
   else if(targetReached && overall!==null) overall=Math.max(overall,95);
 
   return {overall, scores};
 }
 // ---------- end scoring v2 ----------
+
+function calcRecoveryScore(w){
+  const ci=appData.weeklyCheckin[w]||freshCheckin();
+  const sleepAvg=avg(appData.sleep[w]);
+  const sl=sleepScore(sleepAvg);
+  const ss=stressScore(ci.stress);
+  if(sl===null&&ss===null) return null;
+  let s=0,wt=0;
+  if(sl!==null){s+=sl*60;wt+=60;}
+  if(ss!==null){s+=ss*40;wt+=40;}
+  return Math.round(s/wt);
+}
+
+function calcTrainingStreak(w){
+  // Count days this week where steps were logged (proxy for active day)
+  const days=appData.steps[w]||[];
+  return days.filter(v=>v!==''&&parseFloat(v)>0).length;
+}
+
+function renderExtraCards(){
+  const streak=calcTrainingStreak(currentWeek);
+  const recovery=calcRecoveryScore(currentWeek);
+  const streakEl=document.getElementById('streak-count');
+  const recovEl=document.getElementById('recovery-score');
+  if(streakEl) streakEl.textContent=streak;
+  if(recovEl){
+    recovEl.textContent=recovery!==null?recovery+'%':'—';
+    const color=recovery===null?'#aaa':recovery>=75?'#16a34a':recovery>=50?'#f59e0b':'#ef4444';
+    recovEl.style.color=color;
+  }
+  // Pro gate: hide/show score sections
+  const proSections=document.querySelectorAll('.pro-gate');
+  const locked=document.querySelectorAll('.pro-locked');
+  if(isPro()){
+    proSections.forEach(el=>el.style.display='');
+    locked.forEach(el=>el.style.display='none');
+  } else {
+    proSections.forEach(el=>el.style.display='none');
+    locked.forEach(el=>el.style.display='');
+  }
+}
 
 function drawRingBig(id, score, color){
   const c=document.getElementById(id); if(!c) return;
@@ -1098,8 +1157,10 @@ function render(){
     else if(ci.overload==='form') fb+='Form improving — solid foundation being built. ';
     else if(ci.overload==='same') fb+='No overload progress this week — push harder next session. ';
     else if(ci.overload==='regressed') fb+='Regression in lifts — check sleep, nutrition, and recovery. ';
-    if(ci.bfDir==='drop') fb+='Body fat dropping — excellent body composition progress even if scale moves slowly. ';
-    else if(ci.bfDir==='rise') fb+='Body fat rising — diet needs tightening regardless of scale weight. ';
+    if(ci.bfDir==='drop_clear') fb+='Body fat clearly dropping — excellent recomp, keep this up. ';
+    else if(ci.bfDir==='drop_slight') fb+='Body fat trending down — good body composition progress. ';
+    else if(ci.bfDir==='rise_slight') fb+='Body fat slightly increasing — tighten diet and increase activity. ';
+    else if(ci.bfDir==='rise_clear') fb+='Body fat clearly rising — diet needs immediate attention. ';
     if(stepsAvg!==null&&stepsAvg<5000) fb+='Steps are critically low — daily movement must improve. ';
     if(sleepAvg!==null&&sleepAvg<6) fb+='Sleep is insufficient — this is slowing all progress by up to 20%. ';
     if(ci.diet==='binge') fb+='Diet adherence broke down — biggest lever to fix this week. ';
@@ -1112,6 +1173,7 @@ function render(){
   }
   document.getElementById('feedback-box').innerHTML=fb;
   renderStatsBanner();
+  renderExtraCards();
   updateChart();
 }
 
@@ -1185,10 +1247,10 @@ function updateChart(){
           let s=0,wt=0;
           if(sv!==null){const v=stepsScore(sv);if(v!==null){s+=v*10;wt+=10;}}
           if(slv!==null){const v=sleepScore(slv);if(v!==null){s+=v*10;wt+=10;}}
-          if(olS!==null){s+=olS*24;wt+=24;}
-          if(dietS!==null){s+=dietS*21;wt+=21;}
-          if(stressS!==null){s+=stressS*7;wt+=7;}
-          if(bfS!==null){s+=bfS*11;wt+=11;}
+          if(olS!==null){s+=olS*22;wt+=22;}
+          if(dietS!==null){s+=dietS*23;wt+=23;}
+          if(stressS!==null){s+=stressS*8;wt+=8;}
+          if(bfS!==null){s+=bfS*10;wt+=10;}
           scoreData.push(wt>0?Math.round(s/wt):null);
         }
       }
@@ -1871,7 +1933,7 @@ body{padding-bottom:104px!important}
   <a href="workouts.html"><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M2 10v4M22 10v4M6 12h12"/></svg><span>Training</span></a>
   <a href="settings.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span></a>
 </nav>
-<script>(function(){var p=(location.pathname.split('/').pop()||'index.html');if(!p||p==='/')p='index.html';document.querySelectorAll('.devfit-bottomnav a').forEach(function(a){if(a.getAttribute('href')===p)a.classList.add('active');});})();</script>
+<script>(function(){var raw=location.pathname.split('/').pop();var p=raw.replace(/\.html$/,'')||'index';document.querySelectorAll('.devfit-bottomnav a').forEach(function(a){if(a.getAttribute('href').replace(/\.html$/,'')===p)a.classList.add('active');});})();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="devfit-db.js"></script>
 </body>
