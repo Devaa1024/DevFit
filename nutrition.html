@@ -913,6 +913,10 @@ applyNutritionTierGates();
   .food-item-name{font-family:'DM Sans',system-ui,sans-serif;font-size:14px;font-weight:700;color:#fff;margin-bottom:3px}
   .food-item-macros{font-family:'DM Sans',system-ui,sans-serif;font-size:12px;color:#888}
   .food-item-per{color:#555;font-size:11px}
+  .food-item-brand{color:#aaa;font-weight:600}
+  .src-badge{font-size:9px;font-weight:800;letter-spacing:.04em;padding:2px 6px;border-radius:5px;vertical-align:middle;margin-left:7px}
+  .src-usda{background:rgba(34,197,94,0.18);color:#4ade80}
+  .src-off{background:rgba(59,130,246,0.18);color:#60a5fa}
   .food-loading,.food-empty{padding:28px 16px;text-align:center;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;color:#555}
   .scanner-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:10100;display:none;align-items:center;justify-content:center;flex-direction:column;padding:1.2rem}
   .scanner-overlay.show{display:flex}
@@ -997,51 +1001,103 @@ applyNutritionTierGates();
 <script>
 'use strict';
 (function(){
+  // ── FOOD DATABASES (both free, both safe to use) ──────────────────
+  // Open Food Facts — branded/packaged products + barcodes (Open Database License)
   const OFF_SEARCH='https://world.openfoodfacts.org/cgi/search.pl';
   const OFF_PRODUCT='https://world.openfoodfacts.org/api/v0/product/';
+  // USDA FoodData Central — generic/whole foods, lab-accurate (US public domain).
+  // 'DEMO_KEY' works for light use; get your own FREE key in 30s and paste it
+  // here for production: https://fdc.nal.usda.gov/api-key-signup.html
+  const USDA_KEY='DEMO_KEY';
+  const USDA_SEARCH='https://api.nal.usda.gov/fdc/v1/foods/search';
+
   let _sel=null;
   let _scanStream=null;
   let _scanInt=null;
 
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function titleCase(s){return String(s||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
 
-  function parseFood(p){
+  // Normalize both sources to one shape: {name,brand,cal100,p100,c100,f100,sq,serving_size,source}
+  function parseOFF(p){
     const n=p.nutriments||{};
     const cal100=Math.max(0,Number(n['energy-kcal_100g']||n['energy-kcal']||0)||(Number(n['energy_100g']||0)/4.184));
-    const prot=Math.max(0,Number(n['proteins_100g']||n['protein_100g']||0));
-    const carb=Math.max(0,Number(n['carbohydrates_100g']||0));
-    const fat=Math.max(0,Number(n['fat_100g']||0));
-    const sq=Number(p.serving_quantity)||100;
-    return{name:String(p.product_name||'').trim()||'Unknown',cal100,p100:prot,c100:carb,f100:fat,sq,serving_size:p.serving_size||''};
+    return{
+      name:String(p.product_name||'').trim()||'Unknown',
+      brand:String(p.brands||'').split(',')[0].trim(),
+      cal100,
+      p100:Math.max(0,Number(n['proteins_100g']||0)),
+      c100:Math.max(0,Number(n['carbohydrates_100g']||0)),
+      f100:Math.max(0,Number(n['fat_100g']||0)),
+      sq:Number(p.serving_quantity)||100,
+      serving_size:p.serving_size||'',
+      source:'OFF'
+    };
+  }
+  function parseUSDA(food){
+    const m={};
+    (food.foodNutrients||[]).forEach(fn=>{
+      const num=fn.nutrientNumber||(fn.nutrient&&fn.nutrient.number);
+      const val=(fn.value!==undefined)?fn.value:fn.amount;
+      if(num!=null) m[String(num)]=Number(val)||0;
+    });
+    const cal100=m['208']||m['957']||m['958']||0; // 208 = Energy (kcal)
+    return{
+      name:titleCase(food.description),
+      brand:String(food.brandOwner||food.brandName||'').trim(),
+      cal100:Math.max(0,cal100),
+      p100:Math.max(0,m['203']||0),  // protein
+      c100:Math.max(0,m['205']||0),  // carbs
+      f100:Math.max(0,m['204']||0),  // fat
+      sq:Number(food.servingSize)||100,
+      serving_size:food.servingSize?(food.servingSize+(food.servingSizeUnit||'g')):'',
+      source:'USDA'
+    };
   }
 
   async function offSearch(q){
-    const url=OFF_SEARCH+'?search_terms='+encodeURIComponent(q)+'&json=1&page_size=10&fields=code,product_name,nutriments,serving_size,serving_quantity&sort_by=unique_scans_n';
+    const url=OFF_SEARCH+'?search_terms='+encodeURIComponent(q)+'&json=1&page_size=50&fields=code,product_name,brands,nutriments,serving_size,serving_quantity&sort_by=unique_scans_n';
     const r=await fetch(url);
     const j=await r.json();
-    return(j.products||[]).filter(p=>p.product_name&&p.nutriments&&(p.nutriments['energy-kcal_100g']||p.nutriments['energy-kcal']||p.nutriments['energy_100g']));
+    return(j.products||[])
+      .filter(p=>p.product_name&&p.nutriments&&(p.nutriments['energy-kcal_100g']||p.nutriments['energy-kcal']||p.nutriments['energy_100g']))
+      .map(parseOFF);
+  }
+
+  async function usdaSearch(q){
+    if(!USDA_KEY) return [];
+    const url=USDA_SEARCH+'?api_key='+encodeURIComponent(USDA_KEY)
+      +'&query='+encodeURIComponent(q)
+      +'&pageSize=50&dataType=Foundation,SR%20Legacy,Survey%20(FNDDS),Branded';
+    const r=await fetch(url);
+    if(!r.ok) throw new Error('usda '+r.status);
+    const j=await r.json();
+    return(j.foods||[]).map(parseUSDA).filter(f=>f.cal100>0);
   }
 
   async function offBarcode(code){
-    const r=await fetch(OFF_PRODUCT+encodeURIComponent(code)+'.json?fields=code,product_name,nutriments,serving_size,serving_quantity');
+    const r=await fetch(OFF_PRODUCT+encodeURIComponent(code)+'.json?fields=code,product_name,brands,nutriments,serving_size,serving_quantity');
     const j=await r.json();
-    if(j.status===1&&j.product&&j.product.product_name) return j.product;
+    if(j.status===1&&j.product&&j.product.product_name) return parseOFF(j.product);
     return null;
   }
 
-  function renderResults(prods){
+  function renderResults(items){
     const el=document.getElementById('food-results');
-    if(!prods.length){el.innerHTML='<div class="food-empty">No results found. Try different keywords.</div>';return;}
-    const parsed=prods.map(parseFood);
-    el.innerHTML=parsed.map((f,i)=>
-      '<div class="food-item" data-idx="'+i+'" tabindex="0">'+
-      '<div class="food-item-name">'+esc(f.name)+'</div>'+
-      '<div class="food-item-macros">'+Math.round(f.cal100)+' kcal &middot; P:'+Math.round(f.p100)+'g &middot; C:'+Math.round(f.c100)+'g &middot; F:'+Math.round(f.f100)+'g <span class="food-item-per">per 100g</span></div>'+
-      '</div>'
-    ).join('');
+    if(!items.length){el.innerHTML='<div class="food-empty">No results found. Try different keywords.</div>';return;}
+    el.innerHTML=items.map((f,i)=>{
+      const badge=f.source==='USDA'
+        ? '<span class="src-badge src-usda">USDA</span>'
+        : '<span class="src-badge src-off">Branded</span>';
+      const brand=f.brand?('<span class="food-item-brand">'+esc(f.brand)+'</span> &middot; '):'';
+      return '<div class="food-item" data-idx="'+i+'" tabindex="0">'+
+        '<div class="food-item-name">'+esc(f.name)+badge+'</div>'+
+        '<div class="food-item-macros">'+brand+Math.round(f.cal100)+' kcal &middot; P:'+Math.round(f.p100)+'g &middot; C:'+Math.round(f.c100)+'g &middot; F:'+Math.round(f.f100)+'g <span class="food-item-per">per 100g</span></div>'+
+        '</div>';
+    }).join('');
     el.querySelectorAll('.food-item').forEach((el2,i)=>{
-      el2.addEventListener('click',()=>openServing(parsed[i]));
-      el2.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openServing(parsed[i]);});
+      el2.addEventListener('click',()=>openServing(items[i]));
+      el2.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openServing(items[i]);});
     });
   }
 
@@ -1108,9 +1164,32 @@ applyNutritionTierGates();
     const q=(document.getElementById('food-search-input').value||'').trim();
     if(!q)return;
     const el=document.getElementById('food-results');
-    el.innerHTML='<div class="food-loading">Searching Open Food Facts…</div>';
-    try{renderResults(await offSearch(q));}
-    catch(e){el.innerHTML='<div class="food-empty">Search failed. Check your connection and try again.</div>';}
+    el.innerHTML='<div class="food-loading">Searching food databases…</div>';
+    const [usda,off]=await Promise.allSettled([usdaSearch(q),offSearch(q)]);
+    const u=usda.status==='fulfilled'?usda.value:[];
+    const o=off.status==='fulfilled'?off.value:[];
+    if(!u.length&&!o.length){
+      if(usda.status==='rejected'&&off.status==='rejected')
+        el.innerHTML='<div class="food-empty">Search failed. Check your connection and try again.</div>';
+      else el.innerHTML='<div class="food-empty">No results found. Try different keywords.</div>';
+      return;
+    }
+    // Rank: exact/prefix name matches first; nudge generic (USDA) + complete-macro items up
+    const ql=q.toLowerCase();
+    function score(f){
+      const n=f.name.toLowerCase();
+      let s=0;
+      if(n===ql)s+=100; else if(n.startsWith(ql))s+=60; else if(n.includes(ql))s+=30;
+      if(f.source==='USDA')s+=8;
+      if(f.cal100>0&&(f.p100||f.c100||f.f100))s+=5;
+      return s;
+    }
+    const seen=new Set();
+    const merged=u.concat(o).filter(f=>{
+      const k=f.source+'|'+f.name.toLowerCase()+'|'+Math.round(f.cal100);
+      if(seen.has(k))return false; seen.add(k); return true;
+    }).sort((a,b)=>score(b)-score(a)).slice(0,60);
+    renderResults(merged);
   }
   document.getElementById('food-search-btn').addEventListener('click',doSearch);
   document.getElementById('food-search-input').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
