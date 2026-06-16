@@ -182,6 +182,19 @@
     </div>
   </div>
 
+  <!-- MACRO PIE CHART -->
+  <div class="card-light" id="macro-pie-card" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="section-label-dark" style="margin-bottom:0">Today's macro split</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:18px">
+      <div style="position:relative;width:130px;height:130px;flex-shrink:0">
+        <canvas id="macroChart"></canvas>
+      </div>
+      <div id="macro-legend" style="flex:1;font-family:'DM Sans',sans-serif"></div>
+    </div>
+  </div>
+
   <!-- TREND (week / month toggle) -->
   <div class="card-light">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
@@ -201,6 +214,7 @@
         <div class="week-val" id="wk-days">0 / 7</div>
       </div>
     </div>
+    <div id="deficit-summary" style="display:none;background:#f8fafc;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#333;line-height:1.6"></div>
     <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
     <div style="font-size:11px;color:#666;margin-top:8px;line-height:1.4" id="trend-note">Log at least 3 days to see your fluctuation pattern.</div>
   </div>
@@ -297,6 +311,31 @@ function ensureDay(date){
 
 let currentDate=todayStr();
 let trendChart=null;
+let _targetLineVal=null;
+let macroChart=null;
+
+// Registered once — reads _targetLineVal at draw time to avoid re-registering on each render
+Chart.register({
+  id:'devfit-target-line',
+  afterDraw:function(chart){
+    if(chart!==trendChart||!_targetLineVal) return;
+    const yScale=chart.scales.y;
+    const y=yScale.getPixelForValue(_targetLineVal);
+    const ctx=chart.ctx;
+    ctx.save();
+    ctx.strokeStyle='#111';
+    ctx.lineWidth=1.5;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(chart.chartArea.left,y);
+    ctx.lineTo(chart.chartArea.right,y);
+    ctx.stroke();
+    ctx.fillStyle='#111';
+    ctx.font='bold 10px DM Sans,system-ui,sans-serif';
+    ctx.fillText('Target '+_targetLineVal,chart.chartArea.left+4,y-4);
+    ctx.restore();
+  }
+});
 
 document.getElementById('date-pick').value=currentDate;
 
@@ -321,6 +360,7 @@ document.getElementById('date-pick').value=currentDate;
     save();
     renderDeltas();
     renderTrend();
+    renderMacroChart();
   });
 });
 
@@ -346,6 +386,7 @@ function renderDay(){
   });
   renderDeltas();
   renderTrend();
+  renderMacroChart();
 }
 
 function renderDeltas(){
@@ -400,6 +441,23 @@ function renderTrend(){
   const avg=logged.length?Math.round(logged.reduce((a,b)=>a+b,0)/logged.length):null;
   document.getElementById('wk-avg').textContent=avg!==null?avg+' kcal':'—';
   document.getElementById('wk-days').textContent=logged.length+' / '+N;
+
+  // Weekly deficit / surplus summary
+  const defEl=document.getElementById('deficit-summary');
+  if(defEl){
+    const calTarget=Number(data.targets.cal)||null;
+    if(calTarget && avg!==null && logged.length>=2){
+      const totalDef=(calTarget-avg)*logged.length;
+      const isDeficit=totalDef>=0;
+      const estKg=(Math.abs(totalDef)/7700).toFixed(2);
+      const col=isDeficit?'#16a34a':'#ef4444';
+      defEl.style.display='block';
+      defEl.innerHTML='<strong>'+logged.length+' days logged</strong> · avg <strong>'+avg+'</strong> kcal vs target <strong>'+calTarget+'</strong> &nbsp;→&nbsp;<span style="color:'+col+';font-weight:700"> '+(isDeficit?'−':'+')+Math.abs(Math.round(totalDef)).toLocaleString()+' kcal '+(isDeficit?'deficit':'surplus')+'</span> &nbsp;(est. '+(isDeficit?'−':'+')+estKg+' kg)';
+    } else {
+      defEl.style.display='none';
+    }
+  }
+
   const ttl=document.getElementById('trend-title');
   if(ttl) ttl.textContent = (N<=7?'7-day':'30-day')+' calorie trend';
 
@@ -459,29 +517,59 @@ function renderTrend(){
     }
   });
 
-  if(target){
-    Chart.register({
-      id:'targetLine_'+Date.now(),
-      afterDraw:function(chart){
-        if(chart!==trendChart||!target) return;
-        const yScale=chart.scales.y;
-        const y=yScale.getPixelForValue(target);
-        const ctx=chart.ctx;
-        ctx.save();
-        ctx.strokeStyle='#111';
-        ctx.lineWidth=1.5;
-        ctx.setLineDash([4,4]);
-        ctx.beginPath();
-        ctx.moveTo(chart.chartArea.left,y);
-        ctx.lineTo(chart.chartArea.right,y);
-        ctx.stroke();
-        ctx.fillStyle='#111';
-        ctx.font='bold 10px DM Sans,system-ui,sans-serif';
-        ctx.fillText('Target '+target,chart.chartArea.left+4,y-4);
-        ctx.restore();
+  _targetLineVal=target||null;
+  if(target) trendChart.update();
+}
+
+function renderMacroChart(){
+  const day=ensureDay(currentDate);
+  const p=Number(day.p)||0;
+  const c=Number(day.c)||0;
+  const f=Number(day.f)||0;
+  const pCal=p*4, cCal=c*4, fCal=f*9;
+  const total=pCal+cCal+fCal;
+  const card=document.getElementById('macro-pie-card');
+  if(!card) return;
+  if(total===0){ card.style.display='none'; if(macroChart){macroChart.destroy();macroChart=null;} return; }
+  card.style.display='block';
+  const ctx=document.getElementById('macroChart');
+  if(!ctx) return;
+  if(macroChart){macroChart.destroy();macroChart=null;}
+  macroChart=new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['Protein','Carbs','Fat'],
+      datasets:[{
+        data:[pCal,cCal,fCal],
+        backgroundColor:['#3b82f6','#f59e0b','#ef4444'],
+        borderWidth:0,
+        hoverOffset:4
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:true,
+      cutout:'68%',
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c2=>{const pct=Math.round(c2.parsed/total*100);return c2.label+': '+pct+'%';}}}
       }
-    });
-    trendChart.update();
+    }
+  });
+  const legend=document.getElementById('macro-legend');
+  if(legend){
+    const items=[
+      {label:'Protein',g:p,kcal:pCal,color:'#3b82f6'},
+      {label:'Carbs',  g:c,kcal:cCal,color:'#f59e0b'},
+      {label:'Fat',    g:f,kcal:fCal,color:'#ef4444'}
+    ];
+    legend.innerHTML=items.map(it=>{
+      const pct=Math.round(it.kcal/total*100);
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+        '<div style="width:10px;height:10px;border-radius:50%;background:'+it.color+';flex-shrink:0"></div>'+
+        '<div><div style="font-size:13px;font-weight:700;color:#111">'+it.label+'</div>'+
+        '<div style="font-size:11px;color:#666">'+it.g+'g &middot; '+it.kcal+' kcal &middot; '+pct+'%</div></div></div>';
+    }).join('');
   }
 }
 

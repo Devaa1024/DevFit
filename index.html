@@ -427,6 +427,39 @@
     </div>
   </div>
 
+  <!-- BODY MEASUREMENTS -->
+  <div class="card">
+    <div class="section-label">Body measurements — Week <span class="meas-week-num">1</span> <span style="font-size:10px;color:#aaa;font-weight:400;text-transform:none;letter-spacing:0">(cm)</span></div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+      <div style="background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:8px 4px;text-align:center">
+        <div style="font-size:9px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Waist</div>
+        <input id="m-waist" type="number" inputmode="decimal" step="0.1" placeholder="—" style="width:100%;border:none;background:transparent;font-size:15px;font-weight:700;text-align:center;color:#111;outline:none;padding:2px 0">
+        <div id="md-waist" style="font-size:9px;margin-top:2px;font-weight:700;min-height:13px"></div>
+      </div>
+      <div style="background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:8px 4px;text-align:center">
+        <div style="font-size:9px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Chest</div>
+        <input id="m-chest" type="number" inputmode="decimal" step="0.1" placeholder="—" style="width:100%;border:none;background:transparent;font-size:15px;font-weight:700;text-align:center;color:#111;outline:none;padding:2px 0">
+        <div id="md-chest" style="font-size:9px;margin-top:2px;font-weight:700;min-height:13px"></div>
+      </div>
+      <div style="background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:8px 4px;text-align:center">
+        <div style="font-size:9px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Arms</div>
+        <input id="m-arms" type="number" inputmode="decimal" step="0.1" placeholder="—" style="width:100%;border:none;background:transparent;font-size:15px;font-weight:700;text-align:center;color:#111;outline:none;padding:2px 0">
+        <div id="md-arms" style="font-size:9px;margin-top:2px;font-weight:700;min-height:13px"></div>
+      </div>
+      <div style="background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:8px 4px;text-align:center">
+        <div style="font-size:9px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Thighs</div>
+        <input id="m-thighs" type="number" inputmode="decimal" step="0.1" placeholder="—" style="width:100%;border:none;background:transparent;font-size:15px;font-weight:700;text-align:center;color:#111;outline:none;padding:2px 0">
+        <div id="md-thighs" style="font-size:9px;margin-top:2px;font-weight:700;min-height:13px"></div>
+      </div>
+      <div style="background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:8px 4px;text-align:center">
+        <div style="font-size:9px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Hips</div>
+        <input id="m-hips" type="number" inputmode="decimal" step="0.1" placeholder="—" style="width:100%;border:none;background:transparent;font-size:15px;font-weight:700;text-align:center;color:#111;outline:none;padding:2px 0">
+        <div id="md-hips" style="font-size:9px;margin-top:2px;font-weight:700;min-height:13px"></div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#aaa;margin-top:8px;line-height:1.4">Track weekly changes. Delta shown vs previous week.</div>
+  </div>
+
   <!-- SUMMARY STATS -->
   <div class="card">
     <div class="summary-strip" id="summary-strip"></div>
@@ -437,7 +470,7 @@
     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:14px;text-align:center;">
       <div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:6px;">Training This Week</div>
       <div id="streak-count" style="font-size:32px;font-weight:800;color:#16a34a;line-height:1;">0</div>
-      <div style="font-size:10px;color:#4ade80;margin-top:3px;">/ 7 days active</div>
+      <div style="font-size:10px;color:#4ade80;margin-top:3px;">workout sessions</div>
     </div>
     <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:14px;text-align:center;">
       <div style="font-size:11px;font-weight:700;color:#1e3a8a;margin-bottom:6px;">Recovery Score</div>
@@ -637,7 +670,7 @@ let trendChart = null;
 let progressChart = null;
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbzHTJOANyp1JJ-k2PmRuMjxpTz03G30ThTyV1thlMJ4QMIOvS8HRN4xW3VsHbzI7YXc/exec";
 
-function freshCheckin(){ return {overload:null, bf:'', bfDir:null, diet:null, stress:null, notes:''}; }
+function freshCheckin(){ return {overload:null, bf:'', bfDir:null, diet:null, stress:null, notes:'', meas:{waist:'',chest:'',arms:'',thighs:'',hips:''}}; }
 
 let appData = {
   clientName:'', goal:'', goalType:'loss',
@@ -996,14 +1029,69 @@ function calcRecoveryScore(w){
   return Math.round(s/wt);
 }
 
-function calcTrainingStreak(w){
-  // Count days this week where steps were logged (proxy for active day)
-  const days=appData.steps[w]||[];
-  return days.filter(v=>v!==''&&parseFloat(v)>0).length;
+function calcTrainingStreak(){
+  // Count unique days with actual workout sessions logged in current calendar week (Mon–Sun)
+  try{
+    const raw=localStorage.getItem('devfitTrainingV1');
+    if(!raw) return 0;
+    const training=JSON.parse(raw);
+    if(!training.sessions||!training.sessions.length) return 0;
+    const today=new Date();
+    const dow=today.getDay(); // 0=Sun
+    const mon=new Date(today);
+    mon.setDate(today.getDate()-(dow===0?6:dow-1));
+    mon.setHours(0,0,0,0);
+    const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+    function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+    const monStr=fmt(mon), sunStr=fmt(sun);
+    const activeDates=new Set(
+      training.sessions
+        .filter(s=>s.date>=monStr&&s.date<=sunStr&&s.logs&&s.logs.some(l=>l.sets&&l.sets.some(st=>(Number(st.reps)||0)>0||(Number(st.weight)||0)>0)))
+        .map(s=>s.date)
+    );
+    return activeDates.size;
+  }catch(e){return 0;}
+}
+
+const MEAS_FIELDS=['waist','chest','arms','thighs','hips'];
+function renderMeasurements(){
+  const ci=appData.weeklyCheckin[currentWeek]||freshCheckin();
+  const prevCi=currentWeek>0?(appData.weeklyCheckin[currentWeek-1]||null):null;
+  const meas=ci.meas||{};
+  const prevMeas=prevCi?(prevCi.meas||{}): {};
+  document.querySelectorAll('.meas-week-num').forEach(el=>el.textContent=currentWeek+1);
+  MEAS_FIELDS.forEach(f=>{
+    const inp=document.getElementById('m-'+f);
+    if(inp) inp.value=meas[f]!==undefined&&meas[f]!==''?meas[f]:'';
+    const diffEl=document.getElementById('md-'+f);
+    if(!diffEl) return;
+    const cur=parseFloat(meas[f]);
+    const prev=parseFloat(prevMeas[f]);
+    if(!isNaN(cur)&&!isNaN(prev)&&prevMeas[f]!==''&&prevMeas[f]!==undefined){
+      const diff=parseFloat((cur-prev).toFixed(1));
+      diffEl.textContent=(diff>0?'+':'')+diff;
+      diffEl.style.color=diff===0?'#999':diff<0?'#16a34a':'#f59e0b';
+    } else {
+      diffEl.textContent='';
+    }
+  });
+}
+function bindMeasurements(){
+  MEAS_FIELDS.forEach(f=>{
+    const inp=document.getElementById('m-'+f);
+    if(!inp||inp._measBound) return;
+    inp._measBound=true;
+    inp.addEventListener('blur',()=>{
+      if(!appData.weeklyCheckin[currentWeek]) appData.weeklyCheckin[currentWeek]=freshCheckin();
+      if(!appData.weeklyCheckin[currentWeek].meas) appData.weeklyCheckin[currentWeek].meas={};
+      appData.weeklyCheckin[currentWeek].meas[f]=inp.value===''?'':parseFloat(inp.value);
+      save(); renderMeasurements();
+    });
+  });
 }
 
 function renderExtraCards(){
-  const streak=calcTrainingStreak(currentWeek);
+  const streak=calcTrainingStreak();
   const recovery=calcRecoveryScore(currentWeek);
   const streakEl=document.getElementById('streak-count');
   const recovEl=document.getElementById('recovery-score');
@@ -1173,6 +1261,8 @@ function render(){
   }
   document.getElementById('feedback-box').innerHTML=fb;
   renderStatsBanner();
+  renderMeasurements();
+  bindMeasurements();
   renderExtraCards();
   updateChart();
 }
@@ -1481,7 +1571,7 @@ function exportPDF(){
 
   const ci=appData.weeklyCheckin[currentWeek]||freshCheckin();
   const olLabels={improved:'Weight/reps increased',form:'Better form',same:'Same as last week',regressed:'Regressed'};
-  const bfLabels={drop:'Dropped',same:'Same',rise:'Increased'};
+  const bfLabels={'drop_clear':'Dropped ↓↓','drop_slight':'Dropped ↓','same':'Same →','rise_slight':'Rose ↑','rise_clear':'Rose ↑↑'};
   const dietLabels={met:'Met',missed_few:'Missed few',binge:'Binge'};
   const stressLabels={low:'Low',moderate:'Moderate',high:'High'};
   doc.setTextColor(17,17,17); doc.setFillColor(245,245,245); doc.rect(margin,y,W-margin*2,28,'F');

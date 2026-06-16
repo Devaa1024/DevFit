@@ -351,7 +351,7 @@
 
   <div class="footer">
     DevFit · Dominance Through Discipline<br>
-    <a href="https://wa.me/60183679177">Contact trainer</a> · v3.8.0
+    <a href="https://wa.me/60183679177">Contact trainer</a> · v4.1.0
   </div>
 
 
@@ -485,6 +485,10 @@ let appData = {
   }catch(e){}
 })();
 
+// Pre-load logo for PDF exports
+let pdfLogoImg=null;
+(function(){const im=new Image();im.crossOrigin='anonymous';im.onload=()=>{pdfLogoImg=im;};im.onerror=()=>{pdfLogoImg=null;};im.src='icon-192.png';})();
+
 // ---------- TOAST ----------
 function toast(msg, err){
   const t = document.getElementById('toast');
@@ -550,10 +554,10 @@ function avg(arr){
 }
 function stepsScore(s){if(s===null)return null;if(s>=10000)return 100;if(s>=7500)return 80;if(s>=5000)return 55;if(s>=3000)return 35;return 15;}
 function sleepScore(h){if(h===null)return null;if(h>=7&&h<=9)return 100;if(h>=6&&h<10)return 75;if(h>=5)return 45;return 20;}
-function overloadScore(ol){if(ol==='improved')return 100;if(ol==='form')return 80;if(ol==='same')return 55;if(ol==='regressed')return 15;return null;}
-function bfScore(dir){if(dir==='drop')return 100;if(dir==='same')return 50;if(dir==='rise')return 0;return null;}
-function dietScore(d){if(d==='met')return 100;if(d==='missed_few')return 60;if(d==='binge')return 20;return null;}
-function stressScore(s){if(s==='low')return 100;if(s==='moderate')return 60;if(s==='high')return 20;return null;}
+function overloadScore(ol){if(ol==='improved')return 100;if(ol==='form')return 75;if(ol==='same')return 60;if(ol==='regressed')return 30;return null;}
+function bfScore(dir){if(dir==='drop_clear')return 100;if(dir==='drop_slight')return 85;if(dir==='same')return 60;if(dir==='rise_slight')return 35;if(dir==='rise_clear')return 10;return null;}
+function dietScore(d){if(d==='met')return 100;if(d==='missed_few')return 70;if(d==='binge')return 25;return null;}
+function stressScore(s){if(s==='low')return 100;if(s==='moderate')return 55;if(s==='high')return 30;return null;}
 
 function bwScore(bwAvg, prevBwAvg, goalType){
   if(bwAvg===null) return null;
@@ -592,23 +596,24 @@ function calcTrueScore(w){
   const tw = appData.goal ? parseFloat(appData.goal) : null;
   let bwVal = bwScore(bwAvg, prevBwAvg, gt);
   let bfVal = bfScore(ci.bfDir);
-  if(ci.bfDir==='drop' && bwVal!==null && bwVal<75) bwVal=75;
+  const bfDropping=(ci.bfDir==='drop_clear'||ci.bfDir==='drop_slight');
+  if(bfDropping && bwVal!==null && bwVal<75) bwVal=75;
   const targetReached = bwAvg!==null && tw!==null && (
     (gt==='loss'&&bwAvg<=tw) ||
     (gt==='gain'&&bwAvg>=tw) ||
     (gt==='maintain'&&Math.abs(bwAvg-tw)<=0.5)
   );
   if(targetReached) bwVal = 100;
-  if(targetReached && ci.bfDir==='drop') bfVal = 100;
+  if(targetReached && bfDropping) bfVal = 100;
 
   const scores = {
     bw:     {val:bwVal,                      weight:17, label:'Bodyweight'},
-    bf:     {val:bfVal,                      weight:11, label:'Body fat'},
-    ol:     {val:overloadScore(ci.overload), weight:24, label:'Overload'},
-    diet:   {val:dietScore(ci.diet),         weight:21, label:'Diet'},
+    bf:     {val:bfVal,                      weight:10, label:'Body fat'},
+    ol:     {val:overloadScore(ci.overload), weight:22, label:'Overload'},
+    diet:   {val:dietScore(ci.diet),         weight:23, label:'Diet'},
     sleep:  {val:sleepScore(sleepAvg),       weight:10, label:'Sleep'},
     steps:  {val:stepsScore(stepsAvg),       weight:10, label:'Steps'},
-    stress: {val:stressScore(ci.stress),     weight:7,  label:'Stress'}
+    stress: {val:stressScore(ci.stress),     weight:8,  label:'Stress'}
   };
   let totalWeight=0, weightedSum=0;
   Object.values(scores).forEach(s=>{
@@ -757,6 +762,7 @@ function exportWeekPDF(){
       pdf.text(appData.clientName || 'Client', 14, 32);
       const today = new Date().toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'});
       pdf.text(today, 14, 37);
+      if(pdfLogoImg) pdf.addImage(pdfLogoImg,'PNG',186,13,18,18);
 
       let y = 50;
       pdf.setDrawColor(204,0,0); pdf.setLineWidth(0.4);
@@ -821,6 +827,7 @@ function exportProgramPDF(){
       pdf.text(appData.clientName || 'Client', 14, 32);
       const today = new Date().toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'});
       pdf.text(today + ' · ' + weeksToInclude + ' weeks', 14, 37);
+      if(pdfLogoImg) pdf.addImage(pdfLogoImg,'PNG',186,13,18,18);
 
       let y = 50;
       pdf.setDrawColor(204,0,0); pdf.setLineWidth(0.4);

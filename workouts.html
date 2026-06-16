@@ -484,6 +484,7 @@ function exportPlanPDF(){
     doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
     doc.setTextColor(170,170,170);
     doc.text(dateStr,W-M,23,{align:'right'});
+    if(logoImg) doc.addImage(logoImg,'PNG',W-15,5,14,14);
   }
 
   header();
