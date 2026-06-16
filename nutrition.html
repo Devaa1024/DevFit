@@ -180,6 +180,7 @@
       <div class="delta-cell"><div class="lbl">Carbs</div>        <div class="val muted" id="dlt-c">—</div></div>
       <div class="delta-cell"><div class="lbl">Fat</div>          <div class="val muted" id="dlt-f">—</div></div>
     </div>
+    <button class="diet-share-btn" id="diet-share-btn" type="button">Share Daily Card</button>
   </div>
 
   <!-- MACRO PIE CHART -->
@@ -605,6 +606,259 @@ applyNutritionTierGates();
       if(btn30) btn30.click();
     }
   } catch(e){}
+})();
+</script>
+
+<!-- ===== DAILY DIET SHARE CARD ===== -->
+<style>
+  .diet-share-btn{width:100%;background:linear-gradient(135deg,#cc0000,#ff4444);color:#fff;border:none;border-radius:12px;padding:13px;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;margin-top:14px;transition:all .15s;box-shadow:0 4px 12px rgba(204,0,0,0.25)}
+  .diet-share-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(204,0,0,0.35)}
+  .ds-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:none;align-items:center;justify-content:center;padding:1rem;overflow:auto}
+  .ds-overlay.show{display:flex}
+  .ds-modal{background:#1a1a1a;border:1px solid #2a2a2a;border-top:3px solid #cc0000;border-radius:14px;padding:18px;max-width:420px;width:100%;max-height:95vh;overflow:auto}
+  .ds-modal h3{font-family:'DM Sans',system-ui,sans-serif;color:#fff;font-size:15px;font-weight:800;margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em}
+  .ds-picker{display:flex;gap:6px;margin-bottom:12px;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:4px}
+  .ds-tbtn{flex:1;background:transparent;border:none;color:rgba(255,255,255,0.6);font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:700;padding:8px;border-radius:7px;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.04em}
+  .ds-tbtn.active{background:#cc0000;color:#fff}
+  .ds-preview{background:repeating-conic-gradient(#222 0% 25%, #2a2a2a 0% 50%) 50% / 20px 20px;border-radius:10px;overflow:hidden;margin-bottom:14px}
+  .ds-preview img{display:block;width:100%;height:auto}
+  .ds-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .ds-actions button{padding:12px;border:none;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;transition:all .15s}
+  .ds-dl{background:#fff;color:#111}
+  .ds-dl:hover{background:#e2e8f0}
+  .ds-sh{background:#cc0000;color:#fff}
+  .ds-sh:hover{background:#a30000}
+  .ds-close{width:100%;background:transparent;color:#888;border:1px solid #333;margin-top:8px;padding:10px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
+</style>
+<div class="ds-overlay" id="ds-overlay">
+  <div class="ds-modal">
+    <h3>Share daily card</h3>
+    <div class="ds-picker" id="ds-picker">
+      <button class="ds-tbtn active" data-theme="light">Light</button>
+      <button class="ds-tbtn" data-theme="dark">Dark</button>
+      <button class="ds-tbtn" data-theme="transparent">Transparent</button>
+    </div>
+    <div class="ds-preview"><img id="ds-preview-img" alt="Daily nutrition card"></div>
+    <div class="ds-actions">
+      <button class="ds-dl" id="ds-dl">Download</button>
+      <button class="ds-sh" id="ds-sh">Share</button>
+    </div>
+    <button class="ds-close" id="ds-close">Close</button>
+  </div>
+</div>
+<canvas id="ds-canvas" width="1080" height="1350" style="display:none"></canvas>
+<script>
+'use strict';
+(function(){
+  // Preload Inter wordmark font
+  try{ if(document.fonts&&document.fonts.load){ document.fonts.load('italic 700 75px "Inter"'); document.fonts.load('600 60px "DM Sans"'); document.fonts.load('800 60px "DM Sans"'); } }catch(e){}
+
+  let dsTheme='light';
+
+  function fmtDateLong(d){
+    try{ return new Date(d).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}); }
+    catch(e){ return d; }
+  }
+  function getHandle(){
+    try{
+      const cn=(localStorage.getItem('devfit_displayName')||'').trim();
+      if(cn) return '@'+cn.replace(/^@+/,'');
+      const u=JSON.parse(localStorage.getItem('devfit_user')||'{}');
+      if(u.email) return '@'+u.email.split('@')[0];
+    }catch(e){}
+    return '@user';
+  }
+  function rr(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+  }
+
+  function drawDietCard(){
+    const canvas=document.getElementById('ds-canvas');
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width,H=canvas.height;
+    const day=ensureDay(currentDate);
+    const cal=Number(day.cal)||0;
+    const p=Number(day.p)||0, c=Number(day.c)||0, f=Number(day.f)||0;
+    const pCal=p*4,cCal=c*4,fCal=f*9;
+    const macroTotal=pCal+cCal+fCal;
+    const target=Number(data.targets.cal)||null;
+
+    const palette={
+      light:      {bg:'#ffffff',fg:'#0a0a0a',sub:'#7a7a7a',accent:'#cc0000',divider:'rgba(0,0,0,0.08)',track:'rgba(0,0,0,0.06)'},
+      dark:       {bg:'#0a0a0a',fg:'#ffffff',sub:'#cfcfcf',accent:'#ff3a3a',divider:'rgba(255,255,255,0.14)',track:'rgba(255,255,255,0.10)'},
+      transparent:{bg:null,     fg:'#ffffff',sub:'#ffffff',accent:'#ff3a3a',divider:'rgba(255,255,255,0.20)',track:'rgba(255,255,255,0.18)'}
+    };
+    const pal=palette[dsTheme]||palette.light;
+    const FACE='"DM Sans",system-ui,sans-serif';
+    const MACRO_COL={p:'#3b82f6',c:'#f59e0b',f:'#ef4444'};
+
+    ctx.clearRect(0,0,W,H);
+    if(pal.bg){ ctx.fillStyle=pal.bg; ctx.fillRect(0,0,W,H); }
+
+    const PAD=90;
+    let y=PAD+20;
+
+    // Eyebrow label
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillStyle=pal.accent;
+    ctx.font='800 34px '+FACE;
+    ctx.fillText('DAILY NUTRITION',PAD,y);
+    y+=52;
+    // Date
+    ctx.fillStyle=pal.sub;
+    ctx.font='500 40px '+FACE;
+    ctx.fillText(fmtDateLong(currentDate),PAD,y);
+    y+=96;
+
+    // Calories hero
+    ctx.fillStyle=pal.sub;
+    ctx.font='700 30px '+FACE;
+    ctx.fillText('CALORIES',PAD,y);
+    y+=46;
+    ctx.fillStyle=pal.fg;
+    ctx.font='800 190px '+FACE;
+    const calStr=cal.toLocaleString();
+    ctx.fillText(calStr,PAD,y);
+    const calW=ctx.measureText(calStr).width;
+    ctx.fillStyle=pal.sub;
+    ctx.font='600 50px '+FACE;
+    ctx.fillText(' kcal',PAD+calW+10,y+118);
+    y+=210;
+    // Target subline
+    if(target){
+      const diff=cal-target;
+      const txt = Math.abs(diff)<=100 ? 'On target ('+target.toLocaleString()+' kcal)'
+                : diff>0 ? '+'+Math.round(diff).toLocaleString()+' over '+target.toLocaleString()+' target'
+                : Math.round(Math.abs(diff)).toLocaleString()+' under '+target.toLocaleString()+' target';
+      ctx.fillStyle=pal.sub;
+      ctx.font='500 38px '+FACE;
+      ctx.fillText(txt,PAD,y);
+      y+=72;
+    } else { y+=18; }
+
+    // Macro split bar — clip to a rounded pill, then fill crisp segments
+    if(macroTotal>0){
+      const barX=PAD, barW=W-PAD*2, barH=26, barY=y, gap=4;
+      ctx.save();
+      rr(ctx,barX,barY,barW,barH,barH/2); ctx.clip();
+      ctx.fillStyle=pal.track; ctx.fillRect(barX,barY,barW,barH);
+      let segX=barX;
+      const segs=[['p',pCal],['c',cCal],['f',fCal]].filter(s=>s[1]>0);
+      segs.forEach(([k,v],i)=>{
+        const segW=barW*(v/macroTotal);
+        ctx.fillStyle=MACRO_COL[k];
+        const drawW=(i<segs.length-1)?Math.max(segW-gap,1):segW;
+        ctx.fillRect(segX,barY,drawW,barH);
+        segX+=segW;
+      });
+      ctx.restore();
+      y+=barH+58;
+    }
+
+    // Divider
+    ctx.fillStyle=pal.divider;
+    ctx.fillRect(PAD,y,W-PAD*2,2);
+    y+=56;
+
+    // Macro rows
+    const rows=[
+      {label:'Protein',g:p,kcal:pCal,col:MACRO_COL.p},
+      {label:'Carbs',  g:c,kcal:cCal,col:MACRO_COL.c},
+      {label:'Fat',    g:f,kcal:fCal,col:MACRO_COL.f}
+    ];
+    const rowH=128;
+    rows.forEach(r=>{
+      // color dot
+      ctx.fillStyle=r.col;
+      ctx.beginPath(); ctx.arc(PAD+14,y+30,16,0,Math.PI*2); ctx.fill();
+      // label
+      ctx.fillStyle=pal.fg;
+      ctx.textAlign='left';
+      ctx.font='800 56px '+FACE;
+      ctx.fillText(r.label,PAD+56,y);
+      // value right
+      ctx.textAlign='right';
+      ctx.fillStyle=pal.fg;
+      ctx.font='800 56px '+FACE;
+      const gTxt=r.g+'g';
+      ctx.fillText(gTxt,W-PAD,y);
+      const gW=ctx.measureText(gTxt).width;
+      // percent under value
+      if(macroTotal>0){
+        ctx.fillStyle=pal.sub;
+        ctx.font='500 34px '+FACE;
+        ctx.fillText(Math.round(r.kcal/macroTotal*100)+'% of kcal',W-PAD,y+62);
+      }
+      y+=rowH;
+    });
+
+    // Footer: DEVFIT wordmark + handle
+    const fy=H-PAD;
+    ctx.textBaseline='alphabetic';
+    ctx.font='italic 700 70px "Inter",system-ui,sans-serif';
+    ctx.textAlign='left';
+    const devCol=(dsTheme==='transparent')?'#ffffff':pal.fg;
+    const fitCol=(dsTheme==='transparent')?'#ffffff':pal.accent;
+    const dW=ctx.measureText('DEV').width;
+    ctx.fillStyle=devCol; ctx.fillText('DEV',PAD,fy);
+    ctx.fillStyle=fitCol; ctx.fillText('FIT',PAD+dW,fy);
+    ctx.fillStyle=pal.sub;
+    ctx.font='600 36px '+FACE;
+    ctx.textAlign='right';
+    ctx.fillText(getHandle(),W-PAD,fy);
+  }
+
+  function rerender(){
+    drawDietCard();
+    document.getElementById('ds-preview-img').src=document.getElementById('ds-canvas').toDataURL('image/png');
+  }
+
+  async function openModal(){
+    const day=ensureDay(currentDate);
+    if(!(Number(day.cal)>0||Number(day.p)>0||Number(day.c)>0||Number(day.f)>0)){
+      alert('Log today\'s calories or macros first.');
+      return;
+    }
+    try{ await document.fonts.load('italic 700 70px "Inter"'); await document.fonts.ready; }catch(e){}
+    rerender();
+    document.getElementById('ds-overlay').classList.add('show');
+  }
+
+  document.getElementById('diet-share-btn').addEventListener('click',openModal);
+  document.querySelectorAll('.ds-tbtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      dsTheme=btn.dataset.theme;
+      document.querySelectorAll('.ds-tbtn').forEach(b=>b.classList.toggle('active',b===btn));
+      rerender();
+    });
+  });
+  document.getElementById('ds-close').addEventListener('click',()=>document.getElementById('ds-overlay').classList.remove('show'));
+  document.getElementById('ds-overlay').addEventListener('click',e=>{ if(e.target.id==='ds-overlay') document.getElementById('ds-overlay').classList.remove('show'); });
+
+  function filename(){ return 'DevFit_Nutrition_'+currentDate+'.png'; }
+  document.getElementById('ds-dl').addEventListener('click',()=>{
+    document.getElementById('ds-canvas').toBlob(blob=>{
+      if(!blob) return;
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download=filename();
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    },'image/png',0.95);
+  });
+  document.getElementById('ds-sh').addEventListener('click',()=>{
+    document.getElementById('ds-canvas').toBlob(async blob=>{
+      if(!blob) return;
+      const file=new File([blob],filename(),{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        try{ await navigator.share({files:[file],title:'DevFit · Daily Nutrition',text:'DevFit · Dominance Through Discipline'}); return; }
+        catch(e){ if(e.name==='AbortError') return; }
+      }
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download=filename();
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    },'image/png',0.95);
+  });
 })();
 </script>
 

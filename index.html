@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DevFit — Progress</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600&family=Inter:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -500,6 +500,7 @@
     <div style="margin-top:12px;font-size:11px;color:#e2e8f0;line-height:1.6;" id="score-legend">
       Score weighted across 7 signals — Overload 22% · Diet 23% · Bodyweight 17% · Body fat 10% · Sleep 10% · Steps 10% · Stress 8%. Untracked signals are skipped and the rest re-normalise automatically. Recomp credit applies if body-fat drops while weight stalls.
     </div>
+    <button class="wk-share-btn" id="wk-share-btn" type="button">Share Weekly Card</button>
   </div>
 
   <!-- FEEDBACK (Pro) -->
@@ -1951,6 +1952,216 @@ if(typeof DevFitDB!=='undefined'){
     renderTabs();render();applyTierGates();
   });
 }
+</script>
+
+<!-- ===== WEEKLY PROGRESS SHARE CARD ===== -->
+<style>
+  .wk-share-btn{width:100%;background:linear-gradient(135deg,#cc0000,#ff4444);color:#fff;border:none;border-radius:12px;padding:13px;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;margin-top:14px;transition:all .15s;box-shadow:0 4px 12px rgba(204,0,0,0.25)}
+  .wk-share-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(204,0,0,0.35)}
+  .ws-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:none;align-items:center;justify-content:center;padding:1rem;overflow:auto}
+  .ws-overlay.show{display:flex}
+  .ws-modal{background:#1a1a1a;border:1px solid #2a2a2a;border-top:3px solid #cc0000;border-radius:14px;padding:18px;max-width:420px;width:100%;max-height:95vh;overflow:auto}
+  .ws-modal h3{font-family:'DM Sans',system-ui,sans-serif;color:#fff;font-size:15px;font-weight:800;margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em}
+  .ws-picker{display:flex;gap:6px;margin-bottom:12px;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:4px}
+  .ws-tbtn{flex:1;background:transparent;border:none;color:rgba(255,255,255,0.6);font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:700;padding:8px;border-radius:7px;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.04em}
+  .ws-tbtn.active{background:#cc0000;color:#fff}
+  .ws-preview{background:repeating-conic-gradient(#222 0% 25%, #2a2a2a 0% 50%) 50% / 20px 20px;border-radius:10px;overflow:hidden;margin-bottom:14px}
+  .ws-preview img{display:block;width:100%;height:auto}
+  .ws-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .ws-actions button{padding:12px;border:none;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;transition:all .15s}
+  .ws-dl{background:#fff;color:#111}
+  .ws-dl:hover{background:#e2e8f0}
+  .ws-sh{background:#cc0000;color:#fff}
+  .ws-sh:hover{background:#a30000}
+  .ws-close{width:100%;background:transparent;color:#888;border:1px solid #333;margin-top:8px;padding:10px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
+</style>
+<div class="ws-overlay" id="ws-overlay">
+  <div class="ws-modal">
+    <h3>Share weekly card</h3>
+    <div class="ws-picker" id="ws-picker">
+      <button class="ws-tbtn active" data-theme="light">Light</button>
+      <button class="ws-tbtn" data-theme="dark">Dark</button>
+      <button class="ws-tbtn" data-theme="transparent">Transparent</button>
+    </div>
+    <div class="ws-preview"><img id="ws-preview-img" alt="Weekly progress card"></div>
+    <div class="ws-actions">
+      <button class="ws-dl" id="ws-dl">Download</button>
+      <button class="ws-sh" id="ws-sh">Share</button>
+    </div>
+    <button class="ws-close" id="ws-close">Close</button>
+  </div>
+</div>
+<canvas id="ws-canvas" width="1080" height="1350" style="display:none"></canvas>
+<script>
+'use strict';
+(function(){
+  try{ if(document.fonts&&document.fonts.load){ document.fonts.load('italic 700 70px "Inter"'); document.fonts.load('800 60px "DM Sans"'); } }catch(e){}
+
+  let wsTheme='light';
+
+  function getHandle(){
+    try{
+      const cn=(localStorage.getItem('devfit_displayName')||'').trim();
+      if(cn) return '@'+cn.replace(/^@+/,'');
+      const u=JSON.parse(localStorage.getItem('devfit_user')||'{}');
+      if(u.email) return '@'+u.email.split('@')[0];
+    }catch(e){}
+    return '@user';
+  }
+
+  function drawWeekCard(){
+    const canvas=document.getElementById('ws-canvas');
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width,H=canvas.height;
+    const w=currentWeek;
+    const {overall}=calcTrueScore(w);
+    const bwAvg=avg(appData.bw[w]);
+    const stepsAvg=avg(appData.steps[w]);
+    const sleepAvg=avg(appData.sleep[w]);
+    const recovery=calcRecoveryScore(w);
+    const sessions=calcTrainingStreak();
+
+    const zoneCol = overall===null?null : overall>=75?'#16a34a':overall>=50?'#f59e0b':'#ef4444';
+    const zoneTxt = overall===null?'' : overall>=75?'GREAT WEEK':overall>=50?'SOLID WEEK':'KEEP PUSHING';
+
+    const palette={
+      light:      {bg:'#ffffff',fg:'#0a0a0a',sub:'#7a7a7a',accent:'#cc0000',divider:'rgba(0,0,0,0.08)'},
+      dark:       {bg:'#0a0a0a',fg:'#ffffff',sub:'#cfcfcf',accent:'#ff3a3a',divider:'rgba(255,255,255,0.14)'},
+      transparent:{bg:null,     fg:'#ffffff',sub:'#ffffff',accent:'#ff3a3a',divider:'rgba(255,255,255,0.20)'}
+    };
+    const pal=palette[wsTheme]||palette.light;
+    const FACE='"DM Sans",system-ui,sans-serif';
+
+    ctx.clearRect(0,0,W,H);
+    if(pal.bg){ ctx.fillStyle=pal.bg; ctx.fillRect(0,0,W,H); }
+
+    const PAD=90;
+    let y=PAD+20;
+
+    // Eyebrow
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillStyle=pal.accent;
+    ctx.font='800 34px '+FACE;
+    ctx.fillText('WEEK '+(w+1)+' PROGRESS',PAD,y);
+    y+=52;
+    // Date
+    ctx.fillStyle=pal.sub;
+    ctx.font='500 40px '+FACE;
+    ctx.fillText(new Date().toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'}),PAD,y);
+    y+=104;
+
+    // Score hero label
+    ctx.fillStyle=pal.sub;
+    ctx.font='700 30px '+FACE;
+    ctx.fillText('OVERALL SCORE',PAD,y);
+    y+=46;
+    // Hero number
+    const scoreStr = overall===null?'—':overall+'';
+    ctx.fillStyle = (wsTheme==='transparent') ? '#ffffff' : (zoneCol||pal.fg);
+    ctx.font='800 230px '+FACE;
+    ctx.fillText(scoreStr,PAD,y);
+    if(overall!==null){
+      const sW=ctx.measureText(scoreStr).width;
+      ctx.font='800 80px '+FACE;
+      ctx.fillText('%',PAD+sW+8,y+138);
+    }
+    y+=250;
+    // Zone word
+    if(zoneTxt){
+      ctx.fillStyle = (wsTheme==='transparent') ? '#ffffff' : (zoneCol||pal.sub);
+      ctx.font='800 44px '+FACE;
+      ctx.fillText(zoneTxt,PAD,y);
+      y+=80;
+    } else { y+=20; }
+
+    // Divider
+    ctx.fillStyle=pal.divider;
+    ctx.fillRect(PAD,y,W-PAD*2,2);
+    y+=54;
+
+    // Stat rows
+    const rows=[
+      {label:'Bodyweight', val: bwAvg===null?'—':bwAvg.toFixed(1)+' kg'},
+      {label:'Steps / day',val: stepsAvg===null?'—':Math.round(stepsAvg).toLocaleString()},
+      {label:'Sleep / night',val: sleepAvg===null?'—':sleepAvg.toFixed(1)+' h'},
+      {label:'Workouts',   val: sessions+' '+(sessions===1?'session':'sessions')},
+      {label:'Recovery',   val: recovery===null?'—':recovery+'%'}
+    ];
+    const rowH=98;
+    rows.forEach(r=>{
+      ctx.fillStyle=pal.sub;
+      ctx.textAlign='left';
+      ctx.font='600 46px '+FACE;
+      ctx.fillText(r.label,PAD,y+6);
+      ctx.fillStyle=pal.fg;
+      ctx.textAlign='right';
+      ctx.font='800 52px '+FACE;
+      ctx.fillText(r.val,W-PAD,y);
+      y+=rowH;
+    });
+
+    // Footer
+    const fy=H-PAD;
+    ctx.textBaseline='alphabetic';
+    ctx.font='italic 700 70px "Inter",system-ui,sans-serif';
+    ctx.textAlign='left';
+    const devCol=(wsTheme==='transparent')?'#ffffff':pal.fg;
+    const fitCol=(wsTheme==='transparent')?'#ffffff':pal.accent;
+    const dW=ctx.measureText('DEV').width;
+    ctx.fillStyle=devCol; ctx.fillText('DEV',PAD,fy);
+    ctx.fillStyle=fitCol; ctx.fillText('FIT',PAD+dW,fy);
+    ctx.fillStyle=pal.sub;
+    ctx.font='600 36px '+FACE;
+    ctx.textAlign='right';
+    ctx.fillText(getHandle(),W-PAD,fy);
+  }
+
+  function rerender(){
+    drawWeekCard();
+    document.getElementById('ws-preview-img').src=document.getElementById('ws-canvas').toDataURL('image/png');
+  }
+
+  async function openModal(){
+    try{ await document.fonts.load('italic 700 70px "Inter"'); await document.fonts.ready; }catch(e){}
+    rerender();
+    document.getElementById('ws-overlay').classList.add('show');
+  }
+
+  const sb=document.getElementById('wk-share-btn');
+  if(sb) sb.addEventListener('click',openModal);
+  document.querySelectorAll('.ws-tbtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      wsTheme=btn.dataset.theme;
+      document.querySelectorAll('.ws-tbtn').forEach(b=>b.classList.toggle('active',b===btn));
+      rerender();
+    });
+  });
+  document.getElementById('ws-close').addEventListener('click',()=>document.getElementById('ws-overlay').classList.remove('show'));
+  document.getElementById('ws-overlay').addEventListener('click',e=>{ if(e.target.id==='ws-overlay') document.getElementById('ws-overlay').classList.remove('show'); });
+
+  function filename(){ return 'DevFit_Week'+(currentWeek+1)+'_Progress.png'; }
+  document.getElementById('ws-dl').addEventListener('click',()=>{
+    document.getElementById('ws-canvas').toBlob(blob=>{
+      if(!blob) return;
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download=filename();
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    },'image/png',0.95);
+  });
+  document.getElementById('ws-sh').addEventListener('click',()=>{
+    document.getElementById('ws-canvas').toBlob(async blob=>{
+      if(!blob) return;
+      const file=new File([blob],filename(),{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        try{ await navigator.share({files:[file],title:'DevFit · Weekly Progress',text:'DevFit · Dominance Through Discipline'}); return; }
+        catch(e){ if(e.name==='AbortError') return; }
+      }
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download=filename();
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    },'image/png',0.95);
+  });
+})();
 </script>
 
 <!-- ============ DevFit PWA runtime ============ -->
