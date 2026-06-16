@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DevFit — Nutrition</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Dancing+Script:wght@500;600;700&family=Anton&family=Poiret+One&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
 <!-- PWA -->
@@ -653,6 +653,25 @@ applyNutritionTierGates();
   // Preload Inter wordmark font
   try{ if(document.fonts&&document.fonts.load){ document.fonts.load('italic 700 75px "Inter"'); document.fonts.load('600 60px "DM Sans"'); document.fonts.load('800 60px "DM Sans"'); } }catch(e){}
 
+  // Shared share-card font catalogue (matches Settings)
+  function getShareFont(){
+    let pref='dmsans';
+    try{ pref=localStorage.getItem('devfit_shareFont')||'dmsans'; }catch(e){}
+    const defs={
+      dmsans:    {face:'"DM Sans",system-ui,sans-serif', weights:[400,500,600,700,800], scale:1.0},
+      literature:{face:'"Lora",Georgia,serif',           weights:[400,500,600,700],     scale:0.98},
+      elegant:   {face:'"Dancing Script",cursive',       weights:[500,600,700],         scale:1.12},
+      strong:    {face:'"Anton",Impact,sans-serif',      weights:[400],                 scale:0.86},
+      deco:      {face:'"Poiret One",sans-serif',        weights:[400],                 scale:1.0}
+    };
+    const d=defs[pref]||defs.dmsans;
+    function wt(n){ let best=d.weights[0],bd=Infinity; d.weights.forEach(w=>{const df=Math.abs(w-n); if(df<bd){bd=df;best=w;}}); return best; }
+    return {face:d.face, scale:d.scale, wt:wt, key:pref};
+  }
+  async function loadShareFont(sf){
+    try{ await document.fonts.load(sf.wt(700)+' 60px '+sf.face); await document.fonts.load(sf.wt(400)+' 60px '+sf.face); await document.fonts.ready; }catch(e){}
+  }
+
   let dsTheme='light';
 
   function fmtDateLong(d){
@@ -691,7 +710,8 @@ applyNutritionTierGates();
       transparent:{bg:null,     fg:'#ffffff',sub:'#ffffff',accent:'#ff3a3a',divider:'rgba(255,255,255,0.20)',track:'rgba(255,255,255,0.18)'}
     };
     const pal=palette[dsTheme]||palette.light;
-    const FACE='"DM Sans",system-ui,sans-serif';
+    const sf=getShareFont();
+    const F=(w,px)=>sf.wt(w)+' '+Math.round(px*sf.scale)+'px '+sf.face;
     const MACRO_COL={p:'#3b82f6',c:'#f59e0b',f:'#ef4444'};
 
     ctx.clearRect(0,0,W,H);
@@ -703,27 +723,30 @@ applyNutritionTierGates();
     // Eyebrow label
     ctx.textAlign='left'; ctx.textBaseline='top';
     ctx.fillStyle=pal.accent;
-    ctx.font='800 34px '+FACE;
+    ctx.font=F(800,34);
     ctx.fillText('DAILY NUTRITION',PAD,y);
     y+=52;
     // Date
     ctx.fillStyle=pal.sub;
-    ctx.font='500 40px '+FACE;
+    ctx.font=F(500,40);
     ctx.fillText(fmtDateLong(currentDate),PAD,y);
     y+=96;
 
     // Calories hero
     ctx.fillStyle=pal.sub;
-    ctx.font='700 30px '+FACE;
+    ctx.font=F(700,30);
     ctx.fillText('CALORIES',PAD,y);
     y+=46;
     ctx.fillStyle=pal.fg;
-    ctx.font='800 190px '+FACE;
+    let heroPx=190;
+    ctx.font=F(800,heroPx);
     const calStr=cal.toLocaleString();
+    // shrink to fit if a wide font overflows
+    while(ctx.measureText(calStr).width>W-PAD*2-150 && heroPx>110){ heroPx-=6; ctx.font=F(800,heroPx); }
     ctx.fillText(calStr,PAD,y);
     const calW=ctx.measureText(calStr).width;
     ctx.fillStyle=pal.sub;
-    ctx.font='600 50px '+FACE;
+    ctx.font=F(600,50);
     ctx.fillText(' kcal',PAD+calW+10,y+118);
     y+=210;
     // Target subline
@@ -733,7 +756,7 @@ applyNutritionTierGates();
                 : diff>0 ? '+'+Math.round(diff).toLocaleString()+' over '+target.toLocaleString()+' target'
                 : Math.round(Math.abs(diff)).toLocaleString()+' under '+target.toLocaleString()+' target';
       ctx.fillStyle=pal.sub;
-      ctx.font='500 38px '+FACE;
+      ctx.font=F(500,38);
       ctx.fillText(txt,PAD,y);
       y+=72;
     } else { y+=18; }
@@ -776,19 +799,18 @@ applyNutritionTierGates();
       // label
       ctx.fillStyle=pal.fg;
       ctx.textAlign='left';
-      ctx.font='800 56px '+FACE;
+      ctx.font=F(800,56);
       ctx.fillText(r.label,PAD+56,y);
       // value right
       ctx.textAlign='right';
       ctx.fillStyle=pal.fg;
-      ctx.font='800 56px '+FACE;
+      ctx.font=F(800,56);
       const gTxt=r.g+'g';
       ctx.fillText(gTxt,W-PAD,y);
-      const gW=ctx.measureText(gTxt).width;
       // percent under value
       if(macroTotal>0){
         ctx.fillStyle=pal.sub;
-        ctx.font='500 34px '+FACE;
+        ctx.font=F(500,34);
         ctx.fillText(Math.round(r.kcal/macroTotal*100)+'% of kcal',W-PAD,y+62);
       }
       y+=rowH;
@@ -805,7 +827,7 @@ applyNutritionTierGates();
     ctx.fillStyle=devCol; ctx.fillText('DEV',PAD,fy);
     ctx.fillStyle=fitCol; ctx.fillText('FIT',PAD+dW,fy);
     ctx.fillStyle=pal.sub;
-    ctx.font='600 36px '+FACE;
+    ctx.font=F(600,36);
     ctx.textAlign='right';
     ctx.fillText(getHandle(),W-PAD,fy);
   }
@@ -821,7 +843,8 @@ applyNutritionTierGates();
       alert('Log today\'s calories or macros first.');
       return;
     }
-    try{ await document.fonts.load('italic 700 70px "Inter"'); await document.fonts.ready; }catch(e){}
+    try{ await document.fonts.load('italic 700 70px "Inter"'); }catch(e){}
+    await loadShareFont(getShareFont());
     rerender();
     document.getElementById('ds-overlay').classList.add('show');
   }

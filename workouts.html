@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DevFit — Training</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Dancing+Script:wght@500;600;700&family=Anton&family=Poiret+One&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -865,7 +865,14 @@ async function openShareModal(){
   const w=data.plan.workouts.find(x=>x.id===sess.workoutId);
   if(!w) return;
   // Ensure the Inter wordmark font is ready before the first canvas draw
-  try{ await document.fonts.load('italic 700 75px "Inter"'); await document.fonts.ready; }catch(e){}
+  try{ await document.fonts.load('italic 700 75px "Inter"'); }catch(e){}
+  // Preload the selected card font
+  try{
+    const pref=(localStorage.getItem('devfit_shareFont')||'dmsans');
+    const faces={dmsans:'"DM Sans"',literature:'"Lora"',elegant:'"Dancing Script"',strong:'"Anton"',deco:'"Poiret One"'};
+    const fc=faces[pref]||'"DM Sans"';
+    await document.fonts.load('700 60px '+fc); await document.fonts.load('400 60px '+fc); await document.fonts.ready;
+  }catch(e){}
   rerenderShareCard();
   document.getElementById('share-overlay').classList.add('show');
 }
@@ -931,12 +938,11 @@ function drawExportCard(canvas, workout, session, theme){
     try { return localStorage.getItem('devfit_shareFont') || 'dmsans'; } catch(e){ return 'dmsans'; }
   })();
   const fontMap = {
-    'dmsans':         {face:'"DM Sans",system-ui,sans-serif', bodyW:'600', titleW:'800', italic:''},
-    'dmsans-bold':    {face:'"DM Sans",system-ui,sans-serif', bodyW:'700', titleW:'900', italic:''},
-    'dmsans-italic':  {face:'"DM Sans",system-ui,sans-serif', bodyW:'600', titleW:'800', italic:'italic '},
-    'serif':          {face:'Georgia,"Times New Roman",serif', bodyW:'500', titleW:'800', italic:''},
-    'mono':           {face:'"Courier New",ui-monospace,monospace', bodyW:'600', titleW:'800', italic:''},
-    'condensed':      {face:'"Arial Narrow","Roboto Condensed",sans-serif', bodyW:'600', titleW:'900', italic:''}
+    'dmsans':     {face:'"DM Sans",system-ui,sans-serif', bodyW:'600', titleW:'800', italic:''},
+    'literature': {face:'"Lora",Georgia,serif',           bodyW:'500', titleW:'700', italic:''},
+    'elegant':    {face:'"Dancing Script",cursive',       bodyW:'600', titleW:'700', italic:''},
+    'strong':     {face:'"Anton",Impact,sans-serif',      bodyW:'400', titleW:'400', italic:''},
+    'deco':       {face:'"Poiret One",sans-serif',        bodyW:'400', titleW:'400', italic:''}
   };
   const fv = fontMap[fontPref] || fontMap.dmsans;
   const FACE = fv.face, BW = fv.bodyW, TW = fv.titleW, IT = fv.italic;

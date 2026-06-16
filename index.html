@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DevFit — Progress</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Dancing+Script:wght@500;600;700&family=Anton&family=Poiret+One&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -1999,6 +1999,25 @@ if(typeof DevFitDB!=='undefined'){
 
   let wsTheme='light';
 
+  // Shared share-card font catalogue (matches Settings)
+  function getShareFont(){
+    let pref='dmsans';
+    try{ pref=localStorage.getItem('devfit_shareFont')||'dmsans'; }catch(e){}
+    const defs={
+      dmsans:    {face:'"DM Sans",system-ui,sans-serif', weights:[400,500,600,700,800], scale:1.0},
+      literature:{face:'"Lora",Georgia,serif',           weights:[400,500,600,700],     scale:0.98},
+      elegant:   {face:'"Dancing Script",cursive',       weights:[500,600,700],         scale:1.12},
+      strong:    {face:'"Anton",Impact,sans-serif',      weights:[400],                 scale:0.86},
+      deco:      {face:'"Poiret One",sans-serif',        weights:[400],                 scale:1.0}
+    };
+    const d=defs[pref]||defs.dmsans;
+    function wt(n){ let best=d.weights[0],bd=Infinity; d.weights.forEach(w=>{const df=Math.abs(w-n); if(df<bd){bd=df;best=w;}}); return best; }
+    return {face:d.face, scale:d.scale, wt:wt, key:pref};
+  }
+  async function loadShareFont(sf){
+    try{ await document.fonts.load(sf.wt(700)+' 60px '+sf.face); await document.fonts.load(sf.wt(400)+' 60px '+sf.face); await document.fonts.ready; }catch(e){}
+  }
+
   function getHandle(){
     try{
       const cn=(localStorage.getItem('devfit_displayName')||'').trim();
@@ -2030,7 +2049,8 @@ if(typeof DevFitDB!=='undefined'){
       transparent:{bg:null,     fg:'#ffffff',sub:'#ffffff',accent:'#ff3a3a',divider:'rgba(255,255,255,0.20)'}
     };
     const pal=palette[wsTheme]||palette.light;
-    const FACE='"DM Sans",system-ui,sans-serif';
+    const sf=getShareFont();
+    const F=(w2,px)=>sf.wt(w2)+' '+Math.round(px*sf.scale)+'px '+sf.face;
 
     ctx.clearRect(0,0,W,H);
     if(pal.bg){ ctx.fillStyle=pal.bg; ctx.fillRect(0,0,W,H); }
@@ -2041,35 +2061,35 @@ if(typeof DevFitDB!=='undefined'){
     // Eyebrow
     ctx.textAlign='left'; ctx.textBaseline='top';
     ctx.fillStyle=pal.accent;
-    ctx.font='800 34px '+FACE;
+    ctx.font=F(800,34);
     ctx.fillText('WEEK '+(w+1)+' PROGRESS',PAD,y);
     y+=52;
     // Date
     ctx.fillStyle=pal.sub;
-    ctx.font='500 40px '+FACE;
+    ctx.font=F(500,40);
     ctx.fillText(new Date().toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'}),PAD,y);
     y+=104;
 
     // Score hero label
     ctx.fillStyle=pal.sub;
-    ctx.font='700 30px '+FACE;
+    ctx.font=F(700,30);
     ctx.fillText('OVERALL SCORE',PAD,y);
     y+=46;
     // Hero number
     const scoreStr = overall===null?'—':overall+'';
     ctx.fillStyle = (wsTheme==='transparent') ? '#ffffff' : (zoneCol||pal.fg);
-    ctx.font='800 230px '+FACE;
+    ctx.font=F(800,230);
     ctx.fillText(scoreStr,PAD,y);
     if(overall!==null){
       const sW=ctx.measureText(scoreStr).width;
-      ctx.font='800 80px '+FACE;
+      ctx.font=F(800,80);
       ctx.fillText('%',PAD+sW+8,y+138);
     }
     y+=250;
     // Zone word
     if(zoneTxt){
       ctx.fillStyle = (wsTheme==='transparent') ? '#ffffff' : (zoneCol||pal.sub);
-      ctx.font='800 44px '+FACE;
+      ctx.font=F(800,44);
       ctx.fillText(zoneTxt,PAD,y);
       y+=80;
     } else { y+=20; }
@@ -2091,11 +2111,11 @@ if(typeof DevFitDB!=='undefined'){
     rows.forEach(r=>{
       ctx.fillStyle=pal.sub;
       ctx.textAlign='left';
-      ctx.font='600 46px '+FACE;
+      ctx.font=F(600,46);
       ctx.fillText(r.label,PAD,y+6);
       ctx.fillStyle=pal.fg;
       ctx.textAlign='right';
-      ctx.font='800 52px '+FACE;
+      ctx.font=F(800,52);
       ctx.fillText(r.val,W-PAD,y);
       y+=rowH;
     });
@@ -2111,7 +2131,7 @@ if(typeof DevFitDB!=='undefined'){
     ctx.fillStyle=devCol; ctx.fillText('DEV',PAD,fy);
     ctx.fillStyle=fitCol; ctx.fillText('FIT',PAD+dW,fy);
     ctx.fillStyle=pal.sub;
-    ctx.font='600 36px '+FACE;
+    ctx.font=F(600,36);
     ctx.textAlign='right';
     ctx.fillText(getHandle(),W-PAD,fy);
   }
@@ -2122,7 +2142,8 @@ if(typeof DevFitDB!=='undefined'){
   }
 
   async function openModal(){
-    try{ await document.fonts.load('italic 700 70px "Inter"'); await document.fonts.ready; }catch(e){}
+    try{ await document.fonts.load('italic 700 70px "Inter"'); }catch(e){}
+    await loadShareFont(getShareFont());
     rerender();
     document.getElementById('ws-overlay').classList.add('show');
   }
