@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DevFit — Settings</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Dancing+Script:wght@500;600;700&family=Anton&family=Poiret+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800;900&family=Anton&family=Righteous&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -232,9 +232,9 @@
     <select id="sharecard-font" style="width:100%;background:rgba(20,20,24,0.55);border:1px solid rgba(255,255,255,0.10);color:#fff;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;padding:11px 14px;border-radius:10px;outline:none;cursor:pointer">
       <option value="dmsans"     style="font-family:'DM Sans',sans-serif;font-weight:700">Default</option>
       <option value="literature" style="font-family:'Lora',serif;font-weight:600">Literature</option>
-      <option value="elegant"    style="font-family:'Dancing Script',cursive;font-weight:700">Elegant</option>
+      <option value="elegant"    style="font-family:'Playfair Display',serif;font-weight:800">Elegant</option>
       <option value="strong"     style="font-family:'Anton',sans-serif">Strong</option>
-      <option value="deco"       style="font-family:'Poiret One',sans-serif">Deco</option>
+      <option value="deco"       style="font-family:'Righteous',sans-serif">Deco</option>
     </select>
     <div id="font-preview-row" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px"></div>
     <div style="font-size:11px;color:#888;margin-top:10px;line-height:1.5">Applies to every share card — workout, daily nutrition &amp; weekly progress. Your in-app font and PDF reports stay the same.</div>
@@ -447,9 +447,9 @@ setTimeout(reverifyAccess, 600);
     const FONTS = [
       {v:'dmsans',     label:'Default',    css:"'DM Sans',sans-serif",       weight:'700'},
       {v:'literature', label:'Literature', css:"'Lora',serif",               weight:'600'},
-      {v:'elegant',    label:'Elegant',    css:"'Dancing Script',cursive",   weight:'700'},
+      {v:'elegant',    label:'Elegant',    css:"'Playfair Display',serif",   weight:'800'},
       {v:'strong',     label:'Strong',     css:"'Anton',sans-serif",         weight:'400'},
-      {v:'deco',       label:'Deco',       css:"'Poiret One',sans-serif",    weight:'400'}
+      {v:'deco',       label:'Deco',       css:"'Righteous',sans-serif",     weight:'400'}
     ];
     const VALID = FONTS.map(f=>f.v);
     let savedFont = localStorage.getItem('devfit_shareFont') || 'dmsans';

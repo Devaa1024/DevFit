@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DevFit — Nutrition</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Dancing+Script:wght@500;600;700&family=Anton&family=Poiret+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800;900&family=Anton&family=Righteous&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="foods-local.js"></script>
 
@@ -128,6 +128,13 @@
   @media (prefers-reduced-motion: reduce){.page>*{animation:none}}
   body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 400px at 50% 50%,rgba(255,68,68,0.04),transparent 60%);z-index:-1}
 
+  /* ── SLICER TABS ── */
+  .diet-slicer{display:flex;background:rgba(17,17,17,0.7);border:1px solid #2a2a2a;border-radius:12px;padding:5px;gap:4px;margin-bottom:12px;backdrop-filter:saturate(150%) blur(10px);-webkit-backdrop-filter:saturate(150%) blur(10px)}
+  .ds-tab{flex:1;background:transparent;border:none;color:rgba(255,255,255,0.62);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:10px 6px;border-radius:8px;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;transition:all .18s cubic-bezier(.2,.8,.2,1)}
+  .ds-tab:hover{color:#fff}
+  .ds-tab.active{background:#cc0000;color:#fff;box-shadow:0 6px 16px rgba(204,0,0,0.4)}
+  .diet-pane[hidden]{display:none}
+
   /* ── MEAL DIARY (MyFitnessPal-style) ── */
   .cal-summary{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:12px}
   .cal-summary-main{display:flex;align-items:baseline;gap:8px}
@@ -153,6 +160,8 @@
   .meal-kcal{font-size:13px;font-weight:800;color:#cc0000;white-space:nowrap}
   .meal-del{background:transparent;border:none;color:#c4c4c4;font-size:17px;cursor:pointer;padding:0 2px;line-height:1}
   .meal-del:hover{color:#ef4444}
+  .meal-save{background:transparent;border:none;color:#c4c4c4;cursor:pointer;padding:0 2px;line-height:1;display:flex;align-items:center}
+  .meal-save:hover{color:#cc0000}
   .meal-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f2f2f2}
   .meal-item:last-of-type{border-bottom:none}
   .mi-info{flex:1;min-width:0;cursor:pointer}
@@ -188,78 +197,90 @@
     <a href="settings.html">Settings</a>
   </nav>
 
-  <!-- DAILY TARGETS -->
-  <div class="card">
-    <div class="section-label">Daily targets</div>
-    <div class="four-grid">
-      <div class="input-cell"><div class="lbl">Calories</div><input id="t-cal" type="number" inputmode="numeric" placeholder="—"><div class="unit">kcal</div></div>
-      <div class="input-cell"><div class="lbl">Protein</div><input id="t-p"   type="number" inputmode="numeric" placeholder="—"><div class="unit">g</div></div>
-      <div class="input-cell"><div class="lbl">Carbs</div>  <input id="t-c"   type="number" inputmode="numeric" placeholder="—"><div class="unit">g</div></div>
-      <div class="input-cell"><div class="lbl">Fat</div>    <input id="t-f"   type="number" inputmode="numeric" placeholder="—"><div class="unit">g</div></div>
-    </div>
-    <div style="font-size:11px;color:#aaa;margin-top:8px;line-height:1.4">Saved automatically. Leave blank to skip a target.</div>
+  <!-- SLICER TABS -->
+  <div class="diet-slicer">
+    <button class="ds-tab active" data-pane="today" type="button">Today</button>
+    <button class="ds-tab" data-pane="trends" type="button">Trends</button>
+    <button class="ds-tab" data-pane="targets" type="button">Targets</button>
   </div>
 
-  <!-- TODAY'S TOTALS -->
-  <div class="card">
-    <div class="section-label">Today's intake</div>
-    <div class="date-bar">
-      <button id="prev-day" aria-label="Previous day">‹</button>
-      <input type="date" id="date-pick">
-      <button id="next-day" aria-label="Next day">›</button>
-    </div>
-    <!-- Calories summary -->
-    <div class="cal-summary">
-      <div class="cal-summary-main">
-        <div class="cal-remain-num" id="cal-remain-num">0</div>
-        <div class="cal-remain-lbl" id="cal-remain-lbl">kcal logged</div>
+  <!-- ===== TODAY PANE ===== -->
+  <div class="diet-pane" id="pane-today">
+    <div class="card">
+      <div class="date-bar">
+        <button id="prev-day" aria-label="Previous day">‹</button>
+        <input type="date" id="date-pick">
+        <button id="next-day" aria-label="Next day">›</button>
       </div>
-      <div class="cal-summary-eq" id="cal-summary-eq">Set a calorie target to track what's left.</div>
-      <div class="cal-bar-track"><div class="cal-bar-fill" id="cal-bar-fill"></div></div>
+      <!-- Calories summary -->
+      <div class="cal-summary">
+        <div class="cal-summary-main">
+          <div class="cal-remain-num" id="cal-remain-num">0</div>
+          <div class="cal-remain-lbl" id="cal-remain-lbl">kcal logged</div>
+        </div>
+        <div class="cal-summary-eq" id="cal-summary-eq">Set a calorie target to track what's left.</div>
+        <div class="cal-bar-track"><div class="cal-bar-fill" id="cal-bar-fill"></div></div>
+      </div>
+      <!-- Macro progress -->
+      <div class="macro-prog" id="macro-prog"></div>
+      <!-- Meal diary -->
+      <div id="meals-wrap"></div>
+      <button class="add-meal-btn" id="add-meal-btn" type="button">+ Add Meal</button>
+      <button class="diet-share-btn" id="diet-share-btn" type="button">Share Daily Card</button>
     </div>
-    <!-- Macro progress -->
-    <div class="macro-prog" id="macro-prog"></div>
-    <!-- Meal diary -->
-    <div id="meals-wrap"></div>
-    <button class="add-meal-btn" id="add-meal-btn" type="button">+ Add Meal</button>
-    <button class="diet-share-btn" id="diet-share-btn" type="button">Share Daily Card</button>
-  </div>
 
-  <!-- MACRO PIE CHART -->
-  <div class="card-light" id="macro-pie-card" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="section-label-dark" style="margin-bottom:0">Today's macro split</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:18px">
-      <div style="position:relative;width:130px;height:130px;flex-shrink:0">
-        <canvas id="macroChart"></canvas>
+    <!-- MACRO PIE CHART -->
+    <div class="card-light" id="macro-pie-card" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="section-label-dark" style="margin-bottom:0">Today's macro split</div>
       </div>
-      <div id="macro-legend" style="flex:1;font-family:'DM Sans',sans-serif"></div>
+      <div style="display:flex;align-items:center;gap:18px">
+        <div style="position:relative;width:130px;height:130px;flex-shrink:0">
+          <canvas id="macroChart"></canvas>
+        </div>
+        <div id="macro-legend" style="flex:1;font-family:'DM Sans',sans-serif"></div>
+      </div>
     </div>
   </div>
 
-  <!-- TREND (week / month toggle) -->
-  <div class="card-light">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <div class="section-label-dark" id="trend-title" style="margin-bottom:0">7-day calorie trend</div>
-      <div id="range-toggle" style="display:inline-flex;background:#f1f3f5;border-radius:24px;padding:3px;gap:2px">
-        <button type="button" data-range="7" class="rng-btn active" style="border:none;background:#cc0000;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;cursor:pointer;letter-spacing:.04em">WEEK</button>
-        <button type="button" data-range="30" class="rng-btn" style="border:none;background:transparent;color:#555;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;cursor:pointer;letter-spacing:.04em">MONTH</button>
+  <!-- ===== TRENDS PANE ===== -->
+  <div class="diet-pane" id="pane-trends" hidden>
+    <div class="card-light">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div class="section-label-dark" id="trend-title" style="margin-bottom:0">7-day calorie trend</div>
+        <div id="range-toggle" style="display:inline-flex;background:#f1f3f5;border-radius:24px;padding:3px;gap:2px">
+          <button type="button" data-range="7" class="rng-btn active" style="border:none;background:#cc0000;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;cursor:pointer;letter-spacing:.04em">WEEK</button>
+          <button type="button" data-range="30" class="rng-btn" style="border:none;background:transparent;color:#555;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;cursor:pointer;letter-spacing:.04em">MONTH</button>
+        </div>
       </div>
+      <div class="week-sum">
+        <div class="week-card">
+          <div class="week-lbl">Avg / day</div>
+          <div class="week-val" id="wk-avg">—</div>
+        </div>
+        <div class="week-card">
+          <div class="week-lbl" id="wk-days-lbl">Days logged</div>
+          <div class="week-val" id="wk-days">0 / 7</div>
+        </div>
+      </div>
+      <div id="deficit-summary" style="display:none;background:#f8fafc;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#333;line-height:1.6"></div>
+      <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+      <div style="font-size:11px;color:#666;margin-top:8px;line-height:1.4" id="trend-note">Log at least 3 days to see your fluctuation pattern.</div>
     </div>
-    <div class="week-sum">
-      <div class="week-card">
-        <div class="week-lbl">Avg / day</div>
-        <div class="week-val" id="wk-avg">—</div>
+  </div>
+
+  <!-- ===== TARGETS PANE ===== -->
+  <div class="diet-pane" id="pane-targets" hidden>
+    <div class="card">
+      <div class="section-label">Daily targets</div>
+      <div class="four-grid">
+        <div class="input-cell"><div class="lbl">Calories</div><input id="t-cal" type="number" inputmode="numeric" placeholder="—"><div class="unit">kcal</div></div>
+        <div class="input-cell"><div class="lbl">Protein</div><input id="t-p"   type="number" inputmode="numeric" placeholder="—"><div class="unit">g</div></div>
+        <div class="input-cell"><div class="lbl">Carbs</div>  <input id="t-c"   type="number" inputmode="numeric" placeholder="—"><div class="unit">g</div></div>
+        <div class="input-cell"><div class="lbl">Fat</div>    <input id="t-f"   type="number" inputmode="numeric" placeholder="—"><div class="unit">g</div></div>
       </div>
-      <div class="week-card">
-        <div class="week-lbl" id="wk-days-lbl">Days logged</div>
-        <div class="week-val" id="wk-days">0 / 7</div>
-      </div>
+      <div style="font-size:11px;color:#aaa;margin-top:8px;line-height:1.4">Saved automatically. Leave blank to skip a target.</div>
     </div>
-    <div id="deficit-summary" style="display:none;background:#f8fafc;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#333;line-height:1.6"></div>
-    <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
-    <div style="font-size:11px;color:#666;margin-top:8px;line-height:1.4" id="trend-note">Log at least 3 days to see your fluctuation pattern.</div>
   </div>
 
 </div>
@@ -522,11 +543,14 @@ function renderMeals(){
       '</div>';
     }).join('');
     const body=items||'<div class="meal-empty">No food logged yet.</div>';
+    const bookmark='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+    const saveBtn=(meal.items&&meal.items.length) ? '<button class="meal-save" data-meal="'+meal.id+'" title="Save as reusable meal">'+bookmark+'</button>' : '';
     return '<div class="meal">'+
       '<div class="meal-head">'+
         '<span class="meal-name" data-meal="'+meal.id+'">'+escHtml(meal.name)+pencil+'</span>'+
         '<div class="meal-head-right">'+
           '<span class="meal-kcal">'+mealKcal(meal)+' kcal</span>'+
+          saveBtn+
           '<button class="meal-del" data-meal="'+meal.id+'" aria-label="Delete meal">&times;</button>'+
         '</div>'+
       '</div>'+
@@ -541,7 +565,40 @@ function renderMeals(){
   wrap.querySelectorAll('.mi-del').forEach(b=>b.addEventListener('click',()=>removeItem(b.dataset.meal,b.dataset.item)));
   wrap.querySelectorAll('.meal-name').forEach(b=>b.addEventListener('click',()=>renameMeal(b.dataset.meal)));
   wrap.querySelectorAll('.meal-del').forEach(b=>b.addEventListener('click',()=>deleteMeal(b.dataset.meal)));
+  wrap.querySelectorAll('.meal-save').forEach(b=>b.addEventListener('click',()=>saveMealTemplate(b.dataset.meal)));
 }
+
+// ── SAVED / CUSTOM MEALS (reusable bundles) ──
+function getSavedMeals(){ if(!Array.isArray(data.savedMeals)) data.savedMeals=[]; return data.savedMeals; }
+function saveMealTemplate(mealId){
+  const meal=findMeal(currentDate,mealId); if(!meal||!meal.items.length){ alert('Add some food to this meal first.'); return; }
+  const def=meal.name && meal.name!=='Breakfast'&&meal.name!=='Lunch'&&meal.name!=='Dinner'&&meal.name!=='Snacks' ? meal.name : '';
+  const name=prompt('Save this meal as (e.g. "Oats + Peanut + Milk"):',def);
+  if(name===null) return;
+  const nm=name.trim().slice(0,50); if(!nm){ return; }
+  const items=meal.items.map(it=>({name:it.name,brand:it.brand||'',source:it.source||'',grams:it.grams,base:it.base||null,cal:it.cal,p:it.p,c:it.c,f:it.f}));
+  const tot=items.reduce((a,it)=>({cal:a.cal+(+it.cal||0),p:a.p+(+it.p||0),c:a.c+(+it.c||0),f:a.f+(+it.f||0)}),{cal:0,p:0,c:0,f:0});
+  const list=getSavedMeals();
+  list.unshift({id:uid(),name:nm,items,cal:Math.round(tot.cal),p:Math.round(tot.p),c:Math.round(tot.c),f:Math.round(tot.f)});
+  save();
+  alert('Saved "'+nm+'" — find it under the "My Meals" tab when adding food.');
+}
+function deleteSavedMeal(savedId){
+  data.savedMeals=getSavedMeals().filter(m=>m.id!==savedId);
+  save();
+}
+// Add a whole saved meal's items into a day-meal slot
+function addSavedMealToSlot(savedId,targetMealId){
+  const sm=getSavedMeals().find(m=>m.id===savedId); if(!sm) return false;
+  const slot=findMeal(currentDate,targetMealId)||ensureDay(currentDate).meals[0];
+  sm.items.forEach(it=>slot.items.push(Object.assign({id:uid()},it)));
+  save(); renderDay();
+  return true;
+}
+// expose to the food modal IIFE
+window.DevFitGetSavedMeals=getSavedMeals;
+window.DevFitDeleteSavedMeal=function(id){ deleteSavedMeal(id); };
+window.DevFitAddSavedMeal=addSavedMealToSlot;
 
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -772,6 +829,21 @@ applyNutritionTierGates();
     }
   } catch(e){}
 })();
+
+// Slicer tabs: Today / Trends / Targets
+(function bindSlicer(){
+  document.querySelectorAll('.ds-tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      const pane=tab.dataset.pane;
+      document.querySelectorAll('.ds-tab').forEach(t=>t.classList.toggle('active',t===tab));
+      document.querySelectorAll('.diet-pane').forEach(p=>{ p.hidden = (p.id!=='pane-'+pane); });
+      // Charts must (re)render while their canvas is visible, else they size to 0
+      if(pane==='trends') renderTrend();
+      if(pane==='today') renderMacroChart();
+      window.scrollTo(0,0);
+    });
+  });
+})();
 </script>
 
 <!-- ===== DAILY DIET SHARE CARD ===== -->
@@ -825,9 +897,9 @@ applyNutritionTierGates();
     const defs={
       dmsans:    {face:'"DM Sans",system-ui,sans-serif', weights:[400,500,600,700,800], scale:1.0},
       literature:{face:'"Lora",Georgia,serif',           weights:[400,500,600,700],     scale:0.98},
-      elegant:   {face:'"Dancing Script",cursive',       weights:[500,600,700],         scale:1.12},
+      elegant:   {face:'"Playfair Display",Georgia,serif',weights:[600,700,800,900],     scale:1.0},
       strong:    {face:'"Anton",Impact,sans-serif',      weights:[400],                 scale:0.86},
-      deco:      {face:'"Poiret One",sans-serif',        weights:[400],                 scale:1.0}
+      deco:      {face:'"Righteous",system-ui,sans-serif',weights:[400],                scale:0.92}
     };
     const d=defs[pref]||defs.dmsans;
     function wt(n){ let best=d.weights[0],bd=Infinity; d.weights.forEach(w=>{const df=Math.abs(w-n); if(df<bd){bd=df;best=w;}}); return best; }
@@ -870,7 +942,7 @@ applyNutritionTierGates();
     const target=Number(data.targets.cal)||null;
 
     const palette={
-      light:      {bg:'#ffffff',fg:'#0a0a0a',sub:'#7a7a7a',accent:'#cc0000',divider:'rgba(0,0,0,0.08)',track:'rgba(0,0,0,0.06)'},
+      light:      {bg:'#ffffff',fg:'#000000',sub:'#6b6b6b',accent:'#cc0000',divider:'rgba(0,0,0,0.08)',track:'rgba(0,0,0,0.06)'},
       dark:       {bg:'#0a0a0a',fg:'#ffffff',sub:'#cfcfcf',accent:'#ff3a3a',divider:'rgba(255,255,255,0.14)',track:'rgba(255,255,255,0.10)'},
       transparent:{bg:null,     fg:'#ffffff',sub:'#ffffff',accent:'#ff3a3a',divider:'rgba(255,255,255,0.20)',track:'rgba(255,255,255,0.18)'}
     };
@@ -1066,6 +1138,17 @@ applyNutritionTierGates();
   .food-search-row input:focus{border-color:#cc0000}
   .food-search-row input::placeholder{color:#555}
   .food-search-row button{background:#cc0000;color:#fff;border:none;border-radius:10px;padding:11px 18px;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+  .food-tabs{display:flex;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:4px;gap:4px}
+  .food-tab{flex:1;background:transparent;border:none;color:rgba(255,255,255,0.6);font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:700;padding:9px;border-radius:7px;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;transition:all .15s}
+  .food-tab.active{background:#cc0000;color:#fff}
+  #ft-pane-meals[hidden],#ft-pane-search[hidden]{display:none}
+  .smeal-item{padding:12px 14px;border-radius:10px;border:1px solid #242428;margin-bottom:7px;background:#161618;display:flex;align-items:center;gap:10px}
+  .smeal-info{flex:1;min-width:0;cursor:pointer}
+  .smeal-name{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .smeal-macros{font-family:'DM Sans',sans-serif;font-size:12px;color:#888}
+  .smeal-add{background:#16a34a;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
+  .smeal-del{background:transparent;border:none;color:#ccc;font-size:18px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
+  .smeal-del:hover{color:#ef4444}
   .food-action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .food-scan-btn{width:100%;background:#131318;border:1.5px dashed #3a3a55;color:#9090b8;border-radius:10px;padding:11px;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;letter-spacing:.04em}
   .food-scan-btn:hover{border-color:#cc0000;color:#fff;background:#1a1a22}
@@ -1122,24 +1205,33 @@ applyNutritionTierGates();
 <div class="food-overlay" id="food-overlay">
   <div class="food-modal">
     <div class="food-modal-header">
-      <div class="food-modal-title">Add Food</div>
+      <div class="food-modal-title" id="food-modal-title">Add Food</div>
       <button class="food-modal-close" id="food-close" aria-label="Close">&#x2715;</button>
     </div>
-    <div class="food-search-row">
-      <input type="text" id="food-search-input" placeholder="e.g. Milo, Nasi Lemak, Chicken Breast" autocomplete="off" autocorrect="off" autocapitalize="off">
-      <button id="food-search-btn">Search</button>
+    <div class="food-tabs">
+      <button class="food-tab active" data-ft="search" type="button">Search</button>
+      <button class="food-tab" data-ft="meals" type="button">My Meals</button>
     </div>
-    <div class="food-action-row">
-      <button class="food-scan-btn" id="food-scan-btn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="4" height="4"/><rect x="18" y="4" width="4" height="4"/><rect x="2" y="16" width="4" height="4"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="8" y1="4" x2="8" y2="8"/><line x1="16" y1="4" x2="16" y2="8"/><line x1="8" y1="16" x2="8" y2="20"/></svg>
-        Scan
-      </button>
-      <button class="food-scan-btn" id="food-quick-btn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
-        Quick Add
-      </button>
+    <div id="ft-pane-search">
+      <div class="food-search-row">
+        <input type="text" id="food-search-input" placeholder="e.g. Milo, Nasi Lemak, Chicken Breast" autocomplete="off" autocorrect="off" autocapitalize="off">
+        <button id="food-search-btn">Search</button>
+      </div>
+      <div class="food-action-row">
+        <button class="food-scan-btn" id="food-scan-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="4" height="4"/><rect x="18" y="4" width="4" height="4"/><rect x="2" y="16" width="4" height="4"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="8" y1="4" x2="8" y2="8"/><line x1="16" y1="4" x2="16" y2="8"/><line x1="8" y1="16" x2="8" y2="20"/></svg>
+          Scan
+        </button>
+        <button class="food-scan-btn" id="food-quick-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
+          Quick Add
+        </button>
+      </div>
+      <div class="food-results-wrap" id="food-results"></div>
     </div>
-    <div class="food-results-wrap" id="food-results"></div>
+    <div id="ft-pane-meals" hidden>
+      <div class="food-results-wrap" id="mymeals-list"></div>
+    </div>
   </div>
 </div>
 
@@ -1382,11 +1474,53 @@ applyNutritionTierGates();
     _editRef=null;
   });
 
+  // Food-modal tabs: Search / My Meals
+  function showFoodTab(which){
+    document.querySelectorAll('.food-tab').forEach(t=>t.classList.toggle('active',t.dataset.ft===which));
+    document.getElementById('ft-pane-search').hidden = (which!=='search');
+    document.getElementById('ft-pane-meals').hidden = (which!=='meals');
+    if(which==='meals') renderMyMeals();
+  }
+  document.querySelectorAll('.food-tab').forEach(t=>t.addEventListener('click',()=>showFoodTab(t.dataset.ft)));
+
+  function renderMyMeals(){
+    const el=document.getElementById('mymeals-list');
+    const list=(window.DevFitGetSavedMeals?window.DevFitGetSavedMeals():[])||[];
+    if(!list.length){
+      el.innerHTML='<div class="food-empty">No saved meals yet.<br>In a meal, tap the bookmark icon to save it here for one-tap re-use.</div>';
+      return;
+    }
+    el.innerHTML=list.map(m=>
+      '<div class="smeal-item">'+
+        '<div class="smeal-info" data-add="'+m.id+'">'+
+          '<div class="smeal-name">'+esc(m.name)+'</div>'+
+          '<div class="smeal-macros">'+Math.round(m.cal)+' kcal &middot; P:'+Math.round(m.p)+'g C:'+Math.round(m.c)+'g F:'+Math.round(m.f)+'g &middot; '+m.items.length+' item'+(m.items.length>1?'s':'')+'</div>'+
+        '</div>'+
+        '<button class="smeal-add" data-add="'+m.id+'">Add</button>'+
+        '<button class="smeal-del" data-del="'+m.id+'" aria-label="Delete">&times;</button>'+
+      '</div>'
+    ).join('');
+    function addOne(id){
+      if(window.DevFitAddSavedMeal && window.DevFitAddSavedMeal(id,_targetMealId)){
+        document.getElementById('food-overlay').classList.remove('show');
+        toast('Added to '+targetMealName());
+      }
+    }
+    el.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>addOne(b.dataset.add)));
+    el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
+      if(window.DevFitDeleteSavedMeal) window.DevFitDeleteSavedMeal(b.dataset.del);
+      renderMyMeals();
+    }));
+  }
+
   // Exposed to the meal diary (main script) ──────────────────────────
   window.DevFitOpenFood=function(mealId){
     _targetMealId=mealId; _editRef=null;
     document.getElementById('food-results').innerHTML='';
     document.getElementById('food-search-input').value='';
+    const ttl=document.getElementById('food-modal-title');
+    if(ttl) ttl.textContent='Add to '+targetMealName();
+    showFoodTab('search');
     document.getElementById('food-overlay').classList.add('show');
     setTimeout(()=>document.getElementById('food-search-input').focus(),120);
   };

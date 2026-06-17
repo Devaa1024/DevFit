@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DevFit — Training</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Dancing+Script:wght@500;600;700&family=Anton&family=Poiret+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800;900&family=Anton&family=Righteous&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -869,7 +869,7 @@ async function openShareModal(){
   // Preload the selected card font
   try{
     const pref=(localStorage.getItem('devfit_shareFont')||'dmsans');
-    const faces={dmsans:'"DM Sans"',literature:'"Lora"',elegant:'"Dancing Script"',strong:'"Anton"',deco:'"Poiret One"'};
+    const faces={dmsans:'"DM Sans"',literature:'"Lora"',elegant:'"Playfair Display"',strong:'"Anton"',deco:'"Righteous"'};
     const fc=faces[pref]||'"DM Sans"';
     await document.fonts.load('700 60px '+fc); await document.fonts.load('400 60px '+fc); await document.fonts.ready;
   }catch(e){}
@@ -927,7 +927,7 @@ function drawExportCard(canvas, workout, session, theme){
 
   // Theme palette — transparent now uses pure WHITE for readability over phone wallpapers
   const palette = {
-    light:       {bg:'#ffffff', fg:'#0a0a0a', sub:'#7a7a7a', accent:'#cc0000', divider:'rgba(0,0,0,0.08)'},
+    light:       {bg:'#ffffff', fg:'#000000', sub:'#6b6b6b', accent:'#cc0000', divider:'rgba(0,0,0,0.08)'},
     dark:        {bg:'#0a0a0a', fg:'#ffffff', sub:'#dcdcdc', accent:'#ff3a3a', divider:'rgba(255,255,255,0.14)'},
     transparent: {bg:null,      fg:'#ffffff', sub:'#ffffff', accent:'#ff3a3a', divider:'rgba(255,255,255,0.18)'}
   };
@@ -940,9 +940,9 @@ function drawExportCard(canvas, workout, session, theme){
   const fontMap = {
     'dmsans':     {face:'"DM Sans",system-ui,sans-serif', bodyW:'600', titleW:'800', italic:''},
     'literature': {face:'"Lora",Georgia,serif',           bodyW:'500', titleW:'700', italic:''},
-    'elegant':    {face:'"Dancing Script",cursive',       bodyW:'600', titleW:'700', italic:''},
+    'elegant':    {face:'"Playfair Display",Georgia,serif',bodyW:'600', titleW:'800', italic:''},
     'strong':     {face:'"Anton",Impact,sans-serif',      bodyW:'400', titleW:'400', italic:''},
-    'deco':       {face:'"Poiret One",sans-serif',        bodyW:'400', titleW:'400', italic:''}
+    'deco':       {face:'"Righteous",system-ui,sans-serif',bodyW:'400', titleW:'400', italic:''}
   };
   const fv = fontMap[fontPref] || fontMap.dmsans;
   const FACE = fv.face, BW = fv.bodyW, TW = fv.titleW, IT = fv.italic;

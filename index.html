@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DevFit — Progress</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Dancing+Script:wght@500;600;700&family=Anton&family=Poiret+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800;900&family=Anton&family=Righteous&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -2006,9 +2006,9 @@ if(typeof DevFitDB!=='undefined'){
     const defs={
       dmsans:    {face:'"DM Sans",system-ui,sans-serif', weights:[400,500,600,700,800], scale:1.0},
       literature:{face:'"Lora",Georgia,serif',           weights:[400,500,600,700],     scale:0.98},
-      elegant:   {face:'"Dancing Script",cursive',       weights:[500,600,700],         scale:1.12},
+      elegant:   {face:'"Playfair Display",Georgia,serif',weights:[600,700,800,900],     scale:1.0},
       strong:    {face:'"Anton",Impact,sans-serif',      weights:[400],                 scale:0.86},
-      deco:      {face:'"Poiret One",sans-serif',        weights:[400],                 scale:1.0}
+      deco:      {face:'"Righteous",system-ui,sans-serif',weights:[400],                scale:0.92}
     };
     const d=defs[pref]||defs.dmsans;
     function wt(n){ let best=d.weights[0],bd=Infinity; d.weights.forEach(w=>{const df=Math.abs(w-n); if(df<bd){bd=df;best=w;}}); return best; }
@@ -2044,7 +2044,7 @@ if(typeof DevFitDB!=='undefined'){
     const zoneTxt = overall===null?'' : overall>=75?'GREAT WEEK':overall>=50?'SOLID WEEK':'KEEP PUSHING';
 
     const palette={
-      light:      {bg:'#ffffff',fg:'#0a0a0a',sub:'#7a7a7a',accent:'#cc0000',divider:'rgba(0,0,0,0.08)'},
+      light:      {bg:'#ffffff',fg:'#000000',sub:'#6b6b6b',accent:'#cc0000',divider:'rgba(0,0,0,0.08)'},
       dark:       {bg:'#0a0a0a',fg:'#ffffff',sub:'#cfcfcf',accent:'#ff3a3a',divider:'rgba(255,255,255,0.14)'},
       transparent:{bg:null,     fg:'#ffffff',sub:'#ffffff',accent:'#ff3a3a',divider:'rgba(255,255,255,0.20)'}
     };
