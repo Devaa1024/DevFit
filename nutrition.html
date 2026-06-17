@@ -1678,35 +1678,84 @@ applyNutritionTierGates();
     }
   }
 
+  function localBarcodeSearch(code){
+    const list=window.DEVFIT_LOCAL_FOODS||[];
+    const hit=list.find(f=>f.barcode===code||(Array.isArray(f.barcodes)&&f.barcodes.includes(code)));
+    if(!hit) return null;
+    return{name:hit.name,brand:hit.brand||'',cal100:hit.cal,p100:hit.p,c100:hit.c,f100:hit.f,
+      sq:hit.serving||100,serving_size:(hit.serving||100)+'g',source:'LOCAL'};
+  }
+
+  function openQuickAddFromBarcode(productName){
+    document.getElementById('food-overlay').classList.remove('show');
+    const nameEl=document.getElementById('qa-name');
+    if(nameEl) nameEl.value=productName;
+    document.getElementById('qa-cal').value='';
+    document.getElementById('qa-p').value='';
+    document.getElementById('qa-c').value='';
+    document.getElementById('qa-f').value='';
+    const note=document.getElementById('qa-barcode-note');
+    if(note) note.style.display='block';
+    document.getElementById('qa-add').textContent='Add to '+targetMealName();
+    document.getElementById('quick-overlay').classList.add('show');
+    setTimeout(()=>document.getElementById('qa-cal').focus(),120);
+  }
+
   async function handleBarcode(code){
     const el=document.getElementById('food-results');
     document.getElementById('food-search-input').value=code;
     document.getElementById('food-overlay').classList.add('show');
+
+    // 1. Check curated local DB first (instant, offline, always accurate)
+    const localHit=localBarcodeSearch(code);
+    if(localHit){ openServing(localHit); return; }
+
     el.innerHTML='<div class="food-loading">Looking up barcode '+esc(code)+'…</div>';
     try{
       const p=await offBarcode(code);
       if(p){
-        // Product found but has no nutritional data (common in crowdsourced DB)
         const hasData=p.cal100>0||p.p100>0||p.c100>0||p.f100>0;
-        if(!hasData){
-          // Pre-fill Quick Add with the product name so user can enter macros manually
-          document.getElementById('food-overlay').classList.remove('show');
-          const nameEl=document.getElementById('qa-name');
-          if(nameEl) nameEl.value=(p.brand?p.brand+' ':'')+p.name;
-          document.getElementById('quick-overlay').classList.add('show');
-          document.getElementById('qa-cal').value='';
-          document.getElementById('qa-p').value='';
-          document.getElementById('qa-c').value='';
-          document.getElementById('qa-f').value='';
-          document.getElementById('qa-cal').focus();
-          // Show a note inside the modal
-          const note=document.getElementById('qa-barcode-note');
-          if(note) note.style.display='block';
-        } else {
+        if(hasData){
+          // Good data from OFF — show normally
           renderResults([p]);
+        } else {
+          // OFF has the product but nutrition is empty — try a name search across all 3 DBs
+          const productLabel=(p.brand?p.brand+' ':'')+p.name;
+          el.innerHTML='<div class="food-loading">Found "'+esc(productLabel)+'" but no nutrition data. Searching by name…</div>';
+          const q=p.name.split(' ').slice(0,3).join(' '); // first 3 words for best match
+          const local2=localSearch(q);
+          let u2=[],o2=[];
+          try{
+            const [ur,or]=await Promise.allSettled([
+              fetch(USDA_SEARCH+'?query='+encodeURIComponent(q)+'&pageSize=8&api_key='+USDA_KEY).then(r=>r.json()),
+              fetch(OFF_SEARCH+'?search_terms='+encodeURIComponent(q)+'&search_simple=1&action=process&json=1&page_size=8').then(r=>r.json())
+            ]);
+            if(ur.status==='fulfilled'&&ur.value.foods) u2=ur.value.foods.filter(f=>f.foodNutrients&&f.foodNutrients.length).map(parseUSDA);
+            if(or.status==='fulfilled'&&or.value.products) o2=or.value.products.filter(f=>f.nutriments).map(parseOFF).filter(f=>f.cal100>0||f.p100>0);
+          }catch(_){}
+          const combined=local2.concat(u2).concat(o2);
+          if(combined.length){
+            el.innerHTML='<div style="padding:8px 12px;font-size:12px;color:#f59e0b;">No data for that barcode — showing similar matches for "'+esc(q)+'"</div>';
+            const frag=document.createElement('div');
+            frag.innerHTML=combined.slice(0,20).map((f,i)=>{
+              const badge=f.source==='LOCAL'?'<span class="src-badge src-local">DevFit</span>':f.source==='USDA'?'<span class="src-badge src-usda">USDA</span>':'<span class="src-badge src-off">Branded</span>';
+              const brand=f.brand?('<span class="food-item-brand">'+esc(f.brand)+'</span> &middot; '):'';
+              return '<div class="food-item" data-idx2="'+i+'" tabindex="0">'+
+                '<div class="food-item-name">'+esc(f.name)+badge+'</div>'+
+                '<div class="food-item-macros">'+brand+Math.round(f.cal100)+' kcal &middot; P:'+Math.round(f.p100)+'g &middot; C:'+Math.round(f.c100)+'g &middot; F:'+Math.round(f.f100)+'g <span class="food-item-per">per 100g</span></div>'+
+                '</div>';
+            }).join('');
+            frag.querySelectorAll('.food-item').forEach((el2,i)=>{
+              el2.addEventListener('click',()=>openServing(combined[i]));
+            });
+            el.appendChild(frag);
+          } else {
+            // Nothing found anywhere — open Quick Add pre-filled
+            openQuickAddFromBarcode(productLabel);
+          }
         }
       } else {
-        el.innerHTML='<div class="food-empty">Product not found for barcode <strong style="color:#ccc">'+esc(code)+'</strong>.<br>Try searching by name.</div>';
+        el.innerHTML='<div class="food-empty">Product not found for barcode <strong style="color:#ccc">'+esc(code)+'</strong>.<br>Try searching by name instead.</div>';
       }
     }catch(e){
       el.innerHTML='<div class="food-empty">Lookup failed. Check your connection.</div>';

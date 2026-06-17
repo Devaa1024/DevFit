@@ -283,7 +283,83 @@
     {name:'Cheesecake', serving:90, cal:321, p:6, c:26, f:22, tags:'cake'},
     {name:'Ice Cream (vanilla)', serving:100, cal:207, p:3.5, c:24, f:11, tags:'dessert'},
     {name:'Popcorn (plain)', serving:30, cal:387, p:12, c:78, f:4.5, tags:'snack'},
-    {name:'Energy / Protein Bar', serving:50, cal:350, p:10, c:50, f:12, tags:'snack supplement'}
+    {name:'Energy / Protein Bar', serving:50, cal:350, p:10, c:50, f:12, tags:'snack supplement'},
+
+    // ════════ MALAYSIAN PACKAGED / BRANDED (from product labels, per 100g) ════════
+    // Biscuits & crackers
+    {name:"Julie's Choco More", brand:"Julie's", serving:36, cal:497, p:6, c:63, f:25, tags:'biscuit chocolate sandwich julie julies snack'},
+    {name:"Julie's Butter Crackers", brand:"Julie's", serving:30, cal:496, p:8, c:62, f:24, tags:'biscuit cracker julie julies snack'},
+    {name:"Julie's Love Letters", brand:"Julie's", serving:25, cal:508, p:5, c:65, f:26, tags:'biscuit roll julie julies'},
+    {name:"Julie's Peanut Butter Sandwich", brand:"Julie's", serving:36, cal:503, p:9, c:58, f:26, tags:'biscuit peanut butter julie julies'},
+    {name:"Julie's Cheese Crackers", brand:"Julie's", serving:30, cal:487, p:9, c:60, f:23, tags:'biscuit cracker cheese julie julies'},
+    {name:'Hup Seng Cream Crackers', brand:'Hup Seng', serving:25, cal:459, p:9, c:67, f:17, tags:'biscuit cracker snack'},
+    {name:'Hup Seng Pineapple Cake Biscuit', brand:'Hup Seng', serving:25, cal:450, p:5, c:68, f:17, tags:'biscuit snack'},
+    {name:'Khong Guan Assorted Biscuits', brand:'Khong Guan', serving:30, cal:462, p:7, c:63, f:20, tags:'biscuit assorted snack'},
+    {name:'Jacob\'s Cream Crackers', brand:"Jacob's", serving:25, cal:440, p:9, c:67, f:14, tags:'biscuit cracker snack'},
+    {name:'Oreo (original)', brand:'Oreo', serving:34, cal:471, p:5, c:67, f:21, tags:'biscuit cookie chocolate snack'},
+    {name:'Lexus Biscuit', brand:'Lexus', serving:30, cal:490, p:7, c:62, f:23, tags:'biscuit snack sandwich'},
+
+    // Bread & bakery
+    {name:'Gardenia Original Classic White Bread', brand:'Gardenia', serving:32, cal:255, p:8, c:47, f:3.5, tags:'bread white toast roti gardenia'},
+    {name:'Gardenia Butterscotch Bread', brand:'Gardenia', serving:32, cal:310, p:7, c:52, f:9, tags:'bread sweet gardenia'},
+    {name:'Massimo Soft White Bread', brand:'Massimo', serving:32, cal:258, p:8, c:48, f:3.5, tags:'bread white toast roti massimo'},
+    {name:'Sunshine Wholemeal Bread', brand:'Sunshine', serving:32, cal:238, p:9, c:43, f:3, tags:'bread wholemeal wholegrain'},
+
+    // Instant noodles
+    {name:'Maggi 2-Minute Noodles Chicken', brand:'Maggi', serving:80, cal:370, p:9, c:54, f:13, tags:'maggi instant noodle mee chicken ayam'},
+    {name:'Maggi Asam Laksa', brand:'Maggi', serving:80, cal:360, p:8, c:52, f:13, tags:'maggi instant noodle asam laksa'},
+    {name:'Maggi Kari (Curry)', brand:'Maggi', serving:80, cal:370, p:8, c:53, f:14, tags:'maggi instant noodle curry kari'},
+    {name:'Mamee Monster (original)', brand:'Mamee', serving:25, cal:473, p:8, c:62, f:22, tags:'mamee snack noodle fried instant'},
+    {name:'Mamee Daebak Ghost Pepper Noodle', brand:'Mamee', serving:130, cal:453, p:10, c:63, f:18, tags:'mamee instant noodle spicy'},
+    {name:'Myojo Char Mee Pork', brand:'Myojo', serving:85, cal:388, p:9, c:57, f:14, tags:'myojo instant noodle char mee'},
+    {name:'Cintan Chicken Noodle', brand:'Cintan', serving:75, cal:365, p:8, c:52, f:14, tags:'cintan instant noodle ayam'},
+    {name:'Ibumie Mi Goreng', brand:'Ibumie', serving:80, cal:395, p:9, c:55, f:16, tags:'ibumie instant noodle goreng'},
+    {name:'Indomie Mi Goreng', brand:'Indomie', serving:80, cal:390, p:8, c:56, f:15, tags:'indomie instant noodle goreng'},
+
+    // Drinks & powders
+    {name:'Milo (powder)', brand:'Nestle', serving:25, cal:385, p:10.5, c:70, f:6.5, tags:'milo chocolate malt drink nestle powder'},
+    {name:'Milo (3-in-1 sachet, 33g)', brand:'Nestle', serving:33, cal:384, p:7, c:73, f:6, tags:'milo nestle 3in1 instant chocolate drink'},
+    {name:'Nescafe Classic (powder)', brand:'Nestle', serving:2, cal:353, p:13, c:63, f:4, tags:'nescafe coffee powder nestle'},
+    {name:'Nescafe 3-in-1 Original (sachet, 20g)', brand:'Nestle', serving:20, cal:419, p:5, c:67, f:14, tags:'nescafe 3in1 coffee instant nestle'},
+    {name:'Old Town White Coffee 3-in-1 (sachet, 35g)', brand:'Old Town', serving:35, cal:446, p:5, c:70, f:16, tags:'oldtown old town white coffee 3in1 ipoh kopi'},
+    {name:'Boh Cameron Highlands Tea (bag)', brand:'Boh', serving:2, cal:1, p:0, c:0.2, f:0, tags:'boh tea teh bag'},
+    {name:'Dutch Lady Full Cream Milk', brand:'Dutch Lady', serving:250, cal:66, p:3.3, c:4.7, f:3.6, tags:'milk full cream susu dutch lady'},
+    {name:'Dutch Lady Low Fat Milk', brand:'Dutch Lady', serving:250, cal:47, p:3.6, c:4.8, f:1.5, tags:'milk low fat susu dutch lady'},
+    {name:'F&N Sweetened Condensed Milk', brand:'F&N', serving:15, cal:327, p:7, c:55, f:8, tags:'condensed milk susu pekat manis'},
+    {name:'Pokka Lemon Tea (500ml)', brand:'Pokka', serving:500, cal:40, p:0, c:9.5, f:0, tags:'pokka lemon tea drink bottle'},
+    {name:'100Plus Isotonic Drink (500ml)', brand:'100Plus', serving:500, cal:29, p:0, c:7, f:0, tags:'100plus isotonic sports drink'},
+    {name:'Milo RTD Can (240ml)', brand:'Nestle', serving:240, cal:77, p:1.8, c:15, f:1.6, tags:'milo ready to drink can nestle'},
+    {name:'Teh Botol Sosro (330ml)', brand:'Sosro', serving:330, cal:36, p:0, c:8.6, f:0, tags:'sosro jasmine tea drink'},
+
+    // Cereals & breakfast
+    {name:'Nestum Original (powder)', brand:'Nestle', serving:30, cal:386, p:10, c:73, f:5, tags:'nestum cereal oat nestle breakfast'},
+    {name:'Kellogg\'s Corn Flakes', brand:"Kellogg's", serving:30, cal:357, p:8, c:79, f:1, tags:'cereal cornflakes breakfast kelloggs'},
+    {name:'Quaker Oats (instant, plain)', brand:'Quaker', serving:40, cal:374, p:13, c:66, f:7, tags:'oats cereal quaker breakfast oatmeal'},
+
+    // Sauces & condiments
+    {name:'Kicap Manis (sweet soy sauce)', brand:'', serving:15, cal:80, p:1, c:18, f:0.3, tags:'soy sauce kicap sweet'},
+    {name:'Oyster Sauce', brand:'', serving:15, cal:51, p:1, c:10, f:0.5, tags:'oyster sauce'},
+    {name:'Chili Sauce (Maggi/Kimball)', brand:'', serving:15, cal:67, p:1, c:15, f:0.3, tags:'chili sauce sos cili'},
+    {name:'Peanut Butter (smooth)', brand:'', serving:32, cal:598, p:22, c:20, f:51, tags:'peanut butter kacang'},
+
+    // Yogurt & dairy
+    {name:'Marigold Natural Yogurt', brand:'Marigold', serving:150, cal:63, p:4, c:8, f:1.8, tags:'yogurt plain yoghurt marigold'},
+    {name:'Marigold Flavoured Yogurt', brand:'Marigold', serving:150, cal:90, p:3.5, c:16, f:1.5, tags:'yogurt flavoured yoghurt marigold'},
+    {name:'Vitagen (per bottle 125ml)', brand:'Vitagen', serving:125, cal:72, p:1.5, c:14, f:0.3, tags:'vitagen yakult probiotic drink dairy fermented'},
+
+    // Chips & crisps
+    {name:'Twisties Chicken (per pack 60g)', brand:'Twisties', serving:60, cal:510, p:5, c:60, f:28, tags:'twisties chips snack crisps chicken'},
+    {name:'Mister Potato Chips Original', brand:'Mister Potato', serving:54, cal:530, p:6, c:54, f:32, tags:'mister potato chips crisps snack'},
+    {name:'Pringles Original', brand:'Pringles', serving:30, cal:521, p:5, c:52, f:32, tags:'pringles chips crisps snack'},
+
+    // Canned / ready food
+    {name:'Ayam Brand Tuna in Water (185g can)', brand:'Ayam Brand', serving:185, cal:116, p:26, c:0, f:1, tags:'tuna can ayam brand protein'},
+    {name:'Ayam Brand Sardines in Tomato Sauce', brand:'Ayam Brand', serving:155, cal:165, p:18, c:2, f:9, tags:'sardine can ayam brand ikan'},
+    {name:'Maggi Tomato Sauce', brand:'Maggi', serving:30, cal:40, p:0.8, c:8, f:0.3, tags:'tomato sauce ketchup maggi'},
+
+    // Protein supplements
+    {name:'Whey Protein Powder (generic, vanilla)', brand:'', serving:30, cal:120, p:24, c:3, f:2, tags:'whey protein supplement powder gym'},
+    {name:'Mass Gainer (generic)', brand:'', serving:150, cal:600, p:30, c:100, f:8, tags:'mass gainer supplement protein gym'}
   ];
 
   window.DEVFIT_LOCAL_FOODS = F;
