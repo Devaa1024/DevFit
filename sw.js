@@ -6,13 +6,13 @@
    - Apps Script: network-only
 */
 
-const VERSION = 'devfit-v4.17.2';
+const VERSION = 'devfit-v4.17.3';
 const APP_SHELL = 'devfit-shell-' + VERSION;
 const RUNTIME = 'devfit-runtime-' + VERSION;
 
 const SHELL_FILES = [
   './manifest.json',
-  './icon-180.png',
+  './icon-touch.png',
   './icon-192.png',
   './icon-512.png',
   './logo-header.png',
