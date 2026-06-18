@@ -90,6 +90,11 @@
   .chip.active{background:#cc0000;border-color:#cc0000;color:#fff;box-shadow:0 4px 14px rgba(204,0,0,0.35)}
   .chip.active small{color:rgba(255,255,255,0.85)}
   .calc-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .calc-nums-4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:430px){.calc-nums-4{grid-template-columns:repeat(2,1fr)}}
+  .chips-num .chip{flex:1 1 0;padding:11px 4px;font-size:14px}
+  .cr-note{margin-top:14px;background:rgba(198,144,47,0.10);border:1px solid rgba(198,144,47,0.30);border-radius:10px;padding:11px 13px;font-size:11px;line-height:1.6;color:#cbb58a}
+  .cr-note b{color:#e8d3a8}
   .calc-num{background:#fff;border:1px solid var(--bd);border-radius:var(--radius);padding:9px 8px;text-align:center}
   .calc-num .lbl{font-size:10px;color:#666;font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
   .calc-num input{width:100%;border:none;background:transparent;font-family:'DM Sans',system-ui,sans-serif;font-size:19px;font-weight:700;text-align:center;color:#111;outline:none}
@@ -225,7 +230,7 @@ html.nosplash #devfit-splash{display:none!important}
 #devfit-splash{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,#220707,#0a0a0c 72%);transition:opacity .55s ease}
 #devfit-splash.hide{opacity:0;pointer-events:none}
 #devfit-splash .si{display:flex;flex-direction:column;align-items:center;animation:dfPop .6s cubic-bezier(.2,.8,.2,1)}
-#devfit-splash img{width:112px;height:112px;border-radius:26px;box-shadow:0 14px 44px rgba(204,0,0,.45)}
+#devfit-splash img{width:112px;height:112px;border-radius:26px;background:#fff;box-shadow:0 14px 44px rgba(204,0,0,.45)}
 #devfit-splash .w{margin-top:20px;font-family:'Inter',system-ui,sans-serif;font-style:italic;font-weight:800;font-size:32px;color:#fff;letter-spacing:.01em}
 #devfit-splash .w b{color:#cc0000}
 #devfit-splash .t{margin-top:9px;font-family:'DM Sans',system-ui,sans-serif;font-size:10px;font-weight:700;letter-spacing:.3em;color:rgba(255,255,255,.5)}
@@ -341,23 +346,22 @@ html.nosplash #devfit-splash{display:none!important}
 
     <!-- MACRO CALCULATOR -->
     <div class="card">
-      <div class="calc-head" id="calc-head">
-        <div>
-          <div class="section-label" style="margin-bottom:2px">Macro calculator</div>
-          <div class="ch">Built for real life — your job and your training, separately.</div>
-        </div>
-        <div class="calc-toggle" id="calc-toggle">Open ▾</div>
+      <div>
+        <div class="section-label" style="margin-bottom:2px">Macro calculator</div>
+        <div class="ch">Built for real life — your job and your training, counted separately.</div>
       </div>
 
-      <div class="calc-body" id="calc-body" hidden>
+      <div class="calc-body" id="calc-body">
 
         <div class="calc-row">
           <label class="clbl">You</label>
-          <div class="calc-nums">
+          <div class="calc-nums calc-nums-4">
             <div class="calc-num"><div class="lbl">Age</div><input id="c-age" type="number" inputmode="numeric" placeholder="—"><div class="unit">years</div></div>
             <div class="calc-num"><div class="lbl">Height</div><input id="c-ht" type="number" inputmode="numeric" placeholder="—"><div class="unit">cm</div></div>
             <div class="calc-num"><div class="lbl">Weight</div><input id="c-wt" type="number" inputmode="decimal" placeholder="—"><div class="unit">kg</div></div>
+            <div class="calc-num"><div class="lbl">Body fat</div><input id="c-bf" type="number" inputmode="decimal" placeholder="—"><div class="unit">% · optional</div></div>
           </div>
+          <div class="chint" style="margin-top:6px;display:block">Know your body-fat %? Adding it switches to the more accurate Katch-McArdle equation (uses lean mass).</div>
         </div>
 
         <div class="calc-row">
@@ -379,12 +383,15 @@ html.nosplash #devfit-splash{display:none!important}
         </div>
 
         <div class="calc-row">
-          <label class="clbl">Training days per week</label>
-          <div class="chips" id="c-days">
-            <div class="chip" data-v="0">0–2</div>
-            <div class="chip" data-v="3.5">3–4</div>
-            <div class="chip" data-v="5.5">5–6</div>
-            <div class="chip" data-v="7">6–7 / 2-a-day</div>
+          <label class="clbl">Training days per week <span class="chint">how many days you actually train</span></label>
+          <div class="chips chips-num" id="c-days">
+            <div class="chip" data-v="1">1</div>
+            <div class="chip" data-v="2">2</div>
+            <div class="chip" data-v="3">3</div>
+            <div class="chip" data-v="4">4</div>
+            <div class="chip" data-v="5">5</div>
+            <div class="chip" data-v="6">6</div>
+            <div class="chip" data-v="7">7</div>
           </div>
         </div>
 
@@ -423,16 +430,23 @@ html.nosplash #devfit-splash{display:none!important}
             <div class="cr-macro"><div class="mv" id="cr-c" style="color:#c6902f">—</div><div class="mu">Carbs</div></div>
             <div class="cr-macro"><div class="mv" id="cr-f" style="color:#cc0000">—</div><div class="mu">Fat</div></div>
           </div>
+          <div class="cr-note" id="cr-note">
+            <b id="cr-formula">—</b> · This is an <b>estimate, not a measurement</b>. Real maintenance varies roughly <b>±10%</b> person to person (genetics, NEAT, metabolism), so it can differ from other calculators that ask fewer questions about your day. Treat it as a starting point: hold these numbers for 2–3 weeks, track your weight trend, then adjust by ±100–200 kcal.
+          </div>
           <button class="cr-apply" id="cr-apply" type="button">Apply to my daily targets ↓</button>
         </div>
 
         <details class="calc-explain">
           <summary>How this is calculated — the formula</summary>
           <div class="ex-body">
-            <p><b>1. Resting energy (BMR) — Mifflin-St Jeor equation.</b> The most validated predictive equation in clinical use.<br>
+            <p><b>1. Resting energy (BMR).</b> Without body-fat % we use the <b>Mifflin-St Jeor</b> equation — the most validated predictor in clinical use.<br>
             Men: <code>10·kg + 6.25·cm − 5·age + 5</code><br>
             Women: <code>10·kg + 6.25·cm − 5·age − 161</code><br>
             <span class="ref">Mifflin MD et al., Am J Clin Nutr 1990;51(2):241–7.</span></p>
+
+            <p><b>1b. If you enter body fat %</b> we switch to <b>Katch-McArdle</b>, which is more accurate because it works off your lean body mass (LBM) instead of total weight.<br>
+            <code>LBM = kg × (1 − bodyfat%)</code> · <code>BMR = 370 + 21.6 × LBM</code><br>
+            <span class="ref">Katch &amp; McArdle, 1996.</span></p>
 
             <p><b>2. Daily burn (TDEE) = BMR × PAL.</b> PAL = Physical Activity Level, the international standard for total activity.<br>
             <span class="ref">FAO/WHO/UNU, Human Energy Requirements, 2001.</span></p>
@@ -639,17 +653,12 @@ document.getElementById('date-pick').value=currentDate;
 
 // ── MACRO CALCULATOR ──────────────────────────────────────────────
 (function(){
-  if(!data.calc) data.calc={age:'',ht:'',wt:'',sex:'',job:'',days:'',int:'',goal:''};
+  if(!data.calc) data.calc={age:'',ht:'',wt:'',bf:'',sex:'',job:'',days:'',int:'',goal:''};
   const C=data.calc;
-  const head=document.getElementById('calc-head'), body=document.getElementById('calc-body'), tog=document.getElementById('calc-toggle');
-  head.addEventListener('click',()=>{
-    const open=body.hidden;
-    body.hidden=!open;
-    tog.textContent=open?'Close ▴':'Open ▾';
-  });
+  if(C.bf===undefined) C.bf='';
 
-  // numeric inputs
-  [['age','c-age'],['ht','c-ht'],['wt','c-wt']].forEach(([k,id])=>{
+  // numeric inputs (bf is optional)
+  [['age','c-age'],['ht','c-ht'],['wt','c-wt'],['bf','c-bf']].forEach(([k,id])=>{
     const el=document.getElementById(id);
     if(C[k]!=='') el.value=C[k];
     else if(k==='wt'){ // prefill weight from progress data if available
@@ -677,13 +686,22 @@ document.getElementById('date-pick').value=currentDate;
   let _calc=null;
   document.getElementById('calc-go').addEventListener('click',()=>{
     const age=Number(C.age), ht=Number(C.ht), wt=Number(C.wt);
+    const bf=(C.bf!==''&&!isNaN(Number(C.bf))&&Number(C.bf)>0&&Number(C.bf)<70)?Number(C.bf):null;
     if(!age||!ht||!wt||!C.sex||!C.job||C.days===''||!C.int||!C.goal){
       alert('Fill in age, height, weight and pick an option in each row first.');
       return;
     }
-    // 1. BMR — Mifflin-St Jeor
-    const bmr = C.sex==='m' ? (10*wt + 6.25*ht - 5*age + 5)
-                            : (10*wt + 6.25*ht - 5*age - 161);
+    // 1. BMR — Katch-McArdle if body fat known (uses lean mass), else Mifflin-St Jeor
+    let bmr, formula;
+    if(bf!==null){
+      const lbm = wt*(1-bf/100);
+      bmr = 370 + 21.6*lbm;
+      formula = 'Katch-McArdle (uses your lean mass)';
+    } else {
+      bmr = C.sex==='m' ? (10*wt + 6.25*ht - 5*age + 5)
+                        : (10*wt + 6.25*ht - 5*age - 161);
+      formula = 'Mifflin-St Jeor';
+    }
     // 2. PAL = job baseline + (days/7)*intensity, clamped 1.40–2.40
     let pal = Number(C.job) + (Number(C.days)/7)*Number(C.int);
     pal = Math.max(1.40, Math.min(2.40, pal));
@@ -703,6 +721,7 @@ document.getElementById('date-pick').value=currentDate;
     document.getElementById('cr-bmr').textContent=Math.round(bmr).toLocaleString();
     document.getElementById('cr-tdee').textContent=Math.round(tdee).toLocaleString();
     document.getElementById('cr-pal').textContent=pal.toFixed(2);
+    document.getElementById('cr-formula').textContent=formula;
     document.getElementById('cr-p').textContent=_calc.p+'g';
     document.getElementById('cr-c').textContent=_calc.c+'g';
     document.getElementById('cr-f').textContent=_calc.f+'g';
