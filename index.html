@@ -2013,7 +2013,8 @@ showCountdown();
 showWelcomeScreen();
 scheduleAccessCheck();
 // Cloud sync — runs after localStorage render so UI is never blocked
-if(typeof DevFitDB!=='undefined'){
+function runProgressSync(){
+  if(typeof DevFitDB==='undefined') return;
   DevFitDB.cloudSync('progress','progressLog2',function(d){
     appData=d;
     totalWeeks=appData.bw.length||4;
@@ -2021,6 +2022,11 @@ if(typeof DevFitDB!=='undefined'){
     renderTabs();render();applyTierGates();
   });
 }
+runProgressSync();
+// Re-sync when PWA returns to foreground (covers backgrounded mobile app)
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible') runProgressSync();
+});
 </script>
 
 <!-- ===== WEEKLY PROGRESS SHARE CARD ===== -->
