@@ -2139,6 +2139,7 @@ document.addEventListener('visibilitychange',function(){
     const pal=palette[wsTheme]||palette.light;
     const sf=getShareFont();
     const F=(w2,px)=>(sf.style?sf.style+' ':'')+sf.wt(w2)+' '+Math.round(px*sf.scale)+'px '+sf.face;
+    const vmet=(str,px)=>{ const m=ctx.measureText(str); return {a:m.actualBoundingBoxAscent||px*0.72,d:m.actualBoundingBoxDescent||px*0.12}; };
 
     ctx.clearRect(0,0,W,H);
     if(pal.bg){ ctx.fillStyle=pal.bg; ctx.fillRect(0,0,W,H); }
@@ -2155,28 +2156,31 @@ document.addEventListener('visibilitychange',function(){
     // (date removed) — keep original vertical rhythm so nothing else shifts
     y+=104;
 
-    // Score hero label
+    // Score hero label — metric-aware so the big number never overlaps the zone word
+    ctx.textBaseline='alphabetic';
     ctx.fillStyle=pal.sub;
     ctx.font=F(700,30);
-    ctx.fillText('OVERALL SCORE',PAD,y);
-    y+=46;
+    { const lm=vmet('OVERALL SCORE',30); ctx.fillText('OVERALL SCORE',PAD,y+lm.a); y+=lm.a+lm.d+18; }
     // Hero number
     const scoreStr = overall===null?'—':overall+'';
     ctx.fillStyle = (wsTheme==='transparent') ? '#ffffff' : (zoneCol||pal.fg);
     ctx.font=F(800,230);
-    ctx.fillText(scoreStr,PAD,y);
+    const hm=vmet(scoreStr,230);
+    const hbase=y+hm.a;
+    ctx.fillText(scoreStr,PAD,hbase);
     if(overall!==null){
       const sW=ctx.measureText(scoreStr).width;
       ctx.font=F(800,80);
-      ctx.fillText('%',PAD+sW+8,y+138);
+      ctx.fillText('%',PAD+sW+12,hbase);
     }
-    y+=250;
+    y=hbase+hm.d+44;
     // Zone word
     if(zoneTxt){
       ctx.fillStyle = (wsTheme==='transparent') ? '#ffffff' : (zoneCol||pal.sub);
       ctx.font=F(800,44);
-      ctx.fillText(zoneTxt,PAD,y);
-      y+=80;
+      const zm=vmet(zoneTxt,44);
+      ctx.fillText(zoneTxt,PAD,y+zm.a);
+      y+=zm.a+zm.d+36;
     } else { y+=20; }
 
     // Divider
@@ -2185,6 +2189,7 @@ document.addEventListener('visibilitychange',function(){
     y+=54;
 
     // Stat rows
+    ctx.textBaseline='top';
     const rows=[
       {label:'Bodyweight', val: bwAvg===null?'—':bwAvg.toFixed(1)+' kg'},
       {label:'Steps / day',val: stepsAvg===null?'—':Math.round(stepsAvg).toLocaleString()},

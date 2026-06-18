@@ -914,7 +914,8 @@ async function openShareModal(){
     const pref=(localStorage.getItem('devfit_shareFont')||'dmsans');
     const faces={dmsans:'"DM Sans"',literature:'"Lora"',elegant:'"Playfair Display"',strong:'"Anton"',deco:'"Righteous"'};
     const fc=faces[pref]||'"DM Sans"';
-    await document.fonts.load('700 60px '+fc); await document.fonts.load('400 60px '+fc); await document.fonts.ready;
+    const it=(pref==='elegant')?'italic ':'';
+    await document.fonts.load(it+'700 60px '+fc); await document.fonts.load(it+'400 60px '+fc); await document.fonts.ready;
   }catch(e){}
   rerenderShareCard();
   document.getElementById('share-overlay').classList.add('show');
@@ -976,56 +977,54 @@ function drawExportCard(canvas, workout, session, theme){
   };
   const p = palette[theme] || palette.light;
 
-  // Font variant from Settings page
+  // Font variant from Settings — UNIFIED with the weekly & diet share cards
+  // (same faces, italic for Elegant, and per-font scale) so all 3 cards match.
   const fontPref = (function(){
     try { return localStorage.getItem('devfit_shareFont') || 'dmsans'; } catch(e){ return 'dmsans'; }
   })();
   const fontMap = {
-    'dmsans':     {face:'"DM Sans",system-ui,sans-serif', bodyW:'600', titleW:'800', italic:''},
-    'literature': {face:'"Lora",Georgia,serif',           bodyW:'500', titleW:'700', italic:''},
-    'elegant':    {face:'"Playfair Display",Georgia,serif',bodyW:'600', titleW:'700', italic:''},
-    'strong':     {face:'"Anton",Impact,sans-serif',      bodyW:'400', titleW:'400', italic:''},
-    'deco':       {face:'"Righteous",system-ui,sans-serif',bodyW:'400', titleW:'400', italic:''}
+    'dmsans':     {face:'"DM Sans",system-ui,sans-serif',  bodyW:600, titleW:800, italic:'',        scale:1.0},
+    'literature': {face:'"Lora",Georgia,serif',            bodyW:500, titleW:700, italic:'',        scale:0.98},
+    'elegant':    {face:'"Playfair Display",Georgia,serif',bodyW:600, titleW:700, italic:'italic ', scale:1.0},
+    'strong':     {face:'"Anton",Impact,sans-serif',       bodyW:400, titleW:400, italic:'',        scale:0.86},
+    'deco':       {face:'"Righteous",system-ui,sans-serif',bodyW:400, titleW:400, italic:'',        scale:0.92}
   };
   const fv = fontMap[fontPref] || fontMap.dmsans;
-  const FACE = fv.face, BW = fv.bodyW, TW = fv.titleW, IT = fv.italic;
+  const FACE = fv.face, BW = fv.bodyW, TW = fv.titleW, IT = fv.italic, SC = fv.scale;
+  const F = (weight,px) => IT + weight + ' ' + Math.round(px*SC) + 'px ' + FACE;
+  // measured ascent/descent so tall fonts (Anton, Playfair italic) never overlap the next line
+  const vmet = (str,px) => { const m=ctx.measureText(str); return {a:m.actualBoundingBoxAscent||px*0.72, d:m.actualBoundingBoxDescent||px*0.12}; };
 
   // Clear (transparent) or fill background
   ctx.clearRect(0,0,W,H);
   if(p.bg){
-    // Outer card with subtle rounded look
     ctx.fillStyle = p.bg;
     roundRect(ctx, 0, 0, W, H, 0);
     ctx.fill();
   }
 
   const PAD = 80;
-  let y = PAD + 30;
+  let y = PAD + 20;
 
-  // ---- WORKOUT TITLE (e.g. "Push Day") ----
+  // ---- WORKOUT TITLE (e.g. "Push Day") — metric-aware, date removed ----
   ctx.fillStyle = p.fg;
-  ctx.textBaseline = 'top';
+  ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'left';
   let titleSize = 120;
-  ctx.font = `${IT}${TW} ${titleSize}px ${FACE}`;
+  ctx.font = F(TW, titleSize);
   let title = workout.name || 'Workout';
   while(ctx.measureText(title).width > W - PAD*2 && titleSize > 60){
     titleSize -= 4;
-    ctx.font = `${IT}${TW} ${titleSize}px ${FACE}`;
+    ctx.font = F(TW, titleSize);
   }
-  ctx.fillText(title, PAD, y);
-  y += titleSize + 16;
-
-  // Date subtitle
-  ctx.font = `${IT}${BW} 40px ${FACE}`;
-  ctx.fillStyle = p.sub;
-  ctx.fillText(fmtDate(session.date), PAD, y);
-  y += 80;
+  const tmet = vmet(title, titleSize);
+  ctx.fillText(title, PAD, y + tmet.a);
+  y += tmet.a + tmet.d + 46;
 
   // Thin divider
   ctx.fillStyle = p.divider;
   ctx.fillRect(PAD, y, W - PAD*2, 1);
-  y += 40;
+  y += 44;
 
   // ---- EXERCISE LIST ----
   // Format: "Exercise Name              3×10 @ 60kg"
@@ -1064,32 +1063,27 @@ function drawExportCard(canvas, workout, session, theme){
 
   showLines.forEach(line => {
     // Exercise name (left, the focus)
-    ctx.fillStyle = p.fg;
-    ctx.textAlign = 'left';
-    ctx.font = `${IT}${TW} 58px ${FACE}`;
+    ctx.font = F(TW, 58);
     let nameTxt = line.name;
-    const nameStartX = PAD;
-    const nameMaxW = W - PAD - nameStartX - 360; // leave room for summary on the right
+    const nameMaxW = W - PAD*2 - 340; // leave room for summary on the right
     while(ctx.measureText(nameTxt).width > nameMaxW && nameTxt.length > 3){
       nameTxt = nameTxt.slice(0, -1);
     }
     if(nameTxt !== line.name) nameTxt = nameTxt.slice(0, -1) + '…';
-    ctx.fillText(nameTxt, nameStartX, y);
-
-    // Summary right-aligned (e.g. "3 sets · 40kg")
-    ctx.fillStyle = p.sub;
-    ctx.textAlign = 'right';
-    ctx.font = `${IT}${BW} 46px ${FACE}`;
-    ctx.fillText(line.summary, W - PAD, y + 10);
-
+    const nm = vmet(nameTxt, 58);
+    const base = y + nm.a;            // shared baseline for name + summary
+    ctx.textAlign = 'left'; ctx.fillStyle = p.fg;
+    ctx.fillText(nameTxt, PAD, base);
+    ctx.textAlign = 'right'; ctx.fillStyle = p.sub; ctx.font = F(BW, 46);
+    ctx.fillText(line.summary, W - PAD, base);
     y += rowH;
   });
 
   if(overflow > 0){
     ctx.fillStyle = p.sub;
     ctx.textAlign = 'center';
-    ctx.font = `${IT}500 36px ${FACE}`;
-    ctx.fillText('+ ' + overflow + ' more exercise' + (overflow>1?'s':''), W/2, y);
+    ctx.font = F(500, 36);
+    ctx.fillText('+ ' + overflow + ' more exercise' + (overflow>1?'s':''), W/2, y + 36);
   }
 
   // ---- FOOTER: DEVFIT logo (left) + @handle (right) ----
@@ -1113,7 +1107,7 @@ function drawExportCard(canvas, workout, session, theme){
   // @handle — uses Settings display name first, falls back to email prefix.
   // Size = 38px (5% smaller than before).
   ctx.fillStyle = p.sub;
-  ctx.font = `${IT}${BW} 38px ${FACE}`;
+  ctx.font = F(BW, 38);
   ctx.textAlign = 'right';
   let handle = '@user';
   try {

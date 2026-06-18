@@ -919,16 +919,17 @@ applyNutritionTierGates();
     const defs={
       dmsans:    {face:'"DM Sans",system-ui,sans-serif', weights:[400,500,600,700,800], scale:1.0},
       literature:{face:'"Lora",Georgia,serif',           weights:[400,500,600,700],     scale:0.98},
-      elegant:   {face:'"Playfair Display",Georgia,serif',weights:[600,700],             scale:1.0},
+      elegant:   {face:'"Playfair Display",Georgia,serif',weights:[600,700],style:'italic',scale:1.0},
       strong:    {face:'"Anton",Impact,sans-serif',      weights:[400],                 scale:0.86},
       deco:      {face:'"Righteous",system-ui,sans-serif',weights:[400],                scale:0.92}
     };
     const d=defs[pref]||defs.dmsans;
     function wt(n){ let best=d.weights[0],bd=Infinity; d.weights.forEach(w=>{const df=Math.abs(w-n); if(df<bd){bd=df;best=w;}}); return best; }
-    return {face:d.face, scale:d.scale, wt:wt, key:pref};
+    return {face:d.face, scale:d.scale, wt:wt, key:pref, style:d.style||''};
   }
   async function loadShareFont(sf){
-    try{ await document.fonts.load(sf.wt(700)+' 60px '+sf.face); await document.fonts.load(sf.wt(400)+' 60px '+sf.face); await document.fonts.ready; }catch(e){}
+    const pfx=sf.style?sf.style+' ':'';
+    try{ await document.fonts.load(pfx+sf.wt(700)+' 60px '+sf.face); await document.fonts.load(pfx+sf.wt(400)+' 60px '+sf.face); await document.fonts.ready; }catch(e){}
   }
 
   let dsTheme='light';
@@ -970,7 +971,8 @@ applyNutritionTierGates();
     };
     const pal=palette[dsTheme]||palette.light;
     const sf=getShareFont();
-    const F=(w,px)=>sf.wt(w)+' '+Math.round(px*sf.scale)+'px '+sf.face;
+    const F=(w,px)=>(sf.style?sf.style+' ':'')+sf.wt(w)+' '+Math.round(px*sf.scale)+'px '+sf.face;
+    const vmet=(str,px)=>{ const m=ctx.measureText(str); return {a:m.actualBoundingBoxAscent||px*0.72,d:m.actualBoundingBoxDescent||px*0.12}; };
     const MACRO_COL={p:'#3b82f6',c:'#f59e0b',f:'#ef4444'};
 
     ctx.clearRect(0,0,W,H);
@@ -985,28 +987,27 @@ applyNutritionTierGates();
     ctx.font=F(800,34);
     ctx.fillText('DAILY NUTRITION',PAD,y);
     y+=52;
-    // (date removed — keep rhythm so nothing else shifts)
-    y+=96;
+    // (date removed) tighter rhythm
+    y+=40;
 
-    // Calories hero
+    // Calories hero — metric-aware so the big number never overlaps below
+    ctx.textBaseline='alphabetic';
     ctx.fillStyle=pal.sub;
     ctx.font=F(700,30);
-    ctx.fillText('CALORIES',PAD,y);
-    y+=46;
+    { const lm=vmet('CALORIES',30); ctx.fillText('CALORIES',PAD,y+lm.a); y+=lm.a+lm.d+20; }
     ctx.fillStyle=pal.fg;
     let heroPx=190;
     ctx.font=F(800,heroPx);
     const calStr=cal.toLocaleString();
-    // shrink to fit if a wide font overflows
-    while(ctx.measureText(calStr).width>W-PAD*2-150 && heroPx>110){ heroPx-=6; ctx.font=F(800,heroPx); }
-    ctx.fillText(calStr,PAD,y);
+    while(ctx.measureText(calStr).width>W-PAD*2-190 && heroPx>110){ heroPx-=6; ctx.font=F(800,heroPx); }
+    const hm=vmet(calStr,heroPx);
+    const hbase=y+hm.a;
+    ctx.fillText(calStr,PAD,hbase);
     const calW=ctx.measureText(calStr).width;
     ctx.fillStyle=pal.sub;
-    ctx.font=F(600,50);
-    ctx.fillText(' kcal',PAD+calW+10,y+118);
-    y+=210;
-    // (calorie-vs-target subline removed for a cleaner, minimal card)
-    y+=18;
+    ctx.font=F(600,48);
+    ctx.fillText('kcal',PAD+calW+18,hbase);
+    y=hbase+hm.d+48;
 
     // Macro split bar — clip to a rounded pill, then fill crisp segments
     if(macroTotal>0){
@@ -1033,6 +1034,7 @@ applyNutritionTierGates();
     y+=56;
 
     // Macro rows
+    ctx.textBaseline='top';
     const rows=[
       {label:'Protein',g:p,kcal:pCal,col:MACRO_COL.p},
       {label:'Carbs',  g:c,kcal:cCal,col:MACRO_COL.c},
