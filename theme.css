@@ -7,6 +7,23 @@
 :root{
   --df-accent:#cc0000;
   --df-accent2:#ff4444;
+  /* ---- DevFit unified premium palette ----
+     One crimson-anchored system replaces the old blue/orange/red/green rainbow.
+     Four muted tones, reused across macros AND score traffic-lights so every
+     chart/bar/ring on every page reads as the same brand:
+       slate-blue  #4a6572  — protein / neutral data
+       gold        #c6902f  — carbs   / "okay" score / warnings
+       crimson     #cc0000  — fat      / "low" score / over-target / brand accent
+       sage-green  #2f9e57  — "good" score / on-track / surplus-ok
+     Canvas charts can't read CSS vars, so these hexes are also hardcoded in JS;
+     keep them in sync with these tokens. */
+  --df-protein:#4a6572;
+  --df-carbs:#c6902f;
+  --df-fat:#cc0000;
+  --df-good:#2f9e57;
+  --df-good2:#3fb56e;
+  --df-okay:#c6902f;
+  --df-low:#cc0000;
 }
 
 /* ---------- PAGE TRANSITIONS (iOS-style fade; opacity only to keep fixed nav intact) ---------- */

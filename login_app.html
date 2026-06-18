@@ -11,7 +11,7 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --g:#16a34a;--g2:#22c55e;--a:#f59e0b;--r:#ef4444;--b:#3b82f6;
+    --g:#2f9e57;--g2:#3fb56e;--a:#c6902f;--r:#cc0000;--b:#4a6572;
     --bg:#ffffff;--bg2:#2d2d2d;--bg3:#c8c8c8;
     --t1:#111111;--t2:#555555;--bd:#d1d5db;
     --radius:10px;--radius-lg:14px;
@@ -42,9 +42,9 @@
   /* GOAL SELECTOR */
   .goal-row{display:flex;gap:8px;flex-wrap:wrap}
   .goal-btn{flex:1;min-width:90px;padding:10px 8px;border-radius:var(--radius);border:2px solid #d1d5db;background:#ffffff;color:#555555;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;text-align:center}
-  .goal-btn.active-loss{border-color:#ef4444;background:#fef2f2;color:#991b1b}
-  .goal-btn.active-gain{border-color:#16a34a;background:#f0fdf4;color:#15803d}
-  .goal-btn.active-maintain{border-color:#3b82f6;background:#eff6ff;color:#1e40af}
+  .goal-btn.active-loss{border-color:#cc0000;background:#fef2f2;color:#991b1b}
+  .goal-btn.active-gain{border-color:#2f9e57;background:#f0fdf4;color:#15803d}
+  .goal-btn.active-maintain{border-color:#4a6572;background:#eff6ff;color:#1e40af}
 
   /* CARD */
   .card{background:#2d2d2d;border:1px solid #3a3a3a;border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
@@ -68,9 +68,9 @@
   input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
   input[type=number]{-moz-appearance:textfield}
   .day-dot{width:6px;height:6px;border-radius:50%;margin:5px auto 0;background:var(--bd)}
-  .day-dot.ok{background:#22c55e}
-  .day-dot.warn{background:#f59e0b}
-  .day-dot.bad{background:#ef4444}
+  .day-dot.ok{background:#3fb56e}
+  .day-dot.warn{background:#c6902f}
+  .day-dot.bad{background:#cc0000}
 
   /* WEEKLY CHECK-IN */
   .checkin-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -85,9 +85,9 @@
   .bf-input:focus{border-color:var(--g)}
   .bf-direction{display:flex;gap:6px;flex-wrap:wrap}
   .bf-btn{padding:6px 12px;border-radius:20px;border:1.5px solid #d1d5db;background:#ffffff;color:#444444;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
-  .bf-btn.sel-drop{border-color:#16a34a;background:#dcfce7;color:#15803d}
-  .bf-btn.sel-same{border-color:#f59e0b;background:#fef9c3;color:#92400e}
-  .bf-btn.sel-rise{border-color:#ef4444;background:#fee2e2;color:#991b1b}
+  .bf-btn.sel-drop{border-color:#2f9e57;background:#dcfce7;color:#15803d}
+  .bf-btn.sel-same{border-color:#c6902f;background:#fef9c3;color:#92400e}
+  .bf-btn.sel-rise{border-color:#cc0000;background:#fee2e2;color:#991b1b}
   .notes-area{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;border:1px solid #d1d5db;border-radius:var(--radius);background:#ffffff;color:#111111;outline:none;resize:vertical;min-height:70px}
   .notes-area:focus{border-color:var(--g)}
 
@@ -425,9 +425,9 @@
       </div>
     </div>
     <div style="display:flex;gap:14px;margin-bottom:8px;font-size:11px;color:#555;">
-      <span><span style="width:9px;height:9px;border-radius:50%;background:#16a34a;display:inline-block;margin-right:4px;vertical-align:middle;"></span>75-100% Great</span>
-      <span><span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;display:inline-block;margin-right:4px;vertical-align:middle;"></span>50-74% Okay</span>
-      <span><span style="width:9px;height:9px;border-radius:50%;background:#ef4444;display:inline-block;margin-right:4px;vertical-align:middle;"></span>0-49% Low</span>
+      <span><span style="width:9px;height:9px;border-radius:50%;background:#2f9e57;display:inline-block;margin-right:4px;vertical-align:middle;"></span>75-100% Great</span>
+      <span><span style="width:9px;height:9px;border-radius:50%;background:#c6902f;display:inline-block;margin-right:4px;vertical-align:middle;"></span>50-74% Okay</span>
+      <span><span style="width:9px;height:9px;border-radius:50%;background:#cc0000;display:inline-block;margin-right:4px;vertical-align:middle;"></span>0-49% Low</span>
     </div>
     <div id="progress-summary" style="font-size:12px;color:#666666;margin-bottom:10px;min-height:16px;"></div>
     <div style="position:relative;height:200px;"><canvas id="progressChart"></canvas></div>
@@ -790,13 +790,13 @@ function drawRingBig(id, score, color){
   // Score arc
   if(score!==null&&score>0){
     const pct=score/100;
-    const ringColor=score>=75?'#16a34a':score>=50?'#f59e0b':'#ef4444';
+    const ringColor=score>=75?'#2f9e57':score>=50?'#c6902f':'#cc0000';
     ctx.beginPath();
     ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+pct*Math.PI*2);
     ctx.strokeStyle=ringColor; ctx.lineWidth=8; ctx.lineCap='round'; ctx.stroke();
   }
   // Score text
-  ctx.fillStyle=score!==null&&score>=75?'#16a34a':score!==null&&score>=50?'#f59e0b':'#ef4444';
+  ctx.fillStyle=score!==null&&score>=75?'#2f9e57':score!==null&&score>=50?'#c6902f':'#cc0000';
   ctx.font='bold 16px Syne,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText(score!==null?score+'%':'—',cx,cy);
   // Zone label
@@ -813,7 +813,7 @@ function renderScoreSection(){
   let html='';
   Object.values(scores).forEach(s=>{
     const pct=s.val!==null?s.val:0;
-    const barColor=pct>=75?'#16a34a':pct>=50?'#f59e0b':'#ef4444';
+    const barColor=pct>=75?'#2f9e57':pct>=50?'#c6902f':'#cc0000';
     const zone=s.val===null?'Not logged':pct>=75?'🟢 Great':pct>=50?'🟡 Okay':'🔴 Low';
     const display=s.val!==null?pct+'%':'—';
     html+='<div class="score-bar-row">'+
@@ -913,7 +913,7 @@ function render(){
     if(stepsAvg!==null&&stepsAvg<5000) fb+='Steps are critically low — daily movement must improve. ';
     if(sleepAvg!==null&&sleepAvg<6) fb+='Sleep is insufficient — this is slowing all progress by up to 20%. ';
     if(overall!==null){
-      const scoreColor=overall>=75?'#16a34a':overall>=50?'#f59e0b':'#ef4444';
+      const scoreColor=overall>=75?'#2f9e57':overall>=50?'#c6902f':'#cc0000';
       const scoreMsg=overall>=75?'Strong week overall — keep this momentum!':overall>=50?'Decent week — small improvements across the board will unlock faster results.':'Tough week — focus on sleep, steps, and hitting the gym consistently.';
       fb+=`<br><span style="color:${scoreColor};font-weight:600">True Progress Score: ${overall}% — ${scoreMsg}</span>`;
     }
@@ -1048,9 +1048,9 @@ function updateChart(){
       type:'line',
       data:{labels:l1,datasets:[{
         label:'Weight',data:bwData,
-        borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.08)',
+        borderColor:'#2f9e57',backgroundColor:'rgba(22,163,74,0.08)',
         borderWidth:2,pointRadius:5,pointHoverRadius:7,
-        pointBackgroundColor:'#16a34a',pointBorderColor:'#ffffff',pointBorderWidth:2,
+        pointBackgroundColor:'#2f9e57',pointBorderColor:'#ffffff',pointBorderWidth:2,
         tension:0.3,fill:true,spanGaps:true
       }]},
       options:{responsive:true,maintainAspectRatio:false,
@@ -1071,12 +1071,12 @@ function updateChart(){
     const filled2=scoreData.filter(v=>v!==null);
     const avgS=Math.round(filled2.reduce((a,b)=>a+b,0)/filled2.length);
     document.getElementById('progress-summary').textContent=avgS>=75?'Strong — lifestyle and gym working together!':avgS>=50?'Decent — improve steps or sleep to push higher.':'Needs work — focus on sleep, steps and gym.';
-    const ptColors=scoreData.map(v=>v===null?'transparent':v>=75?'#16a34a':v>=50?'#f59e0b':'#ef4444');
+    const ptColors=scoreData.map(v=>v===null?'transparent':v>=75?'#2f9e57':v>=50?'#c6902f':'#cc0000');
     progressChart=new Chart(document.getElementById('progressChart'),{
       type:'line',
       data:{labels:l2,datasets:[{
         label:'Score',data:scoreData,
-        borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.07)',
+        borderColor:'#4a6572',backgroundColor:'rgba(59,130,246,0.07)',
         borderWidth:2,pointRadius:6,pointHoverRadius:8,
         pointBackgroundColor:ptColors,pointBorderColor:'#ffffff',pointBorderWidth:2,
         tension:0.3,fill:true,spanGaps:true
@@ -1155,20 +1155,20 @@ function renderStatsBanner(){
 
   // Progress bar html
   const pct=overallProgress!==null?overallProgress:0;
-  const barColor=pct>=75?'#16a34a':pct>=50?'#f59e0b':'#cc0000';
+  const barColor=pct>=75?'#2f9e57':pct>=50?'#c6902f':'#cc0000';
   const progressBar='<div style="margin-top:6px;height:4px;background:#444;border-radius:2px;overflow:hidden;">'+
     '<div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:2px;transition:width .4s;"></div></div>';
 
-  const progColor=overallProgress===null?'#aaaaaa':overallProgress>=75?'#16a34a':overallProgress>=50?'#f59e0b':'#cc0000';
+  const progColor=overallProgress===null?'#aaaaaa':overallProgress>=75?'#2f9e57':overallProgress>=50?'#c6902f':'#cc0000';
   const progZone=overallProgress===null?'':(overallProgress>=75?'GREAT':overallProgress>=50?'OKAY':'LOW');
 
   // Current weight colour: green if moving toward goal, amber if steady, red if moving away
   let curWColor='#ffffff';
   if(curW!==null&&sw!==null){
     const diff=curW-sw;
-    if(gt==='loss') curWColor=diff<-0.2?'#16a34a':diff>0.2?'#cc0000':'#f59e0b';
-    else if(gt==='gain') curWColor=diff>0.2?'#16a34a':diff<-0.2?'#cc0000':'#f59e0b';
-    else curWColor=Math.abs(diff)<=0.5?'#16a34a':'#f59e0b';
+    if(gt==='loss') curWColor=diff<-0.2?'#2f9e57':diff>0.2?'#cc0000':'#c6902f';
+    else if(gt==='gain') curWColor=diff>0.2?'#2f9e57':diff<-0.2?'#cc0000':'#c6902f';
+    else curWColor=Math.abs(diff)<=0.5?'#2f9e57':'#c6902f';
   }
 
   banner.innerHTML='<div class="stat-item"><div class="stat-lbl">Start Weight</div><div class="stat-val">'+(sw!==null?sw+' kg':'—')+'</div></div>'+
@@ -1415,7 +1415,7 @@ function manualSync(){
     notes:ci.notes||''
   };
   fetch(SHEET_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
-    .then(()=>{btn.textContent='✓ Synced!';btn.style.background='#16a34a';setTimeout(()=>{btn.textContent='↑ Sync to Trainer';btn.style.background='#1a1a1a';},2500);})
+    .then(()=>{btn.textContent='✓ Synced!';btn.style.background='#2f9e57';setTimeout(()=>{btn.textContent='↑ Sync to Trainer';btn.style.background='#1a1a1a';},2500);})
     .catch(()=>{btn.textContent='✗ Failed';btn.style.background='#cc0000';setTimeout(()=>{btn.textContent='↑ Sync to Trainer';btn.style.background='#1a1a1a';},2500);});
 }
 
@@ -1676,7 +1676,7 @@ function showCountdown(){
     ringProg.setAttribute('stroke-dashoffset', offset);
     ringDays.textContent=daysLeft;
     ringDays.setAttribute('font-size', daysLeft>=100?'8':daysLeft>=10?'11':'13');
-    ringProg.style.stroke = daysLeft<=3?'#ef4444':daysLeft<=7?'#f59e0b':'#cc0000';
+    ringProg.style.stroke = daysLeft<=3?'#cc0000':daysLeft<=7?'#c6902f':'#cc0000';
 
     title.textContent = daysLeft===1?'Last day!':daysLeft<=3?'Ending soon!':'Program active';
     sub.textContent = daysLeft+' day'+(daysLeft===1?'':'s')+' remaining · '+user.plan;

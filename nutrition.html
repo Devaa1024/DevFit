@@ -22,7 +22,7 @@
 
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{--g:#16a34a;--a:#f59e0b;--r:#ef4444;--b:#3b82f6;--bd:#d1d5db;--t1:#111;--t2:#555;--radius:10px;--radius-lg:14px}
+  :root{--g:#2f9e57;--a:#c6902f;--r:#cc0000;--b:#4a6572;--bd:#d1d5db;--t1:#111;--t2:#555;--radius:10px;--radius-lg:14px}
   html{font-size:16px}
   body{font-family:'DM Sans',system-ui,sans-serif;color:#e8e8ea;min-height:100vh;padding:1rem;overflow-x:hidden;
     background:
@@ -71,10 +71,54 @@
   .delta-cell{background:#111;border-radius:var(--radius);padding:8px 6px;text-align:center;border:1px solid #2a2a2a}
   .delta-cell .lbl{font-size:9px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
   .delta-cell .val{font-size:13px;font-weight:700;margin-top:3px}
-  .delta-cell .val.ok{color:#22c55e}
-  .delta-cell .val.over{color:#ef4444}
-  .delta-cell .val.under{color:#f59e0b}
+  .delta-cell .val.ok{color:#3fb56e}
+  .delta-cell .val.over{color:#cc0000}
+  .delta-cell .val.under{color:#c6902f}
   .delta-cell .val.muted{color:#666}
+
+  /* MACRO CALCULATOR */
+  .calc-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+  .calc-head .ch{font-size:11px;color:#9aa;font-weight:600}
+  .calc-toggle{font-size:11px;color:#cc0000;font-weight:700}
+  .calc-body{margin-top:14px}
+  .calc-row{margin-bottom:14px}
+  .calc-row .clbl{font-size:11px;color:#cbd5e1;font-weight:600;letter-spacing:.03em;margin-bottom:6px;display:block}
+  .calc-row .chint{font-size:10px;color:#8a93a0;font-weight:400;margin-left:6px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{flex:1 1 auto;min-width:0;text-align:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:9px 8px;font-size:12px;font-weight:600;color:#cbd5e1;cursor:pointer;transition:all .15s;line-height:1.25;white-space:normal}
+  .chip small{display:block;font-size:9px;color:#8a93a0;font-weight:400;margin-top:2px}
+  .chip.active{background:#cc0000;border-color:#cc0000;color:#fff;box-shadow:0 4px 14px rgba(204,0,0,0.35)}
+  .chip.active small{color:rgba(255,255,255,0.85)}
+  .calc-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .calc-num{background:#fff;border:1px solid var(--bd);border-radius:var(--radius);padding:9px 8px;text-align:center}
+  .calc-num .lbl{font-size:10px;color:#666;font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
+  .calc-num input{width:100%;border:none;background:transparent;font-family:'DM Sans',system-ui,sans-serif;font-size:19px;font-weight:700;text-align:center;color:#111;outline:none}
+  .calc-num input::placeholder{color:#bbb;font-weight:400}
+  .calc-num .unit{font-size:9px;color:#999;font-weight:500;margin-top:2px}
+  .calc-go{width:100%;background:#cc0000;color:#fff;border:none;border-radius:12px;padding:13px;font-family:'DM Sans',system-ui,sans-serif;font-size:14px;font-weight:800;letter-spacing:.03em;cursor:pointer;margin-top:4px;box-shadow:0 8px 22px rgba(204,0,0,0.35);transition:transform .12s}
+  .calc-go:active{transform:scale(.98)}
+  .calc-result{margin-top:16px;display:none}
+  .calc-result.show{display:block;animation:devfit-rise .4s cubic-bezier(.2,.8,.2,1) both}
+  .cr-tdee{text-align:center;margin-bottom:12px}
+  .cr-tdee .big{font-family:'DM Sans',system-ui,sans-serif;font-size:42px;font-weight:800;color:#fff;line-height:1}
+  .cr-tdee .cap{font-size:11px;color:#9aa;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+  .cr-meta{display:flex;justify-content:center;gap:18px;font-size:11px;color:#8a93a0;margin-top:8px}
+  .cr-meta b{color:#cbd5e1;font-weight:700}
+  .cr-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+  .cr-macro{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius);padding:11px 6px;text-align:center}
+  .cr-macro .mv{font-family:'DM Sans',system-ui,sans-serif;font-size:22px;font-weight:800;line-height:1}
+  .cr-macro .mu{font-size:9px;color:#8a93a0;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:4px}
+  .cr-apply{width:100%;background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.18);border-radius:12px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;margin-top:14px;transition:all .15s}
+  .cr-apply:active{transform:scale(.98)}
+  .calc-explain{margin-top:14px;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px}
+  .calc-explain summary{font-size:11px;color:#9aa;font-weight:700;cursor:pointer;letter-spacing:.03em;list-style:none}
+  .calc-explain summary::-webkit-details-marker{display:none}
+  .calc-explain summary::before{content:'▸ ';color:#cc0000}
+  .calc-explain[open] summary::before{content:'▾ '}
+  .calc-explain .ex-body{font-size:11px;color:#9aa;line-height:1.6;margin-top:10px}
+  .calc-explain .ex-body b{color:#cbd5e1}
+  .calc-explain .ex-body code{background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-size:10px;color:#e2e8f0}
+  .calc-explain .ex-body .ref{color:#6b7280;font-style:italic}
 
   /* CHART */
   .chart-wrap{position:relative;height:220px}
@@ -142,8 +186,8 @@
   .cal-remain-lbl{font-size:12px;color:#666;font-weight:600}
   .cal-summary-eq{font-size:11px;color:#888;margin-top:6px;line-height:1.4}
   .cal-bar-track{height:8px;background:#eee;border-radius:6px;margin-top:10px;overflow:hidden}
-  .cal-bar-fill{height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);border-radius:6px;width:0;transition:width .3s}
-  .cal-bar-fill.over{background:linear-gradient(90deg,#ef4444,#f87171)}
+  .cal-bar-fill{height:100%;background:linear-gradient(90deg,#2f9e57,#3fb56e);border-radius:6px;width:0;transition:width .3s}
+  .cal-bar-fill.over{background:linear-gradient(90deg,#cc0000,#f87171)}
   .macro-prog{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
   .mp-cell{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:9px 10px}
   .mp-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;gap:4px}
@@ -159,7 +203,7 @@
   .meal-head-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
   .meal-kcal{font-size:13px;font-weight:800;color:#cc0000;white-space:nowrap}
   .meal-del{background:transparent;border:none;color:#c4c4c4;font-size:17px;cursor:pointer;padding:0 2px;line-height:1}
-  .meal-del:hover{color:#ef4444}
+  .meal-del:hover{color:#cc0000}
   .meal-save{background:transparent;border:none;color:#c4c4c4;cursor:pointer;padding:0 2px;line-height:1;display:flex;align-items:center}
   .meal-save:hover{color:#cc0000}
   .meal-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f2f2f2}
@@ -169,7 +213,7 @@
   .mi-sub{font-size:11px;color:#888;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mi-cal{font-size:13px;font-weight:700;color:#333;flex-shrink:0}
   .mi-del{background:transparent;border:none;color:#ccc;font-size:18px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
-  .mi-del:hover{color:#ef4444}
+  .mi-del:hover{color:#cc0000}
   .meal-empty{padding:11px 14px;font-size:12px;color:#bbb;font-style:italic}
   .meal-add{width:100%;background:transparent;border:none;border-top:1px dashed #e2e2e2;color:#cc0000;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:11px;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;justify-content:center;gap:6px}
   .meal-add:hover{background:#fff5f5}
@@ -294,6 +338,120 @@ html.nosplash #devfit-splash{display:none!important}
 
   <!-- ===== TARGETS PANE ===== -->
   <div class="diet-pane" id="pane-targets" hidden>
+
+    <!-- MACRO CALCULATOR -->
+    <div class="card">
+      <div class="calc-head" id="calc-head">
+        <div>
+          <div class="section-label" style="margin-bottom:2px">Macro calculator</div>
+          <div class="ch">Built for real life — your job and your training, separately.</div>
+        </div>
+        <div class="calc-toggle" id="calc-toggle">Open ▾</div>
+      </div>
+
+      <div class="calc-body" id="calc-body" hidden>
+
+        <div class="calc-row">
+          <label class="clbl">You</label>
+          <div class="calc-nums">
+            <div class="calc-num"><div class="lbl">Age</div><input id="c-age" type="number" inputmode="numeric" placeholder="—"><div class="unit">years</div></div>
+            <div class="calc-num"><div class="lbl">Height</div><input id="c-ht" type="number" inputmode="numeric" placeholder="—"><div class="unit">cm</div></div>
+            <div class="calc-num"><div class="lbl">Weight</div><input id="c-wt" type="number" inputmode="decimal" placeholder="—"><div class="unit">kg</div></div>
+          </div>
+        </div>
+
+        <div class="calc-row">
+          <label class="clbl">Sex <span class="chint">drives the BMR equation</span></label>
+          <div class="chips" id="c-sex">
+            <div class="chip" data-v="m">Male</div>
+            <div class="chip" data-v="f">Female</div>
+          </div>
+        </div>
+
+        <div class="calc-row">
+          <label class="clbl">Your day job / lifestyle <span class="chint">how much you move outside training</span></label>
+          <div class="chips" id="c-job">
+            <div class="chip" data-v="1.40">Mostly sitting<small>Desk, driving, office</small></div>
+            <div class="chip" data-v="1.55">On your feet<small>Teacher, retail, nurse</small></div>
+            <div class="chip" data-v="1.70">Physical job<small>Trades, warehouse</small></div>
+            <div class="chip" data-v="1.90">Heavy labour<small>Construction, 12-hr manual</small></div>
+          </div>
+        </div>
+
+        <div class="calc-row">
+          <label class="clbl">Training days per week</label>
+          <div class="chips" id="c-days">
+            <div class="chip" data-v="0">0–2</div>
+            <div class="chip" data-v="3.5">3–4</div>
+            <div class="chip" data-v="5.5">5–6</div>
+            <div class="chip" data-v="7">6–7 / 2-a-day</div>
+          </div>
+        </div>
+
+        <div class="calc-row">
+          <label class="clbl">Training intensity</label>
+          <div class="chips" id="c-int">
+            <div class="chip" data-v="0.20">Light<small>Walks, easy lifts</small></div>
+            <div class="chip" data-v="0.35">Moderate<small>Solid gym sessions</small></div>
+            <div class="chip" data-v="0.50">Hard<small>Heavy / CrossFit / sport</small></div>
+          </div>
+        </div>
+
+        <div class="calc-row">
+          <label class="clbl">Goal</label>
+          <div class="chips" id="c-goal">
+            <div class="chip" data-v="lose">Lose fat<small>−20%</small></div>
+            <div class="chip" data-v="maintain">Maintain<small>TDEE</small></div>
+            <div class="chip" data-v="gain">Build muscle<small>+10%</small></div>
+          </div>
+        </div>
+
+        <button class="calc-go" id="calc-go" type="button">Calculate my targets</button>
+
+        <div class="calc-result" id="calc-result">
+          <div class="cr-tdee">
+            <div class="big" id="cr-target">—</div>
+            <div class="cap">kcal / day target</div>
+            <div class="cr-meta">
+              <span>BMR <b id="cr-bmr">—</b></span>
+              <span>Maintenance <b id="cr-tdee">—</b></span>
+              <span>PAL <b id="cr-pal">—</b></span>
+            </div>
+          </div>
+          <div class="cr-macros">
+            <div class="cr-macro"><div class="mv" id="cr-p" style="color:#4a6572">—</div><div class="mu">Protein</div></div>
+            <div class="cr-macro"><div class="mv" id="cr-c" style="color:#c6902f">—</div><div class="mu">Carbs</div></div>
+            <div class="cr-macro"><div class="mv" id="cr-f" style="color:#cc0000">—</div><div class="mu">Fat</div></div>
+          </div>
+          <button class="cr-apply" id="cr-apply" type="button">Apply to my daily targets ↓</button>
+        </div>
+
+        <details class="calc-explain">
+          <summary>How this is calculated — the formula</summary>
+          <div class="ex-body">
+            <p><b>1. Resting energy (BMR) — Mifflin-St Jeor equation.</b> The most validated predictive equation in clinical use.<br>
+            Men: <code>10·kg + 6.25·cm − 5·age + 5</code><br>
+            Women: <code>10·kg + 6.25·cm − 5·age − 161</code><br>
+            <span class="ref">Mifflin MD et al., Am J Clin Nutr 1990;51(2):241–7.</span></p>
+
+            <p><b>2. Daily burn (TDEE) = BMR × PAL.</b> PAL = Physical Activity Level, the international standard for total activity.<br>
+            <span class="ref">FAO/WHO/UNU, Human Energy Requirements, 2001.</span></p>
+
+            <p><b>Why two questions instead of one generic slider.</b> Standard calculators collapse everything into one "activity level", so a desk worker who trains hard and a labourer who trains hard get the same number — which is wrong. We build your PAL from both:<br>
+            <code>PAL = job baseline + (training days ÷ 7) × intensity</code><br>
+            Job baseline runs 1.40 (sitting) → 1.90 (heavy labour). Training adds on top, scaled by how often and how hard. The result is clamped to the validated human range <code>1.40–2.40</code>.</p>
+
+            <p><b>3. Goal adjustment.</b> Lose = −20%, Maintain = TDEE, Build = +10% — moderate, sustainable rates (~0.5–1% bodyweight/week).<br>
+            <span class="ref">Helms ER et al., JISSN 2014; Aragon & Schoenfeld 2013.</span></p>
+
+            <p><b>4. Macros.</b> Protein <code>1.8–2.0 g/kg</code> (higher when cutting to protect muscle), fat at <code>25%</code> of calories, carbs fill the rest.<br>
+            <span class="ref">Morton RW et al. meta-analysis, Br J Sports Med 2018;52(6):376–84.</span></p>
+          </div>
+        </details>
+
+      </div>
+    </div>
+
     <div class="card">
       <div class="section-label">Daily targets</div>
       <div class="four-grid">
@@ -479,6 +637,88 @@ document.getElementById('date-pick').value=currentDate;
   });
 });
 
+// ── MACRO CALCULATOR ──────────────────────────────────────────────
+(function(){
+  if(!data.calc) data.calc={age:'',ht:'',wt:'',sex:'',job:'',days:'',int:'',goal:''};
+  const C=data.calc;
+  const head=document.getElementById('calc-head'), body=document.getElementById('calc-body'), tog=document.getElementById('calc-toggle');
+  head.addEventListener('click',()=>{
+    const open=body.hidden;
+    body.hidden=!open;
+    tog.textContent=open?'Close ▴':'Open ▾';
+  });
+
+  // numeric inputs
+  [['age','c-age'],['ht','c-ht'],['wt','c-wt']].forEach(([k,id])=>{
+    const el=document.getElementById(id);
+    if(C[k]!=='') el.value=C[k];
+    else if(k==='wt'){ // prefill weight from progress data if available
+      try{ const pl=JSON.parse(localStorage.getItem('progressLog2')||'{}'); const sw=Number(pl.startWeight); if(sw){ el.value=sw; C.wt=sw; } }catch(e){}
+    }
+    el.addEventListener('input',e=>{ C[k]=e.target.value===''?'':Number(e.target.value); save(); });
+  });
+
+  // chip groups
+  function chipGroup(id,key){
+    const wrap=document.getElementById(id);
+    wrap.querySelectorAll('.chip').forEach(ch=>{
+      if(String(C[key])===ch.dataset.v) ch.classList.add('active');
+      ch.addEventListener('click',()=>{
+        wrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        ch.classList.add('active');
+        C[key]=ch.dataset.v;
+        save();
+      });
+    });
+  }
+  chipGroup('c-sex','sex'); chipGroup('c-job','job'); chipGroup('c-days','days');
+  chipGroup('c-int','int'); chipGroup('c-goal','goal');
+
+  let _calc=null;
+  document.getElementById('calc-go').addEventListener('click',()=>{
+    const age=Number(C.age), ht=Number(C.ht), wt=Number(C.wt);
+    if(!age||!ht||!wt||!C.sex||!C.job||C.days===''||!C.int||!C.goal){
+      alert('Fill in age, height, weight and pick an option in each row first.');
+      return;
+    }
+    // 1. BMR — Mifflin-St Jeor
+    const bmr = C.sex==='m' ? (10*wt + 6.25*ht - 5*age + 5)
+                            : (10*wt + 6.25*ht - 5*age - 161);
+    // 2. PAL = job baseline + (days/7)*intensity, clamped 1.40–2.40
+    let pal = Number(C.job) + (Number(C.days)/7)*Number(C.int);
+    pal = Math.max(1.40, Math.min(2.40, pal));
+    const tdee = bmr*pal;
+    // 3. Goal adjustment
+    const mult = C.goal==='lose'?0.80 : C.goal==='gain'?1.10 : 1.00;
+    const target = tdee*mult;
+    // 4. Macros — protein g/kg, fat 25% kcal, carbs remainder
+    const pPerKg = C.goal==='lose'?2.0 : 1.8;
+    const protein = wt*pPerKg;
+    const fat = (target*0.25)/9;
+    const carbs = Math.max(0,(target - protein*4 - fat*9)/4);
+
+    _calc={cal:Math.round(target),p:Math.round(protein),c:Math.round(carbs),f:Math.round(fat)};
+
+    document.getElementById('cr-target').textContent=_calc.cal.toLocaleString();
+    document.getElementById('cr-bmr').textContent=Math.round(bmr).toLocaleString();
+    document.getElementById('cr-tdee').textContent=Math.round(tdee).toLocaleString();
+    document.getElementById('cr-pal').textContent=pal.toFixed(2);
+    document.getElementById('cr-p').textContent=_calc.p+'g';
+    document.getElementById('cr-c').textContent=_calc.c+'g';
+    document.getElementById('cr-f').textContent=_calc.f+'g';
+    document.getElementById('calc-result').classList.add('show');
+  });
+
+  document.getElementById('cr-apply').addEventListener('click',()=>{
+    if(!_calc) return;
+    data.targets={cal:_calc.cal,p:_calc.p,c:_calc.c,f:_calc.f};
+    ['cal','p','c','f'].forEach(k=>{ document.getElementById('t-'+k).value=data.targets[k]; });
+    save(); renderSummary(); renderTrend();
+    const btn=document.getElementById('cr-apply');
+    btn.textContent='Applied ✓'; setTimeout(()=>{btn.textContent='Apply to my daily targets ↓';},1600);
+  });
+})();
+
 document.getElementById('prev-day').addEventListener('click',()=>shiftDate(-1));
 document.getElementById('next-day').addEventListener('click',()=>shiftDate(1));
 document.getElementById('date-pick').addEventListener('change',e=>{
@@ -527,7 +767,7 @@ function renderSummary(){
   if(hasCalT){
     const remain=Math.round(tCal-m.cal);
     if(remain>=0){ numEl.textContent=remain.toLocaleString(); numEl.style.color='#111'; lblEl.textContent='kcal remaining'; }
-    else { numEl.textContent=Math.abs(remain).toLocaleString(); numEl.style.color='#ef4444'; lblEl.textContent='kcal over'; }
+    else { numEl.textContent=Math.abs(remain).toLocaleString(); numEl.style.color='#cc0000'; lblEl.textContent='kcal over'; }
     eqEl.textContent='Goal '+Math.round(tCal).toLocaleString()+'  −  Food '+m.cal.toLocaleString()+'  =  '+remain.toLocaleString()+' left';
     const pct=tCal>0?Math.min(100,Math.round(m.cal/tCal*100)):0;
     fill.style.width=pct+'%';
@@ -542,9 +782,9 @@ function renderSummary(){
   // macro bars
   const wrap=document.getElementById('macro-prog');
   const defs=[
-    {k:'p',name:'Protein',col:'#3b82f6'},
-    {k:'c',name:'Carbs',  col:'#f59e0b'},
-    {k:'f',name:'Fat',    col:'#ef4444'}
+    {k:'p',name:'Protein',col:'#4a6572'},
+    {k:'c',name:'Carbs',  col:'#c6902f'},
+    {k:'f',name:'Fat',    col:'#cc0000'}
   ];
   wrap.innerHTML=defs.map(d=>{
     const val=m[d.k]||0;
@@ -707,7 +947,7 @@ function renderTrend(){
       const totalDef=(calTarget-avg)*logged.length;
       const isDeficit=totalDef>=0;
       const estKg=(Math.abs(totalDef)/7700).toFixed(2);
-      const col=isDeficit?'#16a34a':'#ef4444';
+      const col=isDeficit?'#2f9e57':'#cc0000';
       defEl.style.display='block';
       defEl.innerHTML='<strong>'+logged.length+' days logged</strong> · avg <strong>'+avg+'</strong> kcal vs target <strong>'+calTarget+'</strong> &nbsp;→&nbsp;<span style="color:'+col+';font-weight:700"> '+(isDeficit?'−':'+')+Math.abs(Math.round(totalDef)).toLocaleString()+' kcal '+(isDeficit?'deficit':'surplus')+'</span> &nbsp;(est. '+(isDeficit?'−':'+')+estKg+' kg)';
     } else {
@@ -798,7 +1038,7 @@ function renderMacroChart(){
       labels:['Protein','Carbs','Fat'],
       datasets:[{
         data:[pCal,cCal,fCal],
-        backgroundColor:['#3b82f6','#f59e0b','#ef4444'],
+        backgroundColor:['#4a6572','#c6902f','#cc0000'],
         borderWidth:0,
         hoverOffset:4
       }]
@@ -816,9 +1056,9 @@ function renderMacroChart(){
   const legend=document.getElementById('macro-legend');
   if(legend){
     const items=[
-      {label:'Protein',g:p,kcal:pCal,color:'#3b82f6'},
-      {label:'Carbs',  g:c,kcal:cCal,color:'#f59e0b'},
-      {label:'Fat',    g:f,kcal:fCal,color:'#ef4444'}
+      {label:'Protein',g:p,kcal:pCal,color:'#4a6572'},
+      {label:'Carbs',  g:c,kcal:cCal,color:'#c6902f'},
+      {label:'Fat',    g:f,kcal:fCal,color:'#cc0000'}
     ];
     legend.innerHTML=items.map(it=>{
       const pct=Math.round(it.kcal/total*100);
@@ -985,7 +1225,7 @@ applyNutritionTierGates();
     const sf=getShareFont();
     const F=(w,px)=>(sf.style?sf.style+' ':'')+sf.wt(w)+' '+Math.round(px*sf.scale)+'px '+sf.face;
     const vmet=(str,px)=>{ const m=ctx.measureText(str); return {a:m.actualBoundingBoxAscent||px*0.72,d:m.actualBoundingBoxDescent||px*0.12}; };
-    const MACRO_COL={p:'#3b82f6',c:'#f59e0b',f:'#ef4444'};
+    const MACRO_COL={p:'#4a6572',c:'#c6902f',f:'#cc0000'};
 
     ctx.clearRect(0,0,W,H);
     if(pal.bg){ ctx.fillStyle=pal.bg; ctx.fillRect(0,0,W,H); }
@@ -1166,9 +1406,9 @@ applyNutritionTierGates();
   .smeal-info{flex:1;min-width:0;cursor:pointer}
   .smeal-name{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .smeal-macros{font-family:'DM Sans',sans-serif;font-size:12px;color:#888}
-  .smeal-add{background:#16a34a;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
+  .smeal-add{background:#2f9e57;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
   .smeal-del{background:transparent;border:none;color:#ccc;font-size:18px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
-  .smeal-del:hover{color:#ef4444}
+  .smeal-del:hover{color:#cc0000}
   .food-action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .food-scan-btn{width:100%;background:#131318;border:1.5px dashed #3a3a55;color:#9090b8;border-radius:10px;padding:11px;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;letter-spacing:.04em}
   .food-scan-btn:hover{border-color:#cc0000;color:#fff;background:#1a1a22}
@@ -1206,13 +1446,13 @@ applyNutritionTierGates();
   .scanner-hint{font-family:'DM Sans',system-ui,sans-serif;font-size:12px;color:#555;text-align:center;margin-top:12px}
   .serving-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10200;display:none;align-items:flex-end;justify-content:center;padding:0}
   .serving-overlay.show{display:flex}
-  .serving-modal{background:#111;border:1px solid #2a2a2a;border-top:3px solid #16a34a;border-radius:20px 20px 0 0;padding:22px 20px 36px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto}
+  .serving-modal{background:#111;border:1px solid #2a2a2a;border-top:3px solid #2f9e57;border-radius:20px 20px 0 0;padding:22px 20px 36px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto}
   .serving-food-name{font-family:'DM Sans',system-ui,sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:4px}
   .serving-per100{font-family:'DM Sans',system-ui,sans-serif;font-size:12px;color:#555;margin-bottom:14px;line-height:1.5}
   .sv-size-lbl{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
   .sv-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
   .sv-chip{padding:8px 13px;background:#1a1a1a;border:1px solid #2e2e2e;border-radius:30px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:#888;cursor:pointer;transition:all .15s;white-space:nowrap}
-  .sv-chip.active{background:rgba(22,163,74,0.18);border-color:#16a34a;color:#4ade80}
+  .sv-chip.active{background:rgba(22,163,74,0.18);border-color:#2f9e57;color:#4ade80}
   .sv-qty-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
   .sv-qty-lbl{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;min-width:30px}
   .sv-qty-btn{width:38px;height:38px;background:#1a1a1a;border:1px solid #2e2e2e;border-radius:50%;color:#ccc;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .12s;padding:0;line-height:1}
@@ -1230,7 +1470,7 @@ applyNutritionTierGates();
   .serving-btns button{padding:14px;border:none;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;transition:background .12s}
   #serving-cancel{background:#1e1e1e;color:#666;border:1px solid #2a2a2a}
   #serving-cancel:hover{color:#fff;background:#252525}
-  #serving-add{background:#16a34a;color:#fff}
+  #serving-add{background:#2f9e57;color:#fff}
   #serving-add:hover{background:#15803d}
 </style>
 
@@ -1544,7 +1784,7 @@ applyNutritionTierGates();
 
   function toast(msg){
     const t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:700;padding:10px 22px;border-radius:30px;z-index:10300;box-shadow:0 4px 14px rgba(22,163,74,0.4);pointer-events:none';
+    t.style.cssText='position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#2f9e57;color:#fff;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:700;padding:10px 22px;border-radius:30px;z-index:10300;box-shadow:0 4px 14px rgba(22,163,74,0.4);pointer-events:none';
     t.textContent=msg;
     document.body.appendChild(t);
     setTimeout(()=>t.remove(),1700);
@@ -1821,7 +2061,7 @@ applyNutritionTierGates();
           }catch(_){}
           const combined=local2.concat(u2).concat(o2);
           if(combined.length){
-            el.innerHTML='<div style="padding:8px 12px;font-size:12px;color:#f59e0b;">No data for that barcode — showing similar matches for "'+esc(q)+'"</div>';
+            el.innerHTML='<div style="padding:8px 12px;font-size:12px;color:#c6902f;">No data for that barcode — showing similar matches for "'+esc(q)+'"</div>';
             const frag=document.createElement('div');
             frag.innerHTML=combined.slice(0,20).map((f,i)=>{
               const badge=f.source==='LOCAL'?'<span class="src-badge src-local">DevFit</span>':f.source==='USDA'?'<span class="src-badge src-usda">USDA</span>':'<span class="src-badge src-off">Branded</span>';
