@@ -245,7 +245,7 @@ html.nosplash #devfit-splash{display:none!important}
   <!-- LOG SESSION VIEW -->
   <div id="view-log">
     <div class="card">
-      <div class="section-label">Today's session</div>
+      <div class="section-label" id="log-session-label">Today's session</div>
       <input type="date" class="inp log-date" id="log-date">
       <div id="log-workout-chips" class="wk-chips"></div>
       <div id="log-area"></div>
@@ -644,6 +644,16 @@ function totalSetsCount(sets){return sets.filter(s=>(Number(s.reps)||0)>0||(Numb
 document.getElementById('log-date').value=todayStr();
 document.getElementById('log-date').addEventListener('change',renderLog);
 
+// Unified date anchor (shared with Progress page via progressLog2.programStart).
+function progStart(){
+  let base=null;
+  try{ const pl=JSON.parse(localStorage.getItem('progressLog2')||'{}'); if(pl.programStart){const d=new Date(pl.programStart); if(!isNaN(d)) base=d;} }catch(e){}
+  if(!base){ try{ const u=JSON.parse(localStorage.getItem('devfit_user')||'{}'); if(u.startDate){const d=new Date(u.startDate); if(!isNaN(d)) base=d;} }catch(e){} }
+  if(!base) return null;
+  base.setHours(0,0,0,0); const day=base.getDay(); base.setDate(base.getDate()+(day===0?-6:1-day)); return base;
+}
+function weekOfDate(dateStr){ const s=progStart(); if(!s) return null; const d=new Date(dateStr+'T00:00:00'); if(isNaN(d)) return null; return Math.floor((d-s)/(7*86400000)); }
+
 // Which workout is loaded in the log view (replaces the old dropdown).
 let selectedWorkoutId='';
 // Auto-pick the workout to log: resume one already logged on this date, else the
@@ -678,6 +688,8 @@ function renderLog(){
   // Log session + share (light/dark) are FREE; transparent theme is locked elsewhere
   const chips=document.getElementById('log-workout-chips');
   const date=document.getElementById('log-date').value||todayStr();
+  const _lbl=document.getElementById('log-session-label');
+  if(_lbl){ const wk=weekOfDate(date); _lbl.textContent = wk===null ? "Today's session" : (wk<0 ? 'Session · before program start' : 'Session · Week '+(wk+1)); }
   const area=document.getElementById('log-area');
   const shareBtn=document.getElementById('share-btn');
   shareBtn.disabled=true;

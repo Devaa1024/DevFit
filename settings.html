@@ -611,11 +611,17 @@ function toast(msg, err){
 
     // Populate program report range select
     const sel = document.getElementById('program-report-range');
-    sel.innerHTML = '<option value="all">All weeks</option>';
+    sel.innerHTML = '';
+    const mo=d=>d.toLocaleDateString('en-US',{month:'short'});
+    const spanLabel=(w1,w2)=>{ const d1=weekDateStrings(w1), d2=weekDateStrings(w2); if(!d1||!d2) return ''; const a=new Date(d1[0]+'T00:00:00'), b=new Date(d2[6]+'T00:00:00'); return '  ·  '+a.getDate()+' '+mo(a)+'–'+b.getDate()+' '+mo(b); };
+    const allOpt=document.createElement('option');
+    allOpt.value='all'; allOpt.textContent='All weeks (1–'+totalWeeks+')'+spanLabel(0,totalWeeks-1);
+    sel.appendChild(allOpt);
     for(let i=1;i<=totalWeeks;i++){
+      const startW=totalWeeks-i;
       const opt = document.createElement('option');
       opt.value = i;
-      opt.textContent = 'Last ' + i + ' week' + (i>1?'s':'');
+      opt.textContent = (i===1?('Week '+totalWeeks):('Weeks '+(startW+1)+'–'+totalWeeks))+spanLabel(startW,totalWeeks-1);
       sel.appendChild(opt);
     }
   }catch(e){}
@@ -848,15 +854,29 @@ function reportName(){
   return 'Athlete';
 }
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-// Map a 0-indexed program week to its 7 calendar date strings (Mon→Sun), based on user.startDate.
+// Unified anchor (same as Progress page): appData.programStart > account startDate > Monday of this week.
+function mondayOf(d){ const dt=new Date(d); if(isNaN(dt)) return null; dt.setHours(0,0,0,0); const day=dt.getDay(); dt.setDate(dt.getDate()+(day===0?-6:1-day)); return dt; }
+function programStartDate(){
+  let base=null;
+  if(appData&&appData.programStart){ const d=new Date(appData.programStart); if(!isNaN(d)) base=d; }
+  if(!base){ try{ const u=JSON.parse(localStorage.getItem('devfit_user')||'{}'); if(u.startDate){ const d=new Date(u.startDate); if(!isNaN(d)) base=d; } }catch(e){} }
+  if(!base) return null;
+  return mondayOf(base);
+}
+// Map a 0-indexed program week to its 7 calendar date strings (Mon→Sun).
 function weekDateStrings(w){
-  let start=null;
-  try{ const u=JSON.parse(localStorage.getItem('devfit_user')||'{}'); if(u.startDate) start=new Date(u.startDate); }catch(e){}
-  if(!start||isNaN(start)) return null; // no anchor → can't map calendar data
-  start.setHours(0,0,0,0);
+  const start=programStartDate();
+  if(!start) return null;
   const out=[];
   for(let i=0;i<7;i++){ const d=new Date(start); d.setDate(start.getDate()+w*7+i); out.push(ymd(d)); }
   return out;
+}
+function weekRangeLabel(w){
+  const ds=weekDateStrings(w); if(!ds) return '';
+  const a=new Date(ds[0]+'T00:00:00'), b=new Date(ds[6]+'T00:00:00');
+  const mo=d=>d.toLocaleDateString('en-US',{month:'short'});
+  const sameM=a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear();
+  return a.getDate()+(sameM?'':' '+mo(a))+'–'+b.getDate()+' '+mo(b);
 }
 function loadNutrition(){ try{ return JSON.parse(localStorage.getItem('devfitNutritionV2')||'null')||{targets:{},days:{}}; }catch(e){ return {targets:{},days:{}}; } }
 function loadTraining(){ try{ return JSON.parse(localStorage.getItem('devfitTrainingV1')||'null')||{plan:{workouts:[]},sessions:[]}; }catch(e){ return {plan:{workouts:[]},sessions:[]}; } }
@@ -902,7 +922,8 @@ function exportWeekPDF(){
       pdf.text(' · Week '+(w+1)+' Report', M+dw+fw, 27);
       pdf.setFont('helvetica','normal'); pdf.setFontSize(9.5); pdf.setTextColor(110,110,110);
       pdf.text(reportName().toUpperCase(), M, 34);
-      pdf.text(today, M, 40);
+      const _wr=weekRangeLabel(w);
+      pdf.text(today+(_wr?('   ·   Week of '+_wr):''), M, 40);
       if(pdfLogoImg) pdf.addImage(pdfLogoImg,'PNG',189,15,15,15);
       pdf.setDrawColor(204,0,0); pdf.setLineWidth(0.5); pdf.line(M,44,PW-M,44);
 

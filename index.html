@@ -84,7 +84,8 @@
   .metric-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
   .day-card{background:#ffffff;border:1px solid var(--bd);border-radius:var(--radius);padding:8px 4px;text-align:center;transition:border-color .2s}
   .day-card:focus-within{border-color:var(--g)}
-  .day-lbl{font-size:10px;font-weight:500;color:#888888;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+  .day-lbl{font-size:10px;font-weight:500;color:#888888;margin-bottom:1px;text-transform:uppercase;letter-spacing:.04em}
+  .day-date{font-size:9px;font-weight:600;color:#cc0000;margin-bottom:4px;letter-spacing:.02em}
   .day-card input{width:100%;font-family:'DM Sans',system-ui,sans-serif;font-size:15px;font-weight:700;text-align:center;border:none;background:transparent;color:#111111;outline:none;padding:2px 0}
   .day-card input::placeholder{color:var(--bd);font-size:18px;font-weight:400}
   input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
@@ -365,14 +366,20 @@ html.nosplash #devfit-splash{display:none!important}
         <input style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;padding:8px 12px;border:1px solid #d1d5db;border-radius:var(--radius);background:#fff;color:#111;outline:none;" id="goalInput" placeholder="e.g. 70" type="number" step="0.1" inputmode="decimal" onblur="save();render()">
       </div>
     </div>
-    <div style="margin-bottom:10px;">
-      <div class="section-label" style="margin-bottom:5px;">Program duration</div>
-      <select style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;border:1px solid #d1d5db;border-radius:var(--radius);background:#fff;color:#111;outline:none;cursor:pointer;" id="programDuration" onchange="save();render()">
-        <option value="4">4 weeks</option>
-        <option value="8" selected>8 weeks</option>
-        <option value="12">12 weeks</option>
-        <option value="16">16 weeks</option>
-      </select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <div>
+        <div class="section-label" style="margin-bottom:5px;">Program duration</div>
+        <select style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;border:1px solid #d1d5db;border-radius:var(--radius);background:#fff;color:#111;outline:none;cursor:pointer;" id="programDuration" onchange="save();render()">
+          <option value="4">4 weeks</option>
+          <option value="8" selected>8 weeks</option>
+          <option value="12">12 weeks</option>
+          <option value="16">16 weeks</option>
+        </select>
+      </div>
+      <div>
+        <div class="section-label" style="margin-bottom:5px;">Program start (Week 1 Mon)</div>
+        <input style="width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px;border:1px solid #d1d5db;border-radius:var(--radius);background:#fff;color:#111;outline:none;" id="programStart" type="date" onchange="save();renderTabs();render()">
+      </div>
     </div>
     <div>
       <div class="section-label" style="margin-bottom:5px;">Goal type</div>
@@ -390,6 +397,7 @@ html.nosplash #devfit-splash{display:none!important}
     <button type="button" data-sec="weekly" onclick="showProgSection('weekly')">Weekly</button>
     <button type="button" data-sec="analytics" onclick="showProgSection('analytics')">Analytics</button>
   </nav>
+  <div id="week-range" style="text-align:center;font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:600;color:#9a9a9a;margin:-6px 0 12px;letter-spacing:.02em;"></div>
 
   <!-- ===== DAILY SECTION ===== -->
   <div class="prog-section active" id="sec-daily">
@@ -718,6 +726,27 @@ setInterval(()=>{
 }, 30 * 60 * 1000);
 
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+// ---------- UNIFIED DATE SYSTEM (one ecosystem: weeks <-> calendar) ----------
+// Week N (0-indexed), day d (0=Mon..6=Sun) -> a real calendar date, anchored on
+// an editable Program Start date. Shared shape used across Progress/Training/Nutrition/reports.
+function mondayOf(d){ const dt=new Date(d); if(isNaN(dt)) return null; dt.setHours(0,0,0,0); const day=dt.getDay(); dt.setDate(dt.getDate()+(day===0?-6:1-day)); return dt; }
+function ymd(dt){ return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); }
+function programStartDate(){
+  // explicit appData.programStart > account startDate > Monday of current week
+  let base=null;
+  if(appData.programStart){ const d=new Date(appData.programStart); if(!isNaN(d)) base=d; }
+  if(!base){ try{ const u=JSON.parse(localStorage.getItem('devfit_user')||'{}'); if(u.startDate){ const d=new Date(u.startDate); if(!isNaN(d)) base=d; } }catch(e){} }
+  if(!base) base=new Date();
+  return mondayOf(base);
+}
+function weekDayDate(w,d){ const s=programStartDate(); const dt=new Date(s); dt.setDate(s.getDate()+w*7+d); return dt; }
+function mon(dt){ return dt.toLocaleDateString('en-US',{month:'short'}); }
+function weekRangeLabel(w){
+  const a=weekDayDate(w,0), b=weekDayDate(w,6);
+  const sameM=a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear();
+  return a.getDate()+(sameM?'':' '+mon(a))+' – '+b.getDate()+' '+mon(b);
+}
 let totalWeeks = 4;
 let currentWeek = 0;
 let trendChart = null;
@@ -728,7 +757,7 @@ function freshCheckin(){ return {overload:null, bf:'', bfDir:null, diet:null, st
 
 let appData = {
   clientName:'', goal:'', goalType:'loss',
-  startWeight:'', programDuration:'8',
+  startWeight:'', programDuration:'8', programStart:'',
   bw:   Array.from({length:totalWeeks},()=>Array(7).fill('')),
   steps:Array.from({length:totalWeeks},()=>Array(7).fill('')),
   sleep:Array.from({length:totalWeeks},()=>Array(7).fill('')),
@@ -791,6 +820,8 @@ function loadData(){
     document.getElementById('goalInput').value=appData.goal||'';
     document.getElementById('startWeight').value=appData.startWeight||'';
     document.getElementById('programDuration').value=appData.programDuration||'8';
+    // Show the resolved Monday anchor even when not explicitly set, so it's never blank
+    document.getElementById('programStart').value=appData.programStart||ymd(programStartDate());
   }catch(e){}
 }
 
@@ -842,6 +873,7 @@ function applyTierGates(){
 function save(){
   appData.goal=document.getElementById('goalInput').value;
   appData.startWeight=document.getElementById('startWeight').value;
+  appData.programStart=document.getElementById('programStart').value;
   appData.programDuration=document.getElementById('programDuration').value;
   try{localStorage.setItem('progressLog2',JSON.stringify(appData));}catch(e){}
   if(typeof DevFitDB!=='undefined') DevFitDB.cloudSave('progress',appData);
@@ -869,6 +901,8 @@ function renderTabs(){
   add.textContent='+ Add';
   add.onclick=addWeek;
   c.appendChild(add);
+  const wr=document.getElementById('week-range');
+  if(wr) wr.textContent='Week '+(currentWeek+1)+'  ·  '+weekRangeLabel(currentWeek)+' '+weekDayDate(currentWeek,6).getFullYear();
   populateRangeDropdowns();
   const wpb=document.getElementById('week-pdf-btn');
   if(wpb) wpb.textContent='Week '+(currentWeek+1)+' Report (PDF)';
@@ -931,7 +965,8 @@ function buildGrid(id,key,dotFn){
   DAYS.forEach((d,i)=>{
     const val=appData[key][currentWeek][i];
     const dot=val!==''?dotFn(parseFloat(val)):'';
-    el.innerHTML+=`<div class="day-card"><div class="day-lbl">${d}</div>
+    const dt=weekDayDate(currentWeek,i);
+    el.innerHTML+=`<div class="day-card"><div class="day-lbl">${d}</div><div class="day-date">${dt.getDate()} ${mon(dt)}</div>
       <input type="number" value="${val}" placeholder="—" step="0.1" inputmode="decimal"
         onblur="appData['${key}'][${currentWeek}][${i}]=this.value;save();render()">
       <div class="day-dot ${dot}"></div></div>`;

@@ -234,6 +234,7 @@ html.nosplash #devfit-splash{display:none!important}
         <input type="date" id="date-pick">
         <button id="next-day" aria-label="Next day">›</button>
       </div>
+      <div id="diet-week-badge" style="text-align:center;font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;color:#cc0000;letter-spacing:.04em;margin:-2px 0 10px;text-transform:uppercase;"></div>
       <!-- Calories summary -->
       <div class="cal-summary">
         <div class="cal-summary-main">
@@ -493,8 +494,19 @@ function shiftDate(delta){
   renderDay();
 }
 
+function progStart(){
+  let base=null;
+  try{ const pl=JSON.parse(localStorage.getItem('progressLog2')||'{}'); if(pl.programStart){const d=new Date(pl.programStart); if(!isNaN(d)) base=d;} }catch(e){}
+  if(!base){ try{ const u=JSON.parse(localStorage.getItem('devfit_user')||'{}'); if(u.startDate){const d=new Date(u.startDate); if(!isNaN(d)) base=d;} }catch(e){} }
+  if(!base) return null;
+  base.setHours(0,0,0,0); const day=base.getDay(); base.setDate(base.getDate()+(day===0?-6:1-day)); return base;
+}
+function weekOfDate(dateStr){ const s=progStart(); if(!s) return null; const d=new Date(dateStr+'T00:00:00'); if(isNaN(d)) return null; return Math.floor((d-s)/(7*86400000)); }
+
 function renderDay(){
   ensureDay(currentDate);
+  const wb=document.getElementById('diet-week-badge');
+  if(wb){ const wk=weekOfDate(currentDate); wb.textContent = wk===null ? '' : (wk<0 ? 'Before program start' : 'Program Week '+(wk+1)); }
   renderSummary();
   renderMeals();
   renderTrend();
