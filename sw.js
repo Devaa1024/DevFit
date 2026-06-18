@@ -6,7 +6,7 @@
    - Apps Script: network-only
 */
 
-const VERSION = 'devfit-v4.17.8';
+const VERSION = 'devfit-v4.18.0';
 const APP_SHELL = 'devfit-shell-' + VERSION;
 const RUNTIME = 'devfit-runtime-' + VERSION;
 
@@ -16,6 +16,7 @@ const SHELL_FILES = [
   './icon-192.png',
   './icon-512.png',
   './logo-header.png',
+  './logo-white.png',
   './favicon.svg',
   './favicon.ico',
   './devfit-db.js',

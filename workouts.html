@@ -493,14 +493,16 @@ function exportPlanPDF(){
   function header(){
     doc.setFillColor(...DARK); doc.rect(0,0,W,30,'F');
     doc.setFillColor(...RED); doc.rect(0,30,W,1.6,'F');
-    // DEVFIT wordmark
+    // left: white logo mark + DEVFIT wordmark (letterhead style, no box)
+    let tx=M;
+    if(logoImg){ doc.addImage(logoImg,'PNG',M,7,12,12); tx=M+15; }
     doc.setFont('helvetica','bold'); doc.setFontSize(22);
-    doc.setTextColor(255,255,255); doc.text('DEV',M,19);
+    doc.setTextColor(255,255,255); doc.text('DEV',tx,19);
     const devW=doc.getTextWidth('DEV');
-    doc.setTextColor(...RED); doc.text('FIT',M+devW,19);
+    doc.setTextColor(...RED); doc.text('FIT',tx+devW,19);
     doc.setFont('helvetica','normal'); doc.setFontSize(7);
     doc.setTextColor(180,180,180);
-    doc.text('DOMINANCE THROUGH DISCIPLINE',M,25);
+    doc.text('DOMINANCE THROUGH DISCIPLINE',tx,25);
     // right side
     doc.setFont('helvetica','bold'); doc.setFontSize(9);
     doc.setTextColor(255,255,255);
@@ -508,7 +510,6 @@ function exportPlanPDF(){
     doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
     doc.setTextColor(170,170,170);
     doc.text(dateStr,W-M,23,{align:'right'});
-    if(logoImg) doc.addImage(logoImg,'PNG',W-15,5,14,14);
   }
 
   header();
@@ -897,7 +898,7 @@ let logoImg=null;
   im.crossOrigin='anonymous';
   im.onload=()=>{logoImg=im;};
   im.onerror=()=>{logoImg=null;};
-  im.src='icon-192.png';
+  im.src='logo-white.png';
 })();
 
 // Preload the Inter Bold Italic wordmark font so the share card draws it correctly on first open
