@@ -84,7 +84,9 @@ html[data-theme="light"] .page [style*="color:#fff"],
 html[data-theme="light"] .page [style*="color:#ffffff"],
 html[data-theme="light"] .page [style*="color:#e2e8f0"],
 html[data-theme="light"] .page [style*="color:#f1f5f9"],
-html[data-theme="light"] .page [style*="color:#cccccc"]{color:#1a1714 !important;}
+html[data-theme="light"] .page [style*="color:#cccccc"],
+html[data-theme="light"] .header [style*="color:#fff"],
+html[data-theme="light"] .header [style*="color:#ffffff"]{color:#1a1714 !important;}
 
 html[data-theme="light"] .page [style*="color:#aaa"],
 html[data-theme="light"] .page [style*="color:#aaaaaa"],

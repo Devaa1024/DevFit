@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DevFit — Progress</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800;900&family=Anton&family=Righteous&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Anton&family=Righteous&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -355,9 +355,6 @@ html.nosplash #devfit-splash{display:none!important}
 
   <!-- CLIENT INFO + GOAL -->
   <div class="card">
-    <div class="client-row" style="margin-bottom:12px;">
-      <input id="clientName" placeholder="Client name" onblur="save();render()">
-    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
       <div>
         <div class="section-label" style="margin-bottom:5px;">Start weight (kg)</div>
@@ -843,7 +840,6 @@ function applyTierGates(){
   }
 }
 function save(){
-  appData.clientName=document.getElementById('clientName').value;
   appData.goal=document.getElementById('goalInput').value;
   appData.startWeight=document.getElementById('startWeight').value;
   appData.programDuration=document.getElementById('programDuration').value;
@@ -1024,7 +1020,8 @@ function bwScore(bwAvg, prevBwAvg, goalType, weekIndex){
 function calcTrueScore(w){
   const ci=appData.weeklyCheckin[w]||freshCheckin();
   const bwAvg=avg(appData.bw[w]);
-  const prevBwAvg=w>0?avg(appData.bw[w-1]):null;
+  let prevBwAvg=null;
+  for(let pw=w-1;pw>=0;pw--){ const pa=avg(appData.bw[pw]); if(pa!==null){prevBwAvg=pa;break;} }
   const stepsAvg=avg(appData.steps[w]);
   const sleepAvg=avg(appData.sleep[w]);
   const gt=appData.goalType||'loss';
@@ -2081,7 +2078,7 @@ document.addEventListener('visibilitychange',function(){
     const defs={
       dmsans:    {face:'"DM Sans",system-ui,sans-serif', weights:[400,500,600,700,800], scale:1.0},
       literature:{face:'"Lora",Georgia,serif',           weights:[400,500,600,700],     scale:0.98},
-      elegant:   {face:'"Playfair Display",Georgia,serif',weights:[600,700],             scale:1.0},
+      elegant:   {face:'"Playfair Display",Georgia,serif',weights:[600,700],style:'italic',scale:1.0},
       strong:    {face:'"Anton",Impact,sans-serif',      weights:[400],                 scale:0.86},
       deco:      {face:'"Righteous",system-ui,sans-serif',weights:[400],                scale:0.92}
     };
@@ -2090,7 +2087,8 @@ document.addEventListener('visibilitychange',function(){
     return {face:d.face, scale:d.scale, wt:wt, key:pref};
   }
   async function loadShareFont(sf){
-    try{ await document.fonts.load(sf.wt(700)+' 60px '+sf.face); await document.fonts.load(sf.wt(400)+' 60px '+sf.face); await document.fonts.ready; }catch(e){}
+    const pfx=sf.style?sf.style+' ':'';
+    try{ await document.fonts.load(pfx+sf.wt(700)+' 60px '+sf.face); await document.fonts.load(pfx+sf.wt(400)+' 60px '+sf.face); await document.fonts.ready; }catch(e){}
   }
 
   function getHandle(){
@@ -2125,7 +2123,7 @@ document.addEventListener('visibilitychange',function(){
     };
     const pal=palette[wsTheme]||palette.light;
     const sf=getShareFont();
-    const F=(w2,px)=>sf.wt(w2)+' '+Math.round(px*sf.scale)+'px '+sf.face;
+    const F=(w2,px)=>(sf.style?sf.style+' ':'')+sf.wt(w2)+' '+Math.round(px*sf.scale)+'px '+sf.face;
 
     ctx.clearRect(0,0,W,H);
     if(pal.bg){ ctx.fillStyle=pal.bg; ctx.fillRect(0,0,W,H); }
