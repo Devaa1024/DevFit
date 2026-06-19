@@ -6,7 +6,7 @@
    - Apps Script: network-only
 */
 
-const VERSION = 'devfit-v4.22.1';
+const VERSION = 'devfit-v4.22.2';
 const APP_SHELL = 'devfit-shell-' + VERSION;
 const RUNTIME = 'devfit-runtime-' + VERSION;
 
@@ -15,6 +15,7 @@ const SHELL_FILES = [
   './icon-touch.png',
   './icon-192.png',
   './icon-512.png',
+  './icon-1024.png',
   './logo-header.png',
   './logo-white.png',
   './favicon.svg',
