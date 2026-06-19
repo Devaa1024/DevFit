@@ -75,6 +75,11 @@
    * @param {object} data
    */
   async function cloudSave(dataType, data) {
+    // Record the local-modified time synchronously, BEFORE any async work and
+    // regardless of whether the cloud round-trip succeeds. This is the source
+    // of truth for "local has unsynced edits newer than the cloud copy" and
+    // protects edits if the user navigates away before the upload completes.
+    try { localStorage.setItem('devfit_local_ts_' + dataType, String(Date.now())); } catch (_) {}
     const db = client();
     const email = getEmail();
     if (!db || !email) return;
@@ -93,6 +98,16 @@
     }
   }
 
+  // Effective local timestamp for a data type = the most recent of "last
+  // successful cloud sync" and "last local edit". Using the local-edit time
+  // means an edit that hasn't reached the cloud yet still counts as newer than
+  // the (older) cloud copy, so sync never clobbers it.
+  function localTsFor(dataType) {
+    const synced = parseInt(localStorage.getItem('devfit_cloud_ts_' + dataType) || '0', 10);
+    const edited = parseInt(localStorage.getItem('devfit_local_ts_' + dataType) || '0', 10);
+    return Math.max(synced || 0, edited || 0);
+  }
+
   // ── Startup sync ──────────────────────────────────────────────────────────
   /**
    * On page load: compare local vs cloud timestamps.
@@ -107,7 +122,7 @@
     const email = getEmail();
     if (!db || !email) return;
     setIndicator('syncing');
-    const localTs = parseInt(localStorage.getItem('devfit_cloud_ts_' + dataType) || '0', 10);
+    const localTs = localTsFor(dataType);
     try {
       const { data: row, error } = await db
         .from('devfit_data')
@@ -150,10 +165,16 @@
     }
   }
 
-  // ── Force sync all (Settings → Sync Now button) ──────────────────────────
+  // ── Restore-on-load sync (Settings auto-restore) ─────────────────────────
   /**
-   * Pull all data types from cloud regardless of timestamps.
+   * Reconcile every data type with the cloud, RESPECTING timestamps so it is
+   * non-destructive: a cloud copy only overwrites local when it is genuinely
+   * newer than the local edit/sync time. If local is newer (a recent edit that
+   * hasn't been uploaded yet), local is pushed up instead of being clobbered.
+   * This is what prevents the "edit in one page, change a setting elsewhere,
+   * come back and the edit is gone" data-loss bug.
    * Returns { ok: boolean, updated: number, reason?: string }
+   *   updated = number of local keys actually replaced by a newer cloud copy.
    */
   async function forceSyncAll() {
     const db = client();
@@ -175,10 +196,18 @@
       let updated = 0;
       (rows || []).forEach(row => {
         const lk = keyMap[row.data_type];
-        if (lk && row.data) {
+        if (!lk || !row.data) return;
+        const cloudTs = new Date(row.updated_at).getTime();
+        const localTs = localTsFor(row.data_type);
+        if (cloudTs > localTs + 3000) {
+          // Cloud is meaningfully newer — safe to adopt it.
           localStorage.setItem(lk, JSON.stringify(row.data));
-          localStorage.setItem('devfit_cloud_ts_' + row.data_type, String(new Date(row.updated_at).getTime()));
+          localStorage.setItem('devfit_cloud_ts_' + row.data_type, String(cloudTs));
           updated++;
+        } else if (localTs > cloudTs) {
+          // Local has newer unsynced edits — push them up, don't overwrite.
+          const raw = localStorage.getItem(lk);
+          if (raw) { try { cloudSave(row.data_type, JSON.parse(raw)); } catch (_) {} }
         }
       });
       setIndicator('ok');

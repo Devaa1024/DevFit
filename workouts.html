@@ -1006,15 +1006,18 @@ function drawExportCard(canvas, workout, session, theme){
   const fontPref = (function(){
     try { return localStorage.getItem('devfit_shareFont') || 'dmsans'; } catch(e){ return 'dmsans'; }
   })();
+  // Instagram-style weight hierarchy: a HEAVY title, a MEDIUM exercise name,
+  // and a REGULAR body — so the title, names and stats no longer all read as
+  // one bold mass. (Anton/Righteous are single-weight display faces.)
   const fontMap = {
-    'dmsans':     {face:'"DM Sans",system-ui,sans-serif',  bodyW:600, titleW:800, italic:'',        scale:1.0},
-    'literature': {face:'"Lora",Georgia,serif',            bodyW:500, titleW:700, italic:'',        scale:0.98},
-    'elegant':    {face:'"Playfair Display",Georgia,serif',bodyW:600, titleW:700, italic:'italic ', scale:1.0},
-    'strong':     {face:'"Anton",Impact,sans-serif',       bodyW:400, titleW:400, italic:'',        scale:0.86},
-    'deco':       {face:'"Righteous",system-ui,sans-serif',bodyW:400, titleW:400, italic:'',        scale:0.92}
+    'dmsans':     {face:'"DM Sans",system-ui,sans-serif',  bodyW:400, nameW:600, titleW:700, italic:'',        scale:1.0},
+    'literature': {face:'"Lora",Georgia,serif',            bodyW:400, nameW:500, titleW:600, italic:'',        scale:0.98},
+    'elegant':    {face:'"Playfair Display",Georgia,serif',bodyW:400, nameW:500, titleW:600, italic:'italic ', scale:1.0},
+    'strong':     {face:'"Anton",Impact,sans-serif',       bodyW:400, nameW:400, titleW:400, italic:'',        scale:0.86},
+    'deco':       {face:'"Righteous",system-ui,sans-serif',bodyW:400, nameW:400, titleW:400, italic:'',        scale:0.92}
   };
   const fv = fontMap[fontPref] || fontMap.dmsans;
-  const FACE = fv.face, BW = fv.bodyW, TW = fv.titleW, IT = fv.italic, SC = fv.scale;
+  const FACE = fv.face, BW = fv.bodyW, NW = fv.nameW, TW = fv.titleW, IT = fv.italic, SC = fv.scale;
   const F = (weight,px) => IT + weight + ' ' + Math.round(px*SC) + 'px ' + FACE;
   // measured ascent/descent so tall fonts (Anton, Playfair italic) never overlap the next line
   const vmet = (str,px) => { const m=ctx.measureText(str); return {a:m.actualBoundingBoxAscent||px*0.72, d:m.actualBoundingBoxDescent||px*0.12}; };
@@ -1027,32 +1030,13 @@ function drawExportCard(canvas, workout, session, theme){
     ctx.fill();
   }
 
-  const PAD = 80;
-  let y = PAD + 20;
+  // Tighter outer padding kills the dead margin the user marked around all edges.
+  const PAD = 60;
+  const fmtNum = n => Math.round(n).toLocaleString('en-US');
 
-  // ---- WORKOUT TITLE (e.g. "Push Day") — metric-aware, date removed ----
-  ctx.fillStyle = p.fg;
-  ctx.textBaseline = 'alphabetic';
-  ctx.textAlign = 'left';
-  let titleSize = 120;
-  ctx.font = F(TW, titleSize);
-  let title = workout.name || 'Workout';
-  while(ctx.measureText(title).width > W - PAD*2 && titleSize > 60){
-    titleSize -= 4;
-    ctx.font = F(TW, titleSize);
-  }
-  const tmet = vmet(title, titleSize);
-  ctx.fillText(title, PAD, y + tmet.a);
-  y += tmet.a + tmet.d + 46;
-
-  // Thin divider
-  ctx.fillStyle = p.divider;
-  ctx.fillRect(PAD, y, W - PAD*2, 1);
-  y += 44;
-
-  // ---- EXERCISE LIST ----
-  // Format: "Exercise Name              3×10 @ 60kg"
+  // ---- Compute exercise lines + totals (Exercises / Sets / Volume) ----
   const lines = [];
+  let totalEx = 0, totalSets = 0, totalVolume = 0;
   workout.exercises.forEach(ex => {
     const log = session.logs.find(l => l.exId === ex.id);
     if(!log) return;
@@ -1063,75 +1047,136 @@ function drawExportCard(canvas, workout, session, theme){
     const wtList   = validSets.map(s => Number(s.weight)||0);
     const hasWeight = wtList.some(w => w > 0);
 
-    // Clean format: "3 sets · 40kg" (top working weight). Bodyweight → "3 sets".
+    totalEx++;
+    totalSets += setCount;
+    validSets.forEach(s => { totalVolume += (Number(s.weight)||0) * (Number(s.reps)||0); });
+
+    // Right-side summary, mockup format: "35 kg × 2 sets" (top working weight).
     const setTxt = `${setCount} ${setCount>1?'sets':'set'}`;
-    let summary;
-    if(hasWeight){
-      const topW = Math.max(...wtList);
-      summary = `${setTxt} · ${topW}kg`;
-    } else {
-      summary = setTxt;
-    }
-    lines.push({name: ex.name || 'Exercise', summary, sets: setCount});
+    const summary = hasWeight ? `${Math.max(...wtList)} kg × ${setTxt}` : setTxt;
+    lines.push({name: ex.name || 'Exercise', summary});
   });
 
-  // Calculate row height — NO upper cap, so few exercises fill the full canvas (kills empty middle gap)
-  const footerY = H - PAD - 80;
-  const available = footerY - y - 40;
-  const maxLines = Math.min(lines.length, 10);
-  // Min 90, no max — rows expand to fill all available space
-  const rowH = Math.max(90, Math.floor(available / Math.max(maxLines,1)));
+  let y = PAD + 16;
 
+  // ---- WORKOUT TITLE ----
+  ctx.fillStyle = p.fg;
+  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'left';
+  let titleSize = 120;
+  ctx.font = F(TW, titleSize);
+  let title = workout.name || 'Workout';
+  while(ctx.measureText(title).width > W - PAD*2 && titleSize > 56){
+    titleSize -= 4;
+    ctx.font = F(TW, titleSize);
+  }
+  const tmet = vmet(title, titleSize);
+  ctx.fillText(title, PAD, y + tmet.a);
+  y += tmet.a + tmet.d + 20;
+
+  // ---- RED UNDERLINE ACCENT (brand mark under the title) ----
+  ctx.fillStyle = p.accent;
+  roundRect(ctx, PAD, y, 130, 9, 4); ctx.fill();
+  y += 9 + 42;
+
+  // ---- STAT ROW: Exercises · Sets · Volume ----
+  const stats = [
+    {v: String(totalEx),   l: totalEx===1?'Exercise':'Exercises', hot:false},
+    {v: String(totalSets), l: totalSets===1?'Set':'Sets',         hot:false},
+    {v: fmtNum(totalVolume) + ' kg', l: 'Volume',                 hot:true}
+  ];
+  {
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+    const valPx = 46, lblPx = 34, statBase = y + valPx;
+    let sx = PAD;
+    stats.forEach((st, i) => {
+      if(i > 0){ ctx.fillStyle = p.divider; ctx.fillRect(sx, y + 6, 2, 50); sx += 28; }
+      ctx.font = F(TW, valPx);
+      ctx.fillStyle = st.hot ? p.accent : p.fg;
+      ctx.fillText(st.v, sx, statBase);
+      sx += ctx.measureText(st.v).width + 12;
+      ctx.font = F(BW, lblPx);
+      ctx.fillStyle = p.sub;
+      ctx.fillText(st.l, sx, statBase);
+      sx += ctx.measureText(st.l).width + 28;
+    });
+    y = statBase + 34;
+  }
+
+  // Divider under stats
+  ctx.fillStyle = p.divider;
+  ctx.fillRect(PAD, y, W - PAD*2, 1);
+  y += 30;
+
+  // ---- EXERCISE LIST ----
+  const footerTop = H - PAD - 96;       // reserve footer band
+  const available = footerTop - y;
+  const maxLines  = Math.min(lines.length, 9);
   const showLines = lines.slice(0, maxLines);
-  const overflow = lines.length - showLines.length;
+  const overflow  = lines.length - showLines.length;
 
-  showLines.forEach(line => {
-    // Exercise name (left, the focus)
-    ctx.font = F(TW, 58);
+  // Comfortable row height, ~10% tighter than before, capped so a short list
+  // doesn't stretch into huge gaps and floored so a long list still fits.
+  let rowH = Math.floor(available / Math.max(maxLines, 1));
+  rowH = Math.min(rowH, 118);
+  rowH = Math.max(rowH, 74);
+  const blockH = rowH * maxLines;
+  let ly = y + Math.max(0, (available - blockH) / 2);   // vertically centre → no weird empty band
+
+  ctx.textBaseline = 'middle';
+  showLines.forEach((line, idx) => {
+    const rowMid = ly + rowH / 2;
+    // index number
+    ctx.textAlign = 'left';
+    ctx.font = F(BW, 38); ctx.fillStyle = p.sub;
+    ctx.fillText(String(idx + 1), PAD, rowMid);
+    // exercise name (medium weight — distinct from the heavy title)
+    const nameX = PAD + 58;
+    ctx.font = F(NW, 54); ctx.fillStyle = p.fg;
     let nameTxt = line.name;
-    const nameMaxW = W - PAD*2 - 340; // leave room for summary on the right
-    while(ctx.measureText(nameTxt).width > nameMaxW && nameTxt.length > 3){
-      nameTxt = nameTxt.slice(0, -1);
-    }
+    const nameMaxW = (W - PAD) - nameX - 360;
+    while(ctx.measureText(nameTxt).width > nameMaxW && nameTxt.length > 3){ nameTxt = nameTxt.slice(0, -1); }
     if(nameTxt !== line.name) nameTxt = nameTxt.slice(0, -1) + '…';
-    const nm = vmet(nameTxt, 58);
-    const base = y + nm.a;            // shared baseline for name + summary
-    ctx.textAlign = 'left'; ctx.fillStyle = p.fg;
-    ctx.fillText(nameTxt, PAD, base);
-    ctx.textAlign = 'right'; ctx.fillStyle = p.sub; ctx.font = F(BW, 46);
-    ctx.fillText(line.summary, W - PAD, base);
-    y += rowH;
+    ctx.fillText(nameTxt, nameX, rowMid);
+    // summary (right)
+    ctx.textAlign = 'right';
+    ctx.font = F(BW, 42); ctx.fillStyle = p.sub;
+    ctx.fillText(line.summary, W - PAD, rowMid);
+    // row divider
+    if(idx < showLines.length - 1){
+      ctx.fillStyle = p.divider;
+      ctx.fillRect(PAD, ly + rowH, W - PAD*2, 1);
+    }
+    ly += rowH;
   });
+  ctx.textBaseline = 'alphabetic';
 
   if(overflow > 0){
-    ctx.fillStyle = p.sub;
-    ctx.textAlign = 'center';
-    ctx.font = F(500, 36);
-    ctx.fillText('+ ' + overflow + ' more exercise' + (overflow>1?'s':''), W/2, y + 36);
+    ctx.fillStyle = p.sub; ctx.textAlign = 'center'; ctx.font = F(BW, 34);
+    ctx.fillText('+ ' + overflow + ' more', W / 2, ly + 30);
   }
 
   // ---- FOOTER: DEVFIT logo (left) + @handle (right) ----
-  const fy = H - PAD - 30;
+  const fy = H - PAD - 6;
   ctx.textBaseline = 'alphabetic';
 
-  // DEVFIT brand — FIXED iconic wordmark (Inter Bold Italic, just like the logo),
-  // decoupled from the card's body font so it's always the same lockup.
-  // Size = 75px (15px larger than before). Two-tone on light/dark (DEV in fg, FIT in red);
-  // pure white on the transparent theme.
-  ctx.font = 'italic 700 75px "Inter", system-ui, sans-serif';
+  // DEVFIT brand — fixed Inter Bold Italic lockup, ~10% smaller (68px) for a
+  // more restrained, premium feel. FIT is ALWAYS brand red (incl. transparent
+  // theme) so the wordmark stays consistent with the real logo.
+  ctx.font = 'italic 700 68px "Inter", system-ui, sans-serif';
   ctx.textAlign = 'left';
   const devColor = (theme === 'transparent') ? '#ffffff' : p.fg;
-  const fitColor = (theme === 'transparent') ? '#ffffff' : p.accent;
+  const fitColor = p.accent;
   const devW = ctx.measureText('DEV').width;
   ctx.fillStyle = devColor;
   ctx.fillText('DEV', PAD, fy);
   ctx.fillStyle = fitColor;
   ctx.fillText('FIT', PAD + devW, fy);
 
-  // @handle — uses Settings display name first, falls back to email prefix.
-  // Size = 38px (5% smaller than before).
+  // @handle — Settings display name first, falls back to email prefix.
   ctx.fillStyle = p.sub;
-  ctx.font = F(BW, 38);
+  ctx.font = F(BW, 36);
   ctx.textAlign = 'right';
   let handle = '@user';
   try {
