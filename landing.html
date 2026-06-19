@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevFit — Train with discipline. Track what's real.</title>
+<meta name="description" content="DevFit is a premium fitness tracker that scores your real weekly progress — bodyweight, training, diet, sleep, steps and stress — not just the number on the scale. Built for discipline.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="emblem-dark.png">
+<meta name="theme-color" content="#0a0a0c">
+<!-- Open Graph -->
+<meta property="og:title" content="DevFit — Dominance Through Discipline">
+<meta property="og:description" content="A premium tracker that scores your real progress across six signals, not just bodyweight. RM19/month.">
+<meta property="og:image" content="emblem-dark.png">
+<meta property="og:type" content="website">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--red:#cc0000;--red2:#ff4444;--ink:#08080a;--card:#111113;--line:#26262b;--mut:#9a9aa2}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'DM Sans',system-ui,sans-serif;color:#e8e8ea;line-height:1.6;overflow-x:hidden;
+    background:
+      radial-gradient(900px 520px at 50% -8%, rgba(204,0,0,0.22), transparent 60%),
+      radial-gradient(760px 420px at 90% 8%, rgba(204,0,0,0.10), transparent 55%),
+      linear-gradient(180deg,#08080a 0%,#0e0e11 55%,#08080a 100%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+  .italic{font-family:'Inter',system-ui,sans-serif;font-style:italic;font-weight:700;letter-spacing:.005em}
+  .red{color:var(--red)}
+
+  /* NAV */
+  .nav{position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(12px);-webkit-backdrop-filter:saturate(140%) blur(12px);
+    background:rgba(8,8,10,0.72);border-bottom:1px solid rgba(255,255,255,0.06)}
+  .nav-in{display:flex;align-items:center;gap:12px;height:62px}
+  .nav img{width:34px;height:34px;object-fit:contain}
+  .nav .brand{font-size:19px}
+  .nav .brand .d{color:#fff}.nav .brand .f{color:var(--red)}
+  .nav .sp{flex:1}
+  .nav a.login{font-size:14px;font-weight:700;color:#cfcfd6;text-decoration:none;padding:9px 14px;border-radius:10px;transition:.15s}
+  .nav a.login:hover{color:#fff;background:rgba(255,255,255,0.06)}
+  .nav a.cta{font-size:14px;font-weight:800;color:#fff;text-decoration:none;background:var(--red);padding:10px 18px;border-radius:11px;box-shadow:0 6px 18px rgba(204,0,0,0.32);transition:.15s}
+  .nav a.cta:hover{background:#b80000;transform:translateY(-1px)}
+
+  /* HERO */
+  .hero{text-align:center;padding:72px 0 40px}
+  .hero .emblem{width:86px;height:86px;object-fit:contain;margin-bottom:22px;filter:drop-shadow(0 10px 28px rgba(204,0,0,0.35))}
+  .eyebrow{font-size:12px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--red);margin-bottom:16px}
+  .hero h1{font-size:clamp(34px,6vw,58px);font-weight:800;color:#fff;line-height:1.06;letter-spacing:-.02em;margin-bottom:18px}
+  .hero h1 .ital{font-family:'Inter',system-ui,sans-serif;font-style:italic;font-weight:800}
+  .hero p{font-size:clamp(15px,2.4vw,18px);color:var(--mut);max-width:620px;margin:0 auto 30px}
+  .hero .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:800;text-decoration:none;padding:14px 26px;border-radius:13px;transition:.16s;cursor:pointer;border:none}
+  .btn-primary{background:var(--red);color:#fff;box-shadow:0 10px 28px rgba(204,0,0,0.34)}
+  .btn-primary:hover{background:#b80000;transform:translateY(-2px)}
+  .btn-ghost{background:transparent;color:#e8e8ea;border:1.5px solid var(--line)}
+  .btn-ghost:hover{border-color:#444;color:#fff}
+  .hero .trust{margin-top:22px;font-size:12.5px;color:#6f6f78}
+  .hero .trust b{color:#cfcfd6}
+
+  /* SECTION */
+  section{padding:54px 0}
+  .sec-head{text-align:center;margin-bottom:38px}
+  .sec-head .eyebrow{margin-bottom:12px}
+  .sec-head h2{font-size:clamp(26px,4.4vw,38px);font-weight:800;color:#fff;line-height:1.15;letter-spacing:-.01em}
+  .sec-head p{font-size:15px;color:var(--mut);max-width:560px;margin:12px auto 0}
+
+  /* SIX-SIGNAL */
+  .signals{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .signal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 20px;transition:.18s}
+  .signal:hover{border-color:rgba(204,0,0,0.45);transform:translateY(-3px)}
+  .signal .ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(204,0,0,0.12);margin-bottom:14px}
+  .signal h3{font-size:16px;font-weight:800;color:#fff;margin-bottom:5px}
+  .signal p{font-size:13px;color:var(--mut);line-height:1.55}
+
+  /* SCORE FEATURE */
+  .score-feat{background:linear-gradient(135deg,rgba(204,0,0,0.10),rgba(17,17,19,0.6));border:1px solid var(--line);border-radius:22px;padding:40px 32px;display:grid;grid-template-columns:1.3fr 1fr;gap:34px;align-items:center}
+  .score-feat h2{font-size:clamp(24px,3.6vw,32px);font-weight:800;color:#fff;line-height:1.18;margin-bottom:14px}
+  .score-feat p{font-size:14.5px;color:#c4c4cc;margin-bottom:14px}
+  .score-feat ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+  .score-feat li{font-size:14px;color:#d4d4da;display:flex;gap:10px;align-items:flex-start}
+  .score-feat li::before{content:"✓";color:var(--red);font-weight:800;flex-shrink:0}
+  .score-ring{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+  .ring-wrap{position:relative;width:170px;height:170px}
+  .ring-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring-num b{font-size:46px;font-weight:800;color:#fff;line-height:1}
+  .ring-num span{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#2f9e57;margin-top:4px}
+
+  /* FEATURE LIST */
+  .feats{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .feat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;gap:14px}
+  .feat .ic{font-size:24px;flex-shrink:0;width:30px;text-align:center}
+  .feat h3{font-size:15.5px;font-weight:800;color:#fff;margin-bottom:4px}
+  .feat p{font-size:13px;color:var(--mut);line-height:1.55}
+
+  /* PRICING */
+  .price-card{max-width:430px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-top:3px solid var(--red);border-radius:20px;padding:34px 30px;text-align:center;box-shadow:0 18px 50px rgba(204,0,0,0.16)}
+  .price-badge{display:inline-block;background:var(--red);color:#fff;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 13px;border-radius:20px;margin-bottom:16px}
+  .price-amt{font-size:52px;font-weight:800;color:#fff;line-height:1}
+  .price-amt small{font-size:15px;color:var(--mut);font-weight:600}
+  .price-sub{font-size:12.5px;color:#6f6f78;margin:6px 0 22px}
+  .price-card ul{list-style:none;text-align:left;margin-bottom:24px;display:flex;flex-direction:column;gap:10px}
+  .price-card li{font-size:13.5px;color:#d4d4da;display:flex;gap:10px}
+  .price-card li::before{content:"✓";color:var(--red);font-weight:800;flex-shrink:0}
+  .price-card .btn{width:100%;justify-content:center}
+  .price-note{font-size:11.5px;color:#6f6f78;margin-top:14px;line-height:1.5}
+
+  /* FINAL CTA */
+  .final{text-align:center;padding:64px 0}
+  .final h2{font-size:clamp(26px,4.6vw,40px);font-weight:800;color:#fff;line-height:1.12;margin-bottom:14px}
+  .final p{font-size:15px;color:var(--mut);max-width:480px;margin:0 auto 26px}
+
+  /* FOOTER */
+  footer{border-top:1px solid rgba(255,255,255,0.06);padding:30px 0;text-align:center}
+  footer .fbrand{font-size:16px;margin-bottom:8px}
+  footer .fbrand .d{color:#fff}.footer .fbrand .f{color:var(--red)}
+  footer p{font-size:12px;color:#6f6f78}
+  footer a{color:#9a9aa2;text-decoration:none}
+  footer a:hover{color:#fff}
+
+  @media(max-width:720px){
+    .signals{grid-template-columns:1fr 1fr}
+    .feats{grid-template-columns:1fr}
+    .score-feat{grid-template-columns:1fr;text-align:center}
+    .score-feat ul{text-align:left;max-width:340px;margin:0 auto}
+    .score-feat li{justify-content:flex-start}
+  }
+  @media(max-width:460px){ .signals{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav"><div class="wrap nav-in">
+  <img src="emblem-dark.png" alt="DevFit" onerror="this.style.display='none'">
+  <div class="brand italic"><span class="d">DEV</span><span class="f">FIT</span></div>
+  <div class="sp"></div>
+  <a class="login" href="login.html">Log in</a>
+  <a class="cta" href="pricing.html">Get Pro</a>
+</div></div>
+
+<!-- HERO -->
+<header class="hero"><div class="wrap">
+  <img class="emblem" src="emblem-dark.png" alt="DevFit emblem" onerror="this.style.display='none'">
+  <div class="eyebrow">Dominance Through Discipline</div>
+  <h1>Train with discipline.<br>Track what's <span class="ital red">real</span>.</h1>
+  <p>DevFit scores your true weekly progress across six signals — not just the number on the scale. Bodyweight, training, diet, sleep, steps and stress, in one premium tracker built for people who are serious.</p>
+  <div class="actions">
+    <a class="btn btn-primary" href="pricing.html">Start for RM19/month →</a>
+    <a class="btn btn-ghost" href="login.html">I already have access</a>
+  </div>
+  <div class="trust">No ads · No data resold · <b>Automatic cloud backup</b> across all your devices</div>
+</div></header>
+
+<!-- SIX SIGNALS -->
+<section id="how"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">The six-signal score</div>
+    <h2>The scale lies. Your habits don't.</h2>
+    <p>Weight bounces with water, food and stress. DevFit weighs what actually moves the needle, so a great week reads as a great week — even when the scale doesn't budge.</p>
+  </div>
+  <div class="signals">
+    <div class="signal"><div class="ic">⚖️</div><h3>Bodyweight</h3><p>Trend-aware, scored against a healthy rate of change for your goal — not daily noise.</p></div>
+    <div class="signal"><div class="ic">🏋️</div><h3>Training</h3><p>Progressive overload week to week. Lifting more — or with better form — counts.</p></div>
+    <div class="signal"><div class="ic">🍽️</div><h3>Diet</h3><p>Hit your targets, and full macro + calorie tracking with a real food database.</p></div>
+    <div class="signal"><div class="ic">😴</div><h3>Sleep</h3><p>Scored on the 7–9 hour window backed by the research — recovery is progress.</p></div>
+    <div class="signal"><div class="ic">👟</div><h3>Steps</h3><p>Daily movement, scored to the point where the health benefit plateaus.</p></div>
+    <div class="signal"><div class="ic">🧠</div><h3>Stress</h3><p>High stress stalls fat loss and muscle gain. DevFit factors it in honestly.</p></div>
+  </div>
+</div></section>
+
+<!-- SCORE FEATURE -->
+<section><div class="wrap">
+  <div class="score-feat">
+    <div>
+      <h2>One number that tells you the truth.</h2>
+      <p>Every signal you log feeds a single weekly score, weighted by what the science says matters most and adaptively normalised so you're only judged on what you actually track.</p>
+      <ul>
+        <li>Recomp credit — losing fat while the scale holds still still scores high</li>
+        <li>Goal-aware — fat loss, muscle gain and maintenance are scored differently</li>
+        <li>Evidence-based weights drawn from published sports-science literature</li>
+      </ul>
+    </div>
+    <div class="score-ring">
+      <div class="ring-wrap">
+        <svg width="170" height="170" viewBox="0 0 170 170">
+          <circle cx="85" cy="85" r="72" fill="none" stroke="#26262b" stroke-width="12"/>
+          <circle cx="85" cy="85" r="72" fill="none" stroke="#2f9e57" stroke-width="12" stroke-linecap="round"
+            stroke-dasharray="452" stroke-dashoffset="86" transform="rotate(-90 85 85)"/>
+        </svg>
+        <div class="ring-num"><b>81</b><span>Great week</span></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- FEATURES -->
+<section><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">Everything in one app</div>
+    <h2>Built like a paid product, because it is one.</h2>
+  </div>
+  <div class="feats">
+    <div class="feat"><div class="ic">📊</div><div><h3>Trends &amp; analytics</h3><p>Live graphs for weight, score and recovery so you see the direction, not just today.</p></div></div>
+    <div class="feat"><div class="ic">🍱</div><div><h3>Real food database</h3><p>Search foods and scan barcodes, with a science-grade calorie &amp; macro calculator.</p></div></div>
+    <div class="feat"><div class="ic">📄</div><div><h3>PDF reports</h3><p>Premium weekly and full-program reports — habits, workouts and nutrition in one place.</p></div></div>
+    <div class="feat"><div class="ic">📱</div><div><h3>Installs like an app</h3><p>Add to your home screen, works offline, and looks the part in light or dark mode.</p></div></div>
+    <div class="feat"><div class="ic">☁️</div><div><h3>Always backed up</h3><p>Your data syncs automatically to your email — log out, switch phones, it's all still there.</p></div></div>
+    <div class="feat"><div class="ic">🖼️</div><div><h3>Shareable cards</h3><p>Turn a strong week into a clean progress card you'll actually want to post.</p></div></div>
+  </div>
+</div></section>
+
+<!-- PRICING -->
+<section id="pricing"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">Simple pricing</div>
+    <h2>One plan. Everything unlocked.</h2>
+    <p>No tiers, no upsells, no surprises. Cancel any time — when your month ends, the app simply returns to the free view and keeps your data safe.</p>
+  </div>
+  <div class="price-card">
+    <span class="price-badge">DevFit Pro</span>
+    <div class="price-amt">RM19<small>/month</small></div>
+    <div class="price-sub">30 days full access · DuitNow QR payment</div>
+    <ul>
+      <li>The full six-signal weekly score</li>
+      <li>Daily logging + weekly check-ins</li>
+      <li>Nutrition tracking, barcodes &amp; macros</li>
+      <li>Trend graphs, analytics &amp; PDF reports</li>
+      <li>Automatic cloud backup &amp; multi-device sync</li>
+    </ul>
+    <a class="btn btn-primary" href="pricing.html">Activate Pro →</a>
+    <div class="price-note">Coached by Deva personally? Your access is included — just log in with your email.</div>
+  </div>
+</div></section>
+
+<!-- FINAL CTA -->
+<section class="final"><div class="wrap">
+  <h2>Stop guessing. Start <span class="ital red">tracking</span>.</h2>
+  <p>Two minutes to set up your program. Then just log daily and let the score keep you honest.</p>
+  <a class="btn btn-primary" href="pricing.html">Get DevFit Pro →</a>
+</div></section>
+
+<!-- FOOTER -->
+<footer><div class="wrap">
+  <div class="fbrand italic"><span class="d">DEV</span><span class="f">FIT</span></div>
+  <p>Dominance Through Discipline · © DevFit 2026<br>
+  Questions? <a href="https://wa.me/60183679177">WhatsApp +60 18 367 9177</a></p>
+</div></footer>
+
+</body>
+</html>

@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Anton&family=Righteous&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="scoring.js"></script><!-- shared scoring engine (app score === report score) -->
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -199,6 +200,52 @@
   .welcome-btn{display:block;width:100%;background:#cc0000;color:#fff;border:none;border-radius:10px;padding:13px;font-family:'DM Sans',system-ui,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:20px;transition:background .15s;}
   .welcome-btn:hover{background:#aa0000;}
 
+  /* ===== ONBOARDING (first-run program setup) ===== */
+  .onb-overlay{position:fixed;inset:0;z-index:10010;display:none;align-items:center;justify-content:center;padding:1.2rem;overflow-y:auto;
+    background:radial-gradient(900px 600px at 50% -10%,rgba(204,0,0,0.22),transparent 60%),linear-gradient(180deg,#08080a 0%,#101013 60%,#0a0a0c 100%);}
+  .onb-overlay.show{display:flex}
+  .onb-card{width:100%;max-width:420px;background:#111;border:1px solid #2a2a2a;border-top:3px solid #cc0000;border-radius:20px;padding:26px 22px 22px;box-shadow:0 18px 60px rgba(0,0,0,0.55)}
+  .onb-top{display:flex;align-items:center;gap:11px;margin-bottom:20px}
+  .onb-logo{width:38px;height:38px;object-fit:contain;flex-shrink:0}
+  .onb-brand{font-family:'Inter',system-ui,sans-serif;font-style:italic;font-weight:700;font-size:19px;letter-spacing:.005em}
+  .onb-brand .d{color:#fff}.onb-brand .f{color:#cc0000}
+  .onb-dots{display:flex;gap:6px;margin-left:auto}
+  .onb-dot{width:7px;height:7px;border-radius:50%;background:#2f2f33;transition:all .25s}
+  .onb-dot.on{background:#cc0000;width:20px;border-radius:4px}
+  .onb-step{display:none}
+  .onb-step.active{display:block;animation:onbRise .35s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes onbRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .onb-eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#cc0000;margin-bottom:9px}
+  .onb-h{font-size:23px;font-weight:800;color:#fff;line-height:1.22;margin-bottom:9px}
+  .onb-p{font-size:13px;color:#9a9aa2;line-height:1.6;margin-bottom:20px}
+  .onb-goals{display:flex;flex-direction:column;gap:10px}
+  .onb-goal{display:flex;align-items:center;gap:13px;background:#17171a;border:1.5px solid #2c2c31;border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .15s;text-align:left;width:100%;color:#fff;font-family:inherit}
+  .onb-goal:hover{border-color:#444}
+  .onb-goal.sel{border-color:#cc0000;background:#1d1416;box-shadow:0 0 0 1px #cc0000 inset}
+  .onb-goal .gi{font-size:23px;flex-shrink:0;width:30px;text-align:center}
+  .onb-goal .gt{font-size:15px;font-weight:800;color:#fff;line-height:1.2;display:block}
+  .onb-goal .gs{font-size:11.5px;color:#8a8a92;margin-top:2px;line-height:1.4;display:block}
+  .onb-field{margin-bottom:14px}
+  .onb-label{display:block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#9a9aa2;margin-bottom:7px}
+  .onb-input,.onb-select{width:100%;background:#17171a;border:1.5px solid #2c2c31;border-radius:12px;padding:13px 15px;font-family:inherit;font-size:16px;font-weight:600;color:#fff;outline:none;transition:border .15s;-webkit-appearance:none;appearance:none}
+  .onb-input:focus,.onb-select:focus{border-color:#cc0000}
+  .onb-input::placeholder{color:#55555c}
+  .onb-row{display:flex;gap:10px}.onb-row>*{flex:1}
+  .onb-suffix{position:relative}
+  .onb-suffix>span{position:absolute;right:15px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:#666;pointer-events:none}
+  .onb-summary{background:#15151a;border:1px solid #2a2a30;border-radius:14px;padding:4px 16px;margin-bottom:18px}
+  .onb-srow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #232329;font-size:13.5px}
+  .onb-srow:last-child{border-bottom:none}
+  .onb-srow .k{color:#8a8a92}.onb-srow .v{color:#fff;font-weight:700}
+  .onb-err{color:#ff6b6b;font-size:12px;font-weight:600;margin:-6px 0 8px;min-height:0}
+  .onb-nav{display:flex;gap:10px;margin-top:20px}
+  .onb-btn{flex:1;border:none;border-radius:12px;padding:14px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;transition:all .15s}
+  .onb-btn.primary{background:#cc0000;color:#fff;box-shadow:0 6px 18px rgba(204,0,0,0.32)}
+  .onb-btn.primary:hover{background:#b80000;transform:translateY(-1px)}
+  .onb-btn.primary:disabled{background:#5a0000;color:rgba(255,255,255,0.5);cursor:not-allowed;transform:none;box-shadow:none}
+  .onb-btn.ghost{flex:0 0 auto;padding:14px 20px;background:transparent;border:1.5px solid #2c2c31;color:#aaa}
+  .onb-btn.ghost:hover{border-color:#444;color:#fff}
+
   /* RENEWAL PROMPT */
   .renewal-banner{background:#1a0000;border:1px solid #cc0000;border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
   .renewal-text{font-size:13px;color:#ff8888;font-weight:500;}
@@ -313,8 +360,11 @@ html.nosplash #devfit-splash{display:none!important}
   <!-- HEADER -->
   <div class="header">
     <div style="display:flex;align-items:center;gap:14px;">
-      <img src="logo-header.png" alt="DevFit"
-        style="height:52px;width:52px;object-fit:cover;border-radius:8px;background:#fff;flex-shrink:0;"
+      <img src="emblem-dark.png" alt="DevFit" class="dfx-emblem-dark"
+        style="height:48px;width:48px;object-fit:contain;flex-shrink:0;"
+        onerror="this.style.display='none'">
+      <img src="emblem-light.png" alt="DevFit" class="dfx-emblem-light"
+        style="height:48px;width:48px;object-fit:contain;flex-shrink:0;"
         onerror="this.style.display='none'">
       <div>
         <div class="app-title" style="font-size:18px;line-height:1.2;"><span style="font-family:'Inter',system-ui,sans-serif;font-style:italic;font-weight:700;letter-spacing:.005em;"><span style="color:#fff;">DEV</span><span style="color:#cc0000;">FIT</span></span> <span style="color:#fff;">Progress Log</span></div>
@@ -651,6 +701,97 @@ html.nosplash #devfit-splash{display:none!important}
   </div>
 </div>
 
+<!-- ===== ONBOARDING ===== -->
+<div class="onb-overlay" id="onb-overlay">
+  <div class="onb-card">
+    <div class="onb-top">
+      <img class="onb-logo" src="emblem-dark.png" alt="" onerror="this.style.display='none'">
+      <div class="onb-brand"><span class="d">DEV</span><span class="f">FIT</span></div>
+      <div class="onb-dots" id="onb-dots"></div>
+    </div>
+
+    <!-- Step 0 · Welcome -->
+    <div class="onb-step active" data-step="0">
+      <div class="onb-eyebrow">Let's get started</div>
+      <div class="onb-h" id="onb-welcome-h">Welcome to DevFit</div>
+      <div class="onb-p">Two minutes to set up your program. We use this to score your <b style="color:#cfcfd6">real</b> weekly progress — not just the number on the scale.</div>
+      <div class="onb-nav">
+        <button class="onb-btn primary" onclick="onbNext()">Set up my program &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 1 · Goal -->
+    <div class="onb-step" data-step="1">
+      <div class="onb-eyebrow">Step 1 &middot; Your goal</div>
+      <div class="onb-h">What are you here to do?</div>
+      <div class="onb-goals" id="onb-goals">
+        <button type="button" class="onb-goal" data-goal="loss" onclick="onbPickGoal('loss')">
+          <span class="gi">&#128293;</span><span><span class="gt">Lose fat</span><span class="gs">Drop weight while holding onto muscle</span></span></button>
+        <button type="button" class="onb-goal" data-goal="gain" onclick="onbPickGoal('gain')">
+          <span class="gi">&#128170;</span><span><span class="gt">Build muscle</span><span class="gs">Lean gains with minimal fat</span></span></button>
+        <button type="button" class="onb-goal" data-goal="maintain" onclick="onbPickGoal('maintain')">
+          <span class="gi">&#9878;</span><span><span class="gt">Maintain</span><span class="gs">Hold your weight, get stronger</span></span></button>
+      </div>
+      <div class="onb-nav">
+        <button class="onb-btn ghost" onclick="onbBack()">Back</button>
+        <button class="onb-btn primary" id="onb-goal-next" onclick="onbNext()" disabled>Continue &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 2 · Numbers -->
+    <div class="onb-step" data-step="2">
+      <div class="onb-eyebrow">Step 2 &middot; Your numbers</div>
+      <div class="onb-h">Where are you starting?</div>
+      <div class="onb-field">
+        <label class="onb-label">Current weight</label>
+        <div class="onb-suffix"><input class="onb-input" id="onb-startw" type="number" inputmode="decimal" step="0.1" placeholder="70.0"><span>kg</span></div>
+      </div>
+      <div class="onb-field" id="onb-goalw-field">
+        <label class="onb-label">Goal weight</label>
+        <div class="onb-suffix"><input class="onb-input" id="onb-goalw" type="number" inputmode="decimal" step="0.1" placeholder="65.0"><span>kg</span></div>
+      </div>
+      <div class="onb-err" id="onb-w-err"></div>
+      <div class="onb-nav">
+        <button class="onb-btn ghost" onclick="onbBack()">Back</button>
+        <button class="onb-btn primary" onclick="onbValidateWeights()">Continue &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 3 · Timeline -->
+    <div class="onb-step" data-step="3">
+      <div class="onb-eyebrow">Step 3 &middot; Your timeline</div>
+      <div class="onb-h">How long is this push?</div>
+      <div class="onb-row">
+        <div class="onb-field">
+          <label class="onb-label">Length</label>
+          <select class="onb-select" id="onb-dur"><option value="4">4 weeks</option><option value="8" selected>8 weeks</option><option value="12">12 weeks</option><option value="16">16 weeks</option></select>
+        </div>
+        <div class="onb-field">
+          <label class="onb-label">Start date</label>
+          <input class="onb-input" id="onb-start" type="date">
+        </div>
+      </div>
+      <div class="onb-p" style="margin-bottom:0;font-size:12px">Weeks anchor to this date across Progress, Training &amp; Nutrition. Most people start on a Monday.</div>
+      <div class="onb-nav">
+        <button class="onb-btn ghost" onclick="onbBack()">Back</button>
+        <button class="onb-btn primary" onclick="onbNext()">Continue &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 4 · Summary -->
+    <div class="onb-step" data-step="4">
+      <div class="onb-eyebrow">You're all set</div>
+      <div class="onb-h">Your program</div>
+      <div class="onb-summary" id="onb-summary"></div>
+      <div class="onb-p" style="margin-bottom:0">Change any of this later in the Progress tab. Log daily — your weekly score updates automatically.</div>
+      <div class="onb-nav">
+        <button class="onb-btn ghost" onclick="onbBack()">Back</button>
+        <button class="onb-btn primary" onclick="onbFinish()">Start tracking &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- PWA INSTALL / UPDATE / iOS HINT -->
 <div id="pwa-install-bar">
   <span>Install DevFit on your phone</span>
@@ -766,8 +907,20 @@ let appData = {
 
 // ---------- TIER HELPERS ----------
 function getUserTier(){
-  try { return (JSON.parse(localStorage.getItem('devfit_user')||'{}').tier || 'pro').toLowerCase(); }
-  catch(e){ return 'pro'; }
+  try {
+    const u = JSON.parse(localStorage.getItem('devfit_user')||'{}');
+    let t = (u.tier || 'pro').toLowerCase();
+    // Auto-revert to Free the moment the paid period ends (access runs through the expiry day).
+    if(t === 'pro' && u.expiry){
+      const today = new Date(); today.setHours(0,0,0,0);
+      const exp = new Date(u.expiry);
+      if(!isNaN(exp)){
+        const accessEnd = new Date(exp); accessEnd.setDate(accessEnd.getDate()+1);
+        if(accessEnd <= today) t = 'free';
+      }
+    }
+    return t;
+  } catch(e){ return 'pro'; }
 }
 function isPro(){ return getUserTier() === 'pro'; }
 
@@ -816,12 +969,15 @@ function loadData(){
       currentWeek = 0;
       maybeResetForFreeWeek();
     }
-    document.getElementById('clientName').value=appData.clientName||'';
-    document.getElementById('goalInput').value=appData.goal||'';
-    document.getElementById('startWeight').value=appData.startWeight||'';
-    document.getElementById('programDuration').value=appData.programDuration||'8';
+    // Null-safe: some inputs (e.g. clientName) may not exist on every layout, and a
+    // single missing element must not abort populating the rest of the profile fields.
+    const setVal=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
+    setVal('clientName', appData.clientName||'');
+    setVal('goalInput', appData.goal||'');
+    setVal('startWeight', appData.startWeight||'');
+    setVal('programDuration', appData.programDuration||'8');
     // Show the resolved Monday anchor even when not explicitly set, so it's never blank
-    document.getElementById('programStart').value=appData.programStart||ymd(programStartDate());
+    setVal('programStart', appData.programStart||ymd(programStartDate()));
   }catch(e){}
 }
 
@@ -931,31 +1087,10 @@ function removeWeek(){
   save(); renderTabs(); render();
 }
 
-function avg(arr){
-  const n=arr.filter(v=>v!=='').map(Number).filter(n=>!isNaN(n)&&n>0);
-  return n.length?n.reduce((a,b)=>a+b,0)/n.length:null;
-}
-
-// ---------- DevFit scoring v2 (balanced, 7-signal, recomp credit) ----------
-// Steps: mortality/health benefit rises to ~8,000–10,000/day then plateaus
-// (Paluch et al. 2022, Lancet Public Health; Saint-Maurice 2020 JAMA).
-function stepsScore(s){
-  if(s===null) return null;
-  if(s>=8000)  return 100; // benefit plateau reached
-  if(s>=7000)  return 85;
-  if(s>=5000)  return 60;
-  if(s>=3000)  return 35;
-  return 20;
-}
-function sleepScore(h){
-  if(h===null) return null;
-  if(h>=7 && h<=9)   return 100;
-  if(h>=9 && h<10)   return 75;
-  if(h>=6 && h<7)    return 75;
-  if(h>=10)          return 50;
-  if(h>=5 && h<6)    return 45;
-  return 20;
-}
+// ---------- DevFit scoring v2 ----------
+// avg / stepsScore / sleepScore / overloadScore / bfScore / dietScore /
+// stressScore / bwScore / calcTrueScore now live in shared scoring.js so the
+// in-app score and the PDF report score (settings.html) can never drift.
 function dotSteps(v){ return v>=10000?'ok':v>=5000?'warn':'bad'; }
 function dotSleep(v){ return (v>=7&&v<=9)?'ok':v>=6?'warn':'bad'; }
 function dotBW(v){ return v>0?'ok':''; }
@@ -1004,116 +1139,8 @@ function setBF(dir){
   appData.weeklyCheckin[currentWeek].bfDir=dir; save(); render();
 }
 
-function overloadScore(ol){
-  if(ol==='improved')  return 100;
-  if(ol==='form')      return 75;
-  if(ol==='same')      return 60;
-  if(ol==='regressed') return 30;
-  return null;
-}
-function bfScore(dir){
-  if(dir==='drop_clear')  return 100;
-  if(dir==='drop_slight') return 85;
-  if(dir==='same')        return 60;
-  if(dir==='rise_slight') return 35;
-  if(dir==='rise_clear')  return 10;
-  return null;
-}
-function dietScore(d){ if(d==='met') return 100; if(d==='missed_few') return 70; if(d==='binge') return 25; return null; }
-function stressScore(s){ if(s==='low') return 100; if(s==='moderate') return 55; if(s==='high') return 30; return null; }
-
-// Bodyweight rate-of-change scoring, based on published guidance:
-//  • Loss: 0.5–1.0 %BW/week preserves lean mass; >1% risks muscle loss
-//    (Helms et al. 2014, JISSN; Garthe et al. 2011). <0.5% is safe but slow.
-//  • Lean gain: ~0.25–0.5 %BW/week (trained), faster mostly adds fat
-//    (Aragon & Schoenfeld 2013; Garthe 2013). Novices tolerate up to ~1%.
-//  • Maintain: within ±0.5 %BW/week = stable.
-function bwScore(bwAvg, prevBwAvg, goalType, weekIndex){
-  if(weekIndex===0) return null; // Week 1 is baseline — no score yet
-  if(bwAvg===null || prevBwAvg===null) return null;
-  const pct=(bwAvg-prevBwAvg)/prevBwAvg*100; // % change from prev week
-  const tw=appData.goal?parseFloat(appData.goal):null;
-  // Target reached override
-  if(tw!==null){
-    if(goalType==='loss'&&bwAvg<=tw) return 100;
-    if(goalType==='gain'&&bwAvg>=tw) return 100;
-    if(goalType==='maintain'&&Math.abs(bwAvg-tw)<=0.25) return 100;
-  }
-  if(goalType==='loss'){
-    if(pct<=-0.5 && pct>=-1.0) return 100; // ideal 0.5–1%/wk (lean-mass sparing)
-    if(pct<-1.0)               return 65;  // too aggressive — muscle-loss risk
-    if(pct<-0.25)              return 88;  // 0.25–0.5%/wk — safe, slightly slow
-    if(pct<0)                  return 72;  // <0.25%/wk — losing but very slow
-    if(pct<=0.25)              return 45;  // essentially flat
-    return 20;                             // gaining (wrong direction)
-  }
-  if(goalType==='gain'){
-    if(pct>=0.25 && pct<=0.5)  return 100; // ideal lean gain 0.25–0.5%/wk
-    if(pct>0.5 && pct<=1.0)    return 80;  // acceptable (more fat for non-novices)
-    if(pct>1.0)                return 55;  // too fast — excess fat gain
-    if(pct>0)                  return 70;  // <0.25%/wk — gaining slowly
-    if(pct>=-0.25)             return 45;  // essentially flat
-    return 20;                             // losing (wrong direction)
-  }
-  // maintain — stability around current weight
-  if(Math.abs(pct)<=0.5)   return 100; // within ±0.5%/wk = stable
-  if(Math.abs(pct)<=1.0)   return 70;
-  if(Math.abs(pct)<=1.5)   return 45;
-  return 25;
-}
-
-function calcTrueScore(w){
-  const ci=appData.weeklyCheckin[w]||freshCheckin();
-  const bwAvg=avg(appData.bw[w]);
-  let prevBwAvg=null;
-  for(let pw=w-1;pw>=0;pw--){ const pa=avg(appData.bw[pw]); if(pa!==null){prevBwAvg=pa;break;} }
-  const stepsAvg=avg(appData.steps[w]);
-  const sleepAvg=avg(appData.sleep[w]);
-  const gt=appData.goalType||'loss';
-  const tw=appData.goal?parseFloat(appData.goal):null;
-
-  // 1. Bodyweight raw score (Week 1 = baseline, returns null)
-  let bwVal=bwScore(bwAvg,prevBwAvg,gt,w);
-
-  // 2. Body fat score
-  let bfVal=bfScore(ci.bfDir);
-
-  // 3. RECOMP CREDIT — scale stalled but body-fat dropping = working
-  const bfDropping=(ci.bfDir==='drop_clear'||ci.bfDir==='drop_slight');
-  if(bfDropping && bwVal!==null && bwVal<75) bwVal=75;
-
-  // 4. Target reached overrides
-  const targetReached = bwAvg!==null && tw!==null && (
-    (gt==='loss'&&bwAvg<=tw) ||
-    (gt==='gain'&&bwAvg>=tw) ||
-    (gt==='maintain'&&Math.abs(bwAvg-tw)<=0.5)
-  );
-  if(targetReached) bwVal=100;
-  if(targetReached && bfDropping) bfVal=100;
-
-  // 5. Weighted scores — new GPT-revised weights
-  const scores={
-    bw:     {val:bwVal,                          weight:17, label:'Bodyweight'},
-    bf:     {val:bfVal,                          weight:10, label:'Body fat'},
-    ol:     {val:overloadScore(ci.overload),     weight:22, label:'Overload'},
-    diet:   {val:dietScore(ci.diet),             weight:23, label:'Diet'},
-    sleep:  {val:sleepScore(sleepAvg),           weight:10, label:'Sleep'},
-    steps:  {val:stepsScore(stepsAvg),           weight:10, label:'Steps'},
-    stress: {val:stressScore(ci.stress),         weight:8,  label:'Stress'}
-  };
-
-  // 6. Adaptive normalisation — only weight what's logged
-  let totalWeight=0, weightedSum=0;
-  Object.values(scores).forEach(s=>{
-    if(s.val!==null){ totalWeight+=s.weight; weightedSum+=s.val*s.weight; }
-  });
-
-  let overall = totalWeight>0 ? Math.round(weightedSum/totalWeight) : null;
-  if(targetReached && bfDropping) overall=100;
-  else if(targetReached && overall!==null) overall=Math.max(overall,95);
-
-  return {overall, scores};
-}
+// overloadScore / bfScore / dietScore / stressScore / bwScore / calcTrueScore
+// are defined in shared scoring.js (loaded in <head>) — single source of truth.
 // ---------- end scoring v2 ----------
 
 function calcRecoveryScore(w){
@@ -1992,6 +2019,103 @@ function showCountdown(){
   }catch(e){}
 }
 
+// ===== ONBOARDING (first-run program setup) =====
+let onbStep = 0, onbGoal = null;
+const ONB_TOTAL = 5; // steps 0..4
+function onbRenderDots(){
+  const c=document.getElementById('onb-dots'); if(!c) return;
+  let h=''; for(let i=0;i<ONB_TOTAL;i++) h+='<div class="onb-dot'+(i<=onbStep?' on':'')+'"></div>';
+  c.innerHTML=h;
+}
+function onbShow(n){
+  onbStep=Math.max(0,Math.min(ONB_TOTAL-1,n));
+  document.querySelectorAll('.onb-step').forEach(s=>s.classList.toggle('active',(+s.dataset.step)===onbStep));
+  onbRenderDots();
+  if(onbStep===4) onbRenderSummary();
+}
+function onbNext(){ onbShow(onbStep+1); }
+function onbBack(){ onbShow(onbStep-1); }
+function onbPickGoal(g){
+  onbGoal=g;
+  document.querySelectorAll('#onb-goals .onb-goal').forEach(b=>b.classList.toggle('sel',b.dataset.goal===g));
+  const nx=document.getElementById('onb-goal-next'); if(nx) nx.disabled=false;
+  const gf=document.getElementById('onb-goalw-field');
+  if(gf) gf.style.display = (g==='maintain') ? 'none' : '';
+}
+function onbValidateWeights(){
+  const err=document.getElementById('onb-w-err');
+  const sw=parseFloat(document.getElementById('onb-startw').value);
+  if(isNaN(sw)||sw<25||sw>400){ err.textContent='Enter your current weight in kg.'; return; }
+  if(onbGoal!=='maintain'){
+    const gw=parseFloat(document.getElementById('onb-goalw').value);
+    if(isNaN(gw)||gw<25||gw>400){ err.textContent='Enter a goal weight in kg.'; return; }
+    if(onbGoal==='loss'&&gw>=sw){ err.textContent='For fat loss, your goal should be below your current weight.'; return; }
+    if(onbGoal==='gain'&&gw<=sw){ err.textContent='For muscle gain, your goal should be above your current weight.'; return; }
+  }
+  err.textContent='';
+  onbNext();
+}
+function onbRenderSummary(){
+  const sw=parseFloat(document.getElementById('onb-startw').value);
+  const gw=parseFloat(document.getElementById('onb-goalw').value);
+  const dur=document.getElementById('onb-dur').value;
+  const start=document.getElementById('onb-start').value;
+  const goalLabel=onbGoal==='gain'?'Build muscle':onbGoal==='maintain'?'Maintain':'Lose fat';
+  function fd(d){ try{const x=new Date(d); if(isNaN(x)) return d; return x.toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d;} }
+  let h='';
+  h+='<div class="onb-srow"><span class="k">Goal</span><span class="v">'+goalLabel+'</span></div>';
+  h+='<div class="onb-srow"><span class="k">Current weight</span><span class="v">'+(isNaN(sw)?'—':sw+' kg')+'</span></div>';
+  if(onbGoal!=='maintain') h+='<div class="onb-srow"><span class="k">Target weight</span><span class="v">'+(isNaN(gw)?'—':gw+' kg')+'</span></div>';
+  h+='<div class="onb-srow"><span class="k">Program</span><span class="v">'+dur+' weeks</span></div>';
+  h+='<div class="onb-srow"><span class="k">Starts</span><span class="v">'+fd(start)+'</span></div>';
+  document.getElementById('onb-summary').innerHTML=h;
+}
+function onbMarkDone(){
+  try{ const u=JSON.parse(localStorage.getItem('devfit_user')||'{}'); const e=u.email||'';
+    localStorage.setItem('devfit_onboarded_'+e,'1'); localStorage.setItem('devfit_welcomed_'+e,'1'); }catch(e){}
+}
+function onbFinish(){
+  const sw=document.getElementById('onb-startw').value;
+  const gw=document.getElementById('onb-goalw').value;
+  const dur=document.getElementById('onb-dur').value;
+  const start=document.getElementById('onb-start').value;
+  appData.goalType=onbGoal||'loss';
+  appData.startWeight=sw||'';
+  appData.goal=(onbGoal==='maintain')?(sw||''):(gw||'');
+  appData.programDuration=dur||'8';
+  appData.programStart=start||ymd(programStartDate());
+  // Seed week-1 day-1 bodyweight so trends + score have a starting point.
+  try{ if(sw && appData.bw[0] && (appData.bw[0][0]===''||appData.bw[0][0]==null)) appData.bw[0][0]=sw; }catch(e){}
+  // Mirror into the visible profile inputs so the Progress tab matches, then persist.
+  try{
+    const gi=document.getElementById('goalInput'); if(gi) gi.value=appData.goal;
+    const swi=document.getElementById('startWeight'); if(swi) swi.value=appData.startWeight;
+    const pd=document.getElementById('programDuration'); if(pd) pd.value=appData.programDuration;
+    const ps=document.getElementById('programStart'); if(ps) ps.value=appData.programStart;
+  }catch(e){}
+  save();
+  onbMarkDone();
+  const ov=document.getElementById('onb-overlay'); if(ov) ov.classList.remove('show');
+  try{ renderGoalBtns(); }catch(e){}
+  renderTabs(); render();
+}
+function startFirstRun(){
+  let email=''; try{ email=(JSON.parse(localStorage.getItem('devfit_user')||'{}').email)||''; }catch(e){}
+  let done=false; try{ done=!!localStorage.getItem('devfit_onboarded_'+email); }catch(e){}
+  if(done){ showWelcomeScreen(); return; }
+  // Existing users who already have data shouldn't be interrupted — mark done silently.
+  const hasData = appData.startWeight || (appData.bw && appData.bw[0] && appData.bw[0].some(v=>v!==''&&v!=null));
+  if(hasData){ onbMarkDone(); showWelcomeScreen(); return; }
+  const ov=document.getElementById('onb-overlay');
+  if(!ov){ showWelcomeScreen(); return; }
+  // Personalise greeting + default the start date to this week's Monday anchor.
+  try{ const u=JSON.parse(localStorage.getItem('devfit_user')||'{}'); const wn=document.getElementById('onb-welcome-h');
+    if(wn && u.name) wn.textContent='Welcome, '+String(u.name).split(' ')[0]; }catch(e){}
+  try{ document.getElementById('onb-start').value=ymd(programStartDate()); }catch(e){}
+  onbShow(0);
+  ov.classList.add('show');
+}
+
 function showWelcomeScreen(){
   try{
     const user = JSON.parse(localStorage.getItem('devfit_user')||'{}');
@@ -2056,9 +2180,48 @@ renderTabs();
 render();
 applyTierGates();
 try{ showProgSection(localStorage.getItem('devfit_progSection')||'daily'); }catch(e){ showProgSection('daily'); }
+// ---------- IN-APP REMINDER FALLBACK ----------
+// periodicSync (sw.js) covers installed Chrome/Android PWAs. This covers the
+// rest: when the app is opened in the evening and nothing's logged today, nudge
+// once. Honest best-effort without a push backend.
+function reminderTodayCell(){
+  try{
+    const start=programStartDate(); start.setHours(0,0,0,0);
+    const today=new Date(); today.setHours(0,0,0,0);
+    const diff=Math.round((today-start)/(1000*60*60*24));
+    if(diff<0) return null;
+    const w=Math.floor(diff/7), d=diff%7;
+    if(!appData.bw || w>=appData.bw.length) return null;
+    return {w,d};
+  }catch(e){ return null; }
+}
+function reminderLoggedToday(){
+  const c=reminderTodayCell(); if(!c) return false;
+  const got=(arr)=> arr && arr[c.w] && arr[c.w][c.d]!=='' && arr[c.w][c.d]!=null;
+  return got(appData.bw) || got(appData.steps) || got(appData.sleep);
+}
+function maybeRemindInApp(){
+  try{
+    if(localStorage.getItem('devfit_reminders')!=='1') return;
+    if(!('Notification' in window) || Notification.permission!=='granted') return;
+    const today=new Date();
+    const todayStr=today.toISOString().slice(0,10);
+    if(localStorage.getItem('devfit_lastReminded')===todayStr) return; // already nudged today
+    if(today.getHours()<17) return;          // only from late afternoon
+    if(reminderLoggedToday()) return;        // already logged — don't nag
+    localStorage.setItem('devfit_lastReminded',todayStr);
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(reg=>{
+        reg.showNotification('DevFit',{body:"You haven't logged today — keep the streak alive.",icon:'./icon-192.png',badge:'./icon-192.png',tag:'devfit-daily',data:{url:'./index.html'}});
+      }).catch(()=>{});
+    }
+  }catch(e){}
+}
+
 showCountdown();
-showWelcomeScreen();
+startFirstRun();
 scheduleAccessCheck();
+maybeRemindInApp();
 // Cloud sync — runs after localStorage render so UI is never blocked
 function runProgressSync(){
   if(typeof DevFitDB==='undefined') return;

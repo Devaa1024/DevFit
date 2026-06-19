@@ -253,7 +253,8 @@ html.nosplash #devfit-splash{display:none!important}
 
   <!-- HEADER -->
   <div class="header">
-    <img src="logo-header.png" alt="DevFit" class="header-logo" onerror="this.style.display='none'">
+    <img src="emblem-dark.png" alt="DevFit" class="header-logo dfx-emblem-dark" onerror="this.style.display='none'">
+    <img src="emblem-light.png" alt="DevFit" class="header-logo dfx-emblem-light" onerror="this.style.display='none'">
     <div>
       <div class="app-title"><span style="font-family:'Inter',system-ui,sans-serif;font-style:italic;font-weight:700;letter-spacing:.005em;"><span style="color:#fff;">DEV</span><span style="color:#cc0000;">FIT</span></span> <span style="color:#fff;">Nutrition</span></div>
       <div class="app-sub">Daily calories &amp; macros</div>
@@ -497,8 +498,20 @@ html.nosplash #devfit-splash{display:none!important}
 
 // TIER HELPERS
 function getUserTier(){
-  try { return (JSON.parse(localStorage.getItem('devfit_user')||'{}').tier || 'pro').toLowerCase(); }
-  catch(e){ return 'pro'; }
+  try {
+    const u = JSON.parse(localStorage.getItem('devfit_user')||'{}');
+    let t = (u.tier || 'pro').toLowerCase();
+    // Auto-revert to Free the moment the paid period ends (access runs through the expiry day).
+    if(t === 'pro' && u.expiry){
+      const today = new Date(); today.setHours(0,0,0,0);
+      const exp = new Date(u.expiry);
+      if(!isNaN(exp)){
+        const accessEnd = new Date(exp); accessEnd.setDate(accessEnd.getDate()+1);
+        if(accessEnd <= today) t = 'free';
+      }
+    }
+    return t;
+  } catch(e){ return 'pro'; }
 }
 function isPro(){ return getUserTier() === 'pro'; }
 
@@ -1593,10 +1606,10 @@ applyNutritionTierGates();
   const OFF_SEARCH='https://world.openfoodfacts.org/cgi/search.pl';
   const OFF_PRODUCT='https://world.openfoodfacts.org/api/v0/product/';
   // USDA FoodData Central — generic/whole foods, lab-accurate (US public domain).
-  // 'DEMO_KEY' works for light use; get your own FREE key in 30s and paste it
-  // here for production: https://fdc.nal.usda.gov/api-key-signup.html
-  const USDA_KEY='DEMO_KEY';
-  const USDA_SEARCH='https://api.nal.usda.gov/fdc/v1/foods/search';
+  // Queried through our own serverless proxy (api/usda.js) so the API key stays
+  // server-side. Set USDA_KEY in Vercel env to lift the rate limit; until then it
+  // falls back to DEMO_KEY automatically. OpenFoodFacts above is the no-key primary.
+  const USDA_PROXY='/api/usda';
 
   let _sel=null;
   let _scanStream=null;
@@ -1657,10 +1670,7 @@ applyNutritionTierGates();
   }
 
   async function usdaSearch(q){
-    if(!USDA_KEY) return [];
-    const url=USDA_SEARCH+'?api_key='+encodeURIComponent(USDA_KEY)
-      +'&query='+encodeURIComponent(q)
-      +'&pageSize=50&dataType=Foundation,SR%20Legacy,Survey%20(FNDDS),Branded';
+    const url=USDA_PROXY+'?query='+encodeURIComponent(q)+'&pageSize=50';
     const r=await fetch(url);
     if(!r.ok) throw new Error('usda '+r.status);
     const j=await r.json();
@@ -2072,7 +2082,7 @@ applyNutritionTierGates();
           let u2=[],o2=[];
           try{
             const [ur,or]=await Promise.allSettled([
-              fetch(USDA_SEARCH+'?query='+encodeURIComponent(q)+'&pageSize=8&api_key='+USDA_KEY).then(r=>r.json()),
+              fetch(USDA_PROXY+'?query='+encodeURIComponent(q)+'&pageSize=8').then(r=>r.json()),
               fetch(OFF_SEARCH+'?search_terms='+encodeURIComponent(q)+'&search_simple=1&action=process&json=1&page_size=8').then(r=>r.json())
             ]);
             if(ur.status==='fulfilled'&&ur.value.foods) u2=ur.value.foods.filter(f=>f.foodNutrients&&f.foodNutrients.length).map(parseUSDA);

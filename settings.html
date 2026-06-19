@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:ital,wght@1,700;1,800&family=Lora:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Anton&family=Righteous&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="scoring.js"></script><!-- shared scoring engine (app score === report score) -->
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -141,6 +142,66 @@
   .page>*:nth-child(8){animation-delay:.28s}.page>*:nth-child(9){animation-delay:.32s}
   @media (prefers-reduced-motion: reduce){.page>*{animation:none}}
   body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 400px at 50% 50%,rgba(255,68,68,0.04),transparent 60%);z-index:-1}
+
+  /* ===== GROUPED SECTIONS (premium structure) ===== */
+  .group-title{font-size:11.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,0.42);margin:26px 6px 11px;display:flex;align-items:center;gap:12px}
+  .group-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,0.14),transparent)}
+  .group-title:first-of-type{margin-top:6px}
+  .card-sub{font-size:11.5px;color:#8a8a90;line-height:1.55;margin-top:10px}
+
+  /* Auto-save reassurance note */
+  .cloud-note{display:flex;align-items:flex-start;gap:9px;margin-top:14px;padding:11px 13px;border-radius:10px;background:rgba(47,158,87,0.10);border:1px solid rgba(47,158,87,0.26);font-size:11.5px;line-height:1.5;color:#bfe3cd}
+  .cloud-note svg{flex-shrink:0;width:16px;height:16px;stroke:#3fb56e;fill:none;stroke-width:2.2;margin-top:1px}
+
+  /* ===== BILLING & PLAN ===== */
+  .plan-hero{display:flex;align-items:center;gap:13px;margin-bottom:15px}
+  .plan-badge{padding:9px 14px;border-radius:10px;font-size:13px;font-weight:800;letter-spacing:.08em;flex-shrink:0}
+  .plan-badge.pro{background:linear-gradient(135deg,#cc0000,#ff4444);color:#fff;box-shadow:0 6px 16px rgba(204,0,0,0.40)}
+  .plan-badge.free{background:rgba(255,255,255,0.08);color:#bbb;border:1px solid rgba(255,255,255,0.14)}
+  .plan-badge.expired{background:#3a2020;color:#ff8a8a;border:1px solid rgba(204,0,0,0.40)}
+  .plan-meta{flex:1;min-width:0}
+  .plan-name{font-size:17px;font-weight:800;color:#fff;line-height:1.15}
+  .plan-status{font-size:12px;font-weight:600;margin-top:3px;color:#aaa}
+  .plan-status.ok{color:#3fb56e}.plan-status.warn{color:#e0a93a}.plan-status.danger{color:#ff6b6b}
+
+  .sub-bar-wrap{margin:2px 0 14px}
+  .sub-bar{height:8px;border-radius:6px;background:rgba(255,255,255,0.10);overflow:hidden}
+  .sub-bar>i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#cc0000,#ff4444);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .sub-bar.warn>i{background:linear-gradient(90deg,#c6902f,#e0a93a)}
+  .sub-bar.danger>i{background:linear-gradient(90deg,#7f1d1d,#cc0000)}
+  .sub-ends{display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:#888;font-weight:600}
+  .sub-ends b{color:#ddd;font-weight:700}
+
+  /* How billing works */
+  .bill-steps{margin-top:4px;border-top:1px solid rgba(255,255,255,0.08);padding-top:14px}
+  .bill-step{display:flex;gap:11px;align-items:flex-start;margin-bottom:11px}
+  .bill-step:last-child{margin-bottom:0}
+  .bill-step .n{flex-shrink:0;width:21px;height:21px;border-radius:50%;background:rgba(204,0,0,0.16);color:#ff6b6b;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .bill-step .tx{font-size:12px;color:#b6b6bc;line-height:1.5}
+  .bill-step .tx b{color:#fff;font-weight:700}
+
+  /* Usage */
+  .usage-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .usage-cell{background:rgba(20,20,24,0.55);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:13px 14px}
+  .usage-val{font-size:22px;font-weight:800;color:#fff;line-height:1}
+  .usage-lbl{font-size:9.5px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:6px}
+
+  /* Light-theme overrides for the new components */
+  html[data-theme="light"] .group-title{color:rgba(20,15,10,0.45)}
+  html[data-theme="light"] .group-title::after{background:linear-gradient(90deg,rgba(20,15,10,0.14),transparent)}
+  html[data-theme="light"] .card-sub{color:#8a8178}
+  html[data-theme="light"] .plan-name{color:#14110e}
+  html[data-theme="light"] .plan-badge.free{background:#f0ebe4;color:#6b6258;border-color:rgba(20,15,10,0.12)}
+  html[data-theme="light"] .sub-bar{background:#e4ded7}
+  html[data-theme="light"] .sub-ends{color:#8a8178}
+  html[data-theme="light"] .sub-ends b{color:#3a352f}
+  html[data-theme="light"] .bill-steps{border-color:rgba(20,15,10,0.10)}
+  html[data-theme="light"] .bill-step .tx{color:#6b6258}
+  html[data-theme="light"] .bill-step .tx b{color:#14110e}
+  html[data-theme="light"] .usage-cell{background:#faf7f3;border-color:rgba(20,15,10,0.10)}
+  html[data-theme="light"] .usage-val{color:#14110e}
+  html[data-theme="light"] .cloud-note{background:rgba(47,158,87,0.09);color:#2f6b45;border-color:rgba(47,158,87,0.28)}
+  html[data-theme="light"] .cloud-note svg{stroke:#2f9e57}
 </style>
 <style>
 html.nosplash #devfit-splash{display:none!important}
@@ -170,7 +231,8 @@ html.nosplash #devfit-splash{display:none!important}
 
   <!-- HEADER -->
   <div class="header">
-    <img src="logo-header.png" alt="DevFit" class="header-logo" onerror="this.style.display='none'">
+    <img src="emblem-dark.png" alt="DevFit" class="header-logo dfx-emblem-dark" onerror="this.style.display='none'">
+    <img src="emblem-light.png" alt="DevFit" class="header-logo dfx-emblem-light" onerror="this.style.display='none'">
     <div>
       <div class="app-title"><span style="font-family:'Inter',system-ui,sans-serif;font-style:italic;font-weight:700;letter-spacing:.005em;"><span style="color:#fff;">DEV</span><span style="color:#cc0000;">FIT</span></span> <span style="color:#fff;">Settings</span></div>
       <div class="app-sub">Account, reports &amp; data</div>
@@ -185,8 +247,11 @@ html.nosplash #devfit-splash{display:none!important}
     <a href="settings.html" class="active">Settings</a>
   </nav>
 
+  <!-- ============================ PERSONAL ============================ -->
+  <div class="group-title">Personal</div>
+
   <!-- PROFILE -->
-  <div class="card">
+  <div class="card" id="card-account">
     <div class="section-label">Account</div>
     <div class="profile-row">
       <div class="profile-avatar" id="profile-avatar">DF</div>
@@ -195,43 +260,94 @@ html.nosplash #devfit-splash{display:none!important}
         <div class="profile-email" id="profile-email">—</div>
       </div>
     </div>
-    <div style="margin-bottom:12px;">
+    <div>
       <div class="section-label" style="margin-bottom:5px;">Display name</div>
       <input id="clientNameInput" type="text" placeholder="Your name" style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;padding:9px 12px;border:1px solid #d1d5db;border-radius:10px;background:#fff;color:#111;outline:none;box-sizing:border-box;" onblur="saveClientName()">
     </div>
-    <div class="info-grid">
-      <div class="info-cell">
-        <div class="info-lbl">Plan</div>
-        <div class="info-val" id="info-plan">—</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-lbl">Status</div>
-        <div class="info-val" id="info-status">—</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-lbl">Started</div>
-        <div class="info-val" id="info-started">—</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-lbl">Expires</div>
-        <div class="info-val" id="info-expires">—</div>
-      </div>
+    <div class="cloud-note">
+      <svg viewBox="0 0 24 24"><path d="M20 17.6A4 4 0 0 0 18 10a6 6 0 0 0-11.6-1.6A4.5 4.5 0 0 0 6 17.6"/><path d="M9 13l2 2 4-4"/></svg>
+      <div>Your data is saved to your account (<b id="cloud-email">your email</b>) and syncs automatically. Log out and back in on any device — everything is restored.</div>
     </div>
   </div>
 
   <!-- APPEARANCE -->
-  <div class="card">
+  <div class="card" id="card-appearance">
     <div class="section-label">Appearance</div>
     <div class="df-theme-toggle" id="df-theme-toggle">
       <button type="button" class="df-theme-opt" data-theme="dark" onclick="DevFitTheme.set('dark');paintThemeToggle()"><span class="ic">●</span> Dark</button>
       <button type="button" class="df-theme-opt" data-theme="light" onclick="DevFitTheme.set('light');paintThemeToggle()"><span class="ic">○</span> Light</button>
     </div>
-    <div style="font-size:11px;color:#888;margin-top:10px;line-height:1.5">Applies across the whole app and is remembered on this device.</div>
+    <div class="card-sub">Applies across the whole app and is remembered on this device.</div>
   </div>
 
-  <!-- REPORTS -->
-  <div class="card">
-    <div class="section-label">Reports</div>
+  <!-- SHARE CARD CUSTOMISATION -->
+  <div class="card" id="sharecard-card">
+    <div class="section-label">Share Card</div>
+    <label style="display:block;font-size:11px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Display name (shown as @handle)</label>
+    <input type="text" id="display-name-input" maxlength="22" placeholder="@yourname" style="width:100%;background:rgba(20,20,24,0.55);border:1px solid rgba(255,255,255,0.10);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:11px 14px;border-radius:10px;outline:none;margin-bottom:12px">
+    <label style="display:block;font-size:11px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Font style on card</label>
+    <select id="sharecard-font" style="width:100%;background:rgba(20,20,24,0.55);border:1px solid rgba(255,255,255,0.10);color:#fff;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;padding:11px 14px;border-radius:10px;outline:none;cursor:pointer">
+      <option value="dmsans"     style="font-family:'DM Sans',sans-serif;font-weight:700">Default</option>
+      <option value="literature" style="font-family:'Lora',serif;font-weight:600">Literature</option>
+      <option value="elegant"    style="font-family:'Playfair Display',serif;font-weight:800">Elegant</option>
+      <option value="strong"     style="font-family:'Anton',sans-serif">Strong</option>
+      <option value="deco"       style="font-family:'Righteous',sans-serif">Deco</option>
+    </select>
+    <div id="font-preview-row" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px"></div>
+    <div style="font-size:11px;color:#888;margin-top:10px;line-height:1.5">Applies to every share card — workout, daily nutrition &amp; weekly progress. Your in-app font and PDF reports stay the same.</div>
+  </div>
+
+  <!-- ============================ BILLING & PLAN ============================ -->
+  <div class="group-title">Billing &amp; Plan</div>
+
+  <!-- PLAN STATUS -->
+  <div class="card" id="card-plan">
+    <div class="section-label">Your plan</div>
+    <div class="plan-hero">
+      <div class="plan-badge pro" id="plan-badge">PRO</div>
+      <div class="plan-meta">
+        <div class="plan-name" id="plan-name">DevFit Pro</div>
+        <div class="plan-status ok" id="plan-status">Active</div>
+      </div>
+    </div>
+
+    <!-- Subscription period bar (Pro only) -->
+    <div class="sub-bar-wrap" id="sub-bar-wrap">
+      <div class="sub-bar" id="sub-bar"><i style="width:0%"></i></div>
+      <div class="sub-ends">
+        <span>Started <b id="sub-start">—</b></span>
+        <span>Ends <b id="sub-end">—</b></span>
+      </div>
+    </div>
+
+    <a href="pricing.html" id="renew-btn" class="upgrade-btn">Renew Pro — RM19/month</a>
+
+    <!-- How billing works -->
+    <div class="bill-steps" id="bill-steps">
+      <div class="bill-step"><div class="n">1</div><div class="tx"><b>Pay RM19</b> via DuitNow QR on the activation page, then WhatsApp the receipt with your Gmail.</div></div>
+      <div class="bill-step"><div class="n">2</div><div class="tx"><b>Activated within 24 hours.</b> Your plan turns Pro and the end date above is set to 30 days out.</div></div>
+      <div class="bill-step"><div class="n">3</div><div class="tx"><b>Full access until the end date.</b> Everything unlocks — history, charts, reports, share cards.</div></div>
+      <div class="bill-step"><div class="n">4</div><div class="tx"><b>Reverts to Free automatically</b> when the date passes. Your logged data is never deleted — it's safe and waiting.</div></div>
+      <div class="bill-step"><div class="n">5</div><div class="tx"><b>Renew anytime</b> by paying again — your end date extends and Pro switches straight back on.</div></div>
+    </div>
+  </div>
+
+  <!-- USAGE -->
+  <div class="card" id="card-usage">
+    <div class="section-label">Usage</div>
+    <div class="usage-grid">
+      <div class="usage-cell"><div class="usage-val" id="usage-weeks">0</div><div class="usage-lbl">Weeks logged</div></div>
+      <div class="usage-cell"><div class="usage-val" id="usage-days">0</div><div class="usage-lbl">Days tracked</div></div>
+      <div class="usage-cell"><div class="usage-val" id="usage-workouts">0</div><div class="usage-lbl">Workouts logged</div></div>
+      <div class="usage-cell"><div class="usage-val" id="usage-nutrition">0</div><div class="usage-lbl">Nutrition days</div></div>
+    </div>
+    <div class="card-sub" id="usage-since">Member since —</div>
+  </div>
+
+  <!-- ============================ REPORTS ============================ -->
+  <div class="group-title" id="reports-group">Reports</div>
+  <div class="card" id="card-reports">
+    <div class="section-label">Export PDF</div>
 
     <button class="setting-btn" id="week-report-btn" type="button">
       <div class="icon">W</div>
@@ -259,55 +375,11 @@ html.nosplash #devfit-splash{display:none!important}
     </div>
   </div>
 
-  <!-- SHARE CARD CUSTOMISATION -->
-  <div class="card" id="sharecard-card">
-    <div class="section-label">Share Card</div>
-    <label style="display:block;font-size:11px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Display name (shown as @handle)</label>
-    <input type="text" id="display-name-input" maxlength="22" placeholder="@yourname" style="width:100%;background:rgba(20,20,24,0.55);border:1px solid rgba(255,255,255,0.10);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:11px 14px;border-radius:10px;outline:none;margin-bottom:12px">
-    <label style="display:block;font-size:11px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Font style on card</label>
-    <select id="sharecard-font" style="width:100%;background:rgba(20,20,24,0.55);border:1px solid rgba(255,255,255,0.10);color:#fff;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;padding:11px 14px;border-radius:10px;outline:none;cursor:pointer">
-      <option value="dmsans"     style="font-family:'DM Sans',sans-serif;font-weight:700">Default</option>
-      <option value="literature" style="font-family:'Lora',serif;font-weight:600">Literature</option>
-      <option value="elegant"    style="font-family:'Playfair Display',serif;font-weight:800">Elegant</option>
-      <option value="strong"     style="font-family:'Anton',sans-serif">Strong</option>
-      <option value="deco"       style="font-family:'Righteous',sans-serif">Deco</option>
-    </select>
-    <div id="font-preview-row" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px"></div>
-    <div style="font-size:11px;color:#888;margin-top:10px;line-height:1.5">Applies to every share card — workout, daily nutrition &amp; weekly progress. Your in-app font and PDF reports stay the same.</div>
-  </div>
-
-  <!-- TRAINER SYNC -->
-  <div class="card">
-    <div class="section-label">Trainer Sync</div>
-    <button class="setting-btn" id="sync-btn" type="button">
-      <div class="icon">S</div>
-      <div class="body">
-        <div class="title" id="sync-btn-title">Sync to Trainer</div>
-        <div class="desc">Push this week's metrics to the trainer's dashboard</div>
-      </div>
-      <div class="chev">›</div>
-    </button>
-    <div style="font-size:11px;color:#888;margin-top:8px;line-height:1.5">Sync sends bodyweight average, steps, sleep, overload, diet compliance, stress, and your weekly score to the trainer's Google Sheet.</div>
-  </div>
-
-  <!-- SUBSCRIPTION -->
-  <div class="card" id="subscription-card">
-    <div class="section-label">Subscription</div>
-    <div class="tier-row" id="tier-row">
-      <div class="tier-badge" id="tier-badge">PRO</div>
-      <div class="tier-info">
-        <div class="tier-name" id="tier-name">DevFit Pro</div>
-        <div class="tier-desc" id="tier-desc">Full access · history, charts, share, reports, sync</div>
-      </div>
-    </div>
-    <a href="#" id="upgrade-btn" class="upgrade-btn" style="display:none">Upgrade to Pro — RM19/month</a>
-    <div id="upgrade-features" style="display:none;font-size:11px;color:#888;margin-top:10px;line-height:1.6">
-      Pro unlocks: multi-week history · trend charts · workout share card · session logging · training progress · 7-day nutrition trends · PDF reports · trainer sync
-    </div>
-  </div>
+  <!-- ============================ APP ============================ -->
+  <div class="group-title">App</div>
 
   <!-- APP -->
-  <div class="card">
+  <div class="card" id="card-app">
     <div class="section-label">App</div>
 
     <button class="setting-btn" id="install-app-btn" type="button" style="display:none">
@@ -328,6 +400,15 @@ html.nosplash #devfit-splash{display:none!important}
       <div class="chev">›</div>
     </button>
 
+    <button class="setting-btn" id="reminders-btn" type="button">
+      <div class="icon">🔔</div>
+      <div class="body">
+        <div class="title">Daily reminders</div>
+        <div class="desc" id="reminders-desc">Get a daily nudge to log your day</div>
+      </div>
+      <div class="chev" id="reminders-state" style="font-weight:800;font-size:13px">Off</div>
+    </button>
+
     <button class="setting-btn" id="check-updates-btn" type="button">
       <div class="icon">↻</div>
       <div class="body">
@@ -338,30 +419,11 @@ html.nosplash #devfit-splash{display:none!important}
     </button>
   </div>
 
-  <!-- CLOUD SYNC -->
-  <div class="card">
-    <div class="section-label">Cloud Backup</div>
-    <button class="setting-btn" id="cloud-sync-btn" type="button">
-      <div class="icon">☁</div>
-      <div class="body">
-        <div class="title">Sync Now</div>
-        <div class="desc" id="cloud-sync-desc">Pull latest data from cloud across all devices</div>
-      </div>
-      <div class="chev">›</div>
-    </button>
-    <button class="setting-btn" id="cloud-push-btn" type="button">
-      <div class="icon">↑</div>
-      <div class="body">
-        <div class="title">Push Local to Cloud</div>
-        <div class="desc">Upload this device's data to cloud (use if just started fresh)</div>
-      </div>
-      <div class="chev">›</div>
-    </button>
-  </div>
+  <!-- ============================ DATA & ACCOUNT ============================ -->
+  <div class="group-title">Data &amp; Account</div>
 
-  <!-- DATA -->
-  <div class="card">
-    <div class="section-label">Data</div>
+  <div class="card" id="card-data">
+    <div class="section-label">Manage</div>
     <button class="setting-btn danger" id="reset-all-btn" type="button">
       <div class="icon">!</div>
       <div class="body">
@@ -370,11 +432,6 @@ html.nosplash #devfit-splash{display:none!important}
       </div>
       <div class="chev">›</div>
     </button>
-  </div>
-
-  <!-- ACCOUNT ACTIONS -->
-  <div class="card">
-    <div class="section-label">Session</div>
     <button class="setting-btn danger" id="logout-btn" type="button">
       <div class="icon">←</div>
       <div class="body">
@@ -387,7 +444,7 @@ html.nosplash #devfit-splash{display:none!important}
 
   <div class="footer">
     DevFit · Dominance Through Discipline<br>
-    <a href="https://wa.me/60183679177">Contact trainer</a> · v4.1.0
+    <a href="https://wa.me/60183679177">Contact trainer</a> · v4.22.0
   </div>
 
 
@@ -572,42 +629,113 @@ function toast(msg, err){
 }
 
 // ---------- POPULATE PROFILE ----------
-(function populateProfile(){
+// Days remaining on the paid period (null = no expiry on file, e.g. coached access).
+// Access runs through the whole expiry day, so we count to the start of the next day.
+function acctDaysLeft(expiry){
+  if(!expiry) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const exp = new Date(expiry); if(isNaN(exp)) return null;
+  const accessEnd = new Date(exp); accessEnd.setDate(accessEnd.getDate()+1);
+  return Math.round((accessEnd - today)/(1000*60*60*24));
+}
+function fmtDate(d){ try{ const x=new Date(d); if(isNaN(x)) return '—'; return x.toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return '—'; } }
+
+(function renderAccount(){
   try{
     const user = JSON.parse(localStorage.getItem('devfit_user')||'{}');
     const name = user.name || appData.clientName || 'Client';
     document.getElementById('profile-name').textContent = name;
     document.getElementById('profile-email').textContent = user.email || '—';
     document.getElementById('profile-avatar').textContent = (name[0]||'D').toUpperCase();
-    document.getElementById('info-plan').textContent = user.plan ? user.plan + ' weeks' : (appData.programDuration||'8') + ' weeks';
+    const ce = document.getElementById('cloud-email'); if(ce) ce.textContent = user.email || 'your account';
 
-    // Status + days remaining
-    if(user.expiry){
-      const today = new Date(); today.setHours(0,0,0,0);
-      const expiry = new Date(user.expiry);
-      const accessEnd = new Date(expiry); accessEnd.setDate(accessEnd.getDate()+1);
-      const daysLeft = Math.round((accessEnd - today)/(1000*60*60*24));
-      const statusEl = document.getElementById('info-status');
-      const expEl = document.getElementById('info-expires');
-      if(daysLeft <= 0){
-        statusEl.textContent = 'Ended';
-        statusEl.className = 'info-val danger';
-      } else if(daysLeft <= 7){
-        statusEl.textContent = daysLeft + ' days left';
-        statusEl.className = 'info-val warn';
-      } else {
-        statusEl.textContent = 'Active';
+    // ---------- PLAN / BILLING ----------
+    const rawTier  = (user.tier||'pro').toLowerCase();
+    const daysLeft = acctDaysLeft(user.expiry);
+    const tier     = getUserTier();                 // auto-reverts to free once expired
+    const expired  = (rawTier==='pro' && daysLeft!==null && daysLeft<=0);
+
+    const badge   = document.getElementById('plan-badge');
+    const pname   = document.getElementById('plan-name');
+    const pstat   = document.getElementById('plan-status');
+    const renew   = document.getElementById('renew-btn');
+    const barWrap = document.getElementById('sub-bar-wrap');
+    const bar     = document.getElementById('sub-bar');
+    const barFill = bar.querySelector('i');
+    const startEl = document.getElementById('sub-start');
+    const endEl   = document.getElementById('sub-end');
+
+    function fillBar(){
+      const st = user.startDate ? new Date(user.startDate) : null;
+      const ex = new Date(user.expiry);
+      let pct = 0;
+      if(st && !isNaN(st) && !isNaN(ex)){
+        const total = ex - st, elapsed = Date.now() - st;
+        pct = total>0 ? Math.min(100, Math.max(0, elapsed/total*100)) : 100;
       }
-      expEl.textContent = expiry.toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'});
-    } else {
-      document.getElementById('info-status').textContent = 'Active';
-      document.getElementById('info-expires').textContent = '—';
+      barFill.style.width = pct.toFixed(0)+'%';
+      startEl.textContent = user.startDate ? fmtDate(user.startDate) : '—';
+      endEl.textContent   = fmtDate(user.expiry);
     }
-    if(user.startDate){
-      document.getElementById('info-started').textContent = new Date(user.startDate).toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'});
+
+    if(tier==='pro'){
+      badge.className = 'plan-badge pro'; badge.textContent = 'PRO';
+      pname.textContent = 'DevFit Pro';
+      if(daysLeft===null){
+        // No expiry = coached/comp access — permanent until trainer changes it.
+        pstat.className = 'plan-status ok'; pstat.textContent = 'Active · coached access';
+        barWrap.style.display = 'none';
+        renew.style.display = 'none';
+      } else {
+        if(daysLeft<=7){ pstat.className='plan-status warn'; pstat.textContent = daysLeft+' day'+(daysLeft===1?'':'s')+' left'; }
+        else { pstat.className='plan-status ok'; pstat.textContent = 'Active · '+daysLeft+' days left'; }
+        barWrap.style.display = '';
+        fillBar();
+        bar.className = 'sub-bar' + (daysLeft<=7?' danger':daysLeft<=14?' warn':'');
+        renew.style.display = '';
+        renew.textContent = daysLeft<=7 ? 'Renew Pro — RM19/month' : 'Extend Pro — RM19/month';
+      }
     } else {
-      document.getElementById('info-started').textContent = '—';
+      // FREE — either never upgraded, or Pro period ended and auto-reverted.
+      badge.className = 'plan-badge ' + (expired?'expired':'free');
+      badge.textContent = expired ? 'EXPIRED' : 'FREE';
+      pname.textContent = 'DevFit Free';
+      if(expired){
+        pstat.className = 'plan-status danger';
+        pstat.textContent = 'Pro ended '+fmtDate(user.expiry)+' · now on Free';
+        barWrap.style.display = '';
+        fillBar();
+        barFill.style.width = '100%';
+        bar.className = 'sub-bar danger';
+      } else {
+        pstat.className = 'plan-status';
+        pstat.textContent = 'Current week only · upgrade to unlock everything';
+        barWrap.style.display = 'none';
+      }
+      renew.style.display = '';
+      renew.textContent = 'Upgrade to Pro — RM19/month';
     }
+
+    // ---------- USAGE ----------
+    let weeksLogged=0, daysTracked=0;
+    for(let w=0; w<totalWeeks; w++){
+      let weekHas=false;
+      for(let d=0; d<7; d++){ if(appData.bw[w] && appData.bw[w][d]!==''){ daysTracked++; weekHas=true; } }
+      const ci=appData.weeklyCheckin[w];
+      if(ci && (ci.overload||ci.diet||ci.stress||ci.bf)) weekHas=true;
+      if(weekHas) weeksLogged++;
+    }
+    let workouts=0;
+    try{ workouts=(loadTraining().sessions||[]).length; }catch(e){}
+    let nutDays=0;
+    try{ const n=loadNutrition(); Object.keys(n.days||{}).forEach(k=>{ if(dayMacros(n.days[k])) nutDays++; }); }catch(e){}
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('usage-weeks', weeksLogged);
+    set('usage-days', daysTracked);
+    set('usage-workouts', workouts);
+    set('usage-nutrition', nutDays);
+    const since = user.startDate ? fmtDate(user.startDate) : '';
+    set('usage-since', since ? ('Member since '+since) : 'Welcome to DevFit — start logging to build your history.');
 
     // Populate program report range select
     const sel = document.getElementById('program-report-range');
@@ -647,91 +775,10 @@ function saveClientName(){
   }catch(e){}
 }
 
-// ---------- HELPERS (mirrored from Progress page) ----------
-function avg(arr){
-  const n = arr.filter(v=>v!=='').map(Number).filter(n=>!isNaN(n)&&n>0);
-  return n.length ? n.reduce((a,b)=>a+b,0)/n.length : null;
-}
-// NOTE: kept identical to index.html so app score === report score (see [[scoring-duplicated-divergent]]).
-function stepsScore(s){if(s===null)return null;if(s>=8000)return 100;if(s>=7000)return 85;if(s>=5000)return 60;if(s>=3000)return 35;return 20;}
-function sleepScore(h){if(h===null)return null;if(h>=7&&h<=9)return 100;if(h>=9&&h<10)return 75;if(h>=6&&h<7)return 75;if(h>=10)return 50;if(h>=5&&h<6)return 45;return 20;}
-function overloadScore(ol){if(ol==='improved')return 100;if(ol==='form')return 75;if(ol==='same')return 60;if(ol==='regressed')return 30;return null;}
-function bfScore(dir){if(dir==='drop_clear')return 100;if(dir==='drop_slight')return 85;if(dir==='same')return 60;if(dir==='rise_slight')return 35;if(dir==='rise_clear')return 10;return null;}
-function dietScore(d){if(d==='met')return 100;if(d==='missed_few')return 70;if(d==='binge')return 25;return null;}
-function stressScore(s){if(s==='low')return 100;if(s==='moderate')return 55;if(s==='high')return 30;return null;}
-
-// Mirror of index.html bwScore — science-based %BW/week bands.
-// Loss 0.5–1%/wk (lean-mass sparing; Helms 2014), gain 0.25–0.5%/wk
-// (Aragon & Schoenfeld 2013), maintain ±0.5%/wk.
-function bwScore(bwAvg, prevBwAvg, goalType, weekIndex){
-  if(weekIndex===0) return null;
-  if(bwAvg===null || prevBwAvg===null) return null;
-  const pct=(bwAvg-prevBwAvg)/prevBwAvg*100;
-  const tw = appData.goal ? parseFloat(appData.goal) : null;
-  if(tw!==null){
-    if(goalType==='loss'&&bwAvg<=tw) return 100;
-    if(goalType==='gain'&&bwAvg>=tw) return 100;
-    if(goalType==='maintain'&&Math.abs(bwAvg-tw)<=0.25) return 100;
-  }
-  if(goalType==='loss'){
-    if(pct<=-0.5 && pct>=-1.0) return 100;
-    if(pct<-1.0)               return 65;
-    if(pct<-0.25)              return 88;
-    if(pct<0)                  return 72;
-    if(pct<=0.25)              return 45;
-    return 20;
-  }
-  if(goalType==='gain'){
-    if(pct>=0.25 && pct<=0.5)  return 100;
-    if(pct>0.5 && pct<=1.0)    return 80;
-    if(pct>1.0)                return 55;
-    if(pct>0)                  return 70;
-    if(pct>=-0.25)             return 45;
-    return 20;
-  }
-  if(Math.abs(pct)<=0.5)   return 100;
-  if(Math.abs(pct)<=1.0)   return 70;
-  if(Math.abs(pct)<=1.5)   return 45;
-  return 25;
-}
-
-function calcTrueScore(w){
-  const ci = appData.weeklyCheckin[w] || freshCheckin();
-  const bwAvg = avg(appData.bw[w]);
-  let prevBwAvg = null;
-  for(let pw=w-1;pw>=0;pw--){ const pa=avg(appData.bw[pw]); if(pa!==null){prevBwAvg=pa;break;} }
-  const stepsAvg = avg(appData.steps[w]);
-  const sleepAvg = avg(appData.sleep[w]);
-  const gt = appData.goalType||'loss';
-  const tw = appData.goal ? parseFloat(appData.goal) : null;
-  let bwVal = bwScore(bwAvg, prevBwAvg, gt, w);
-  let bfVal = bfScore(ci.bfDir);
-  const bfDropping=(ci.bfDir==='drop_clear'||ci.bfDir==='drop_slight');
-  if(bfDropping && bwVal!==null && bwVal<75) bwVal=75;
-  const targetReached = bwAvg!==null && tw!==null && (
-    (gt==='loss'&&bwAvg<=tw) ||
-    (gt==='gain'&&bwAvg>=tw) ||
-    (gt==='maintain'&&Math.abs(bwAvg-tw)<=0.5)
-  );
-  if(targetReached) bwVal = 100;
-  if(targetReached && bfDropping) bfVal = 100;
-
-  const scores = {
-    bw:     {val:bwVal,                      weight:17, label:'Bodyweight'},
-    bf:     {val:bfVal,                      weight:10, label:'Body fat'},
-    ol:     {val:overloadScore(ci.overload), weight:22, label:'Overload'},
-    diet:   {val:dietScore(ci.diet),         weight:23, label:'Diet'},
-    sleep:  {val:sleepScore(sleepAvg),       weight:10, label:'Sleep'},
-    steps:  {val:stepsScore(stepsAvg),       weight:10, label:'Steps'},
-    stress: {val:stressScore(ci.stress),     weight:8,  label:'Stress'}
-  };
-  let totalWeight=0, weightedSum=0;
-  Object.values(scores).forEach(s=>{
-    if(s.val!==null){ totalWeight+=s.weight; weightedSum+=s.val*s.weight; }
-  });
-  const overall = totalWeight>0 ? Math.round(weightedSum/totalWeight) : null;
-  return {overall, scores, totalWeight};
-}
+// ---------- HELPERS ----------
+// The full scoring engine (avg, bwScore, calcTrueScore, etc.) now lives in the
+// shared scoring.js — single source of truth so the in-app score and the PDF
+// report score can never drift apart. Loaded via <script src="scoring.js">.
 
 function getCurrentWeight(){
   for(let w=totalWeeks-1; w>=0; w--){
@@ -761,50 +808,6 @@ function resetAll(){
   appData.weeklyCheckin = Array.from({length:totalWeeks},freshCheckin);
   try{localStorage.setItem('progressLog2', JSON.stringify(appData));}catch(e){}
   toast('All data reset');
-}
-
-// ---------- SYNC ----------
-function manualSync(){
-  const titleEl = document.getElementById('sync-btn-title');
-  const orig = titleEl.textContent;
-  titleEl.textContent = 'Syncing...';
-
-  const bwAvg = avg(appData.bw[currentWeek]);
-  const stepsAvg = avg(appData.steps[currentWeek]);
-  const sleepAvg = avg(appData.sleep[currentWeek]);
-  const ci = appData.weeklyCheckin[currentWeek] || freshCheckin();
-  const {overall} = calcTrueScore(currentWeek);
-  const curW = getCurrentWeight();
-
-  const payload = {
-    clientName: appData.clientName || 'Unknown',
-    goalType: appData.goalType || 'loss',
-    startWeight: appData.startWeight || '',
-    goal: appData.goal || '',
-    currentWeight: curW!==null ? curW.toFixed(1) : '',
-    weekNum: currentWeek+1,
-    bwAvg: bwAvg!==null ? bwAvg.toFixed(1) : '',
-    stepsAvg: stepsAvg!==null ? Math.round(stepsAvg) : '',
-    sleepAvg: sleepAvg!==null ? sleepAvg.toFixed(1) : '',
-    overload: ci.overload || '',
-    diet: ci.diet || '',
-    stress: ci.stress || '',
-    bfDir: ci.bfDir || '',
-    score: overall!==null ? overall : '',
-    notes: ci.notes || ''
-  };
-
-  fetch(SHEET_URL, {method:'POST', mode:'no-cors', body:JSON.stringify(payload)})
-    .then(()=>{
-      titleEl.textContent = 'Synced!';
-      setTimeout(()=>{titleEl.textContent = orig;}, 2200);
-      toast('Week '+(currentWeek+1)+' synced to trainer');
-    })
-    .catch(()=>{
-      titleEl.textContent = 'Sync failed';
-      setTimeout(()=>{titleEl.textContent = orig;}, 2200);
-      toast('Sync failed — check connection', true);
-    });
 }
 
 // ---------- BUILD CHARTS FOR PDF ----------
@@ -1314,44 +1317,31 @@ function exportProgramPDF(){
 }
 
 // ---------- TIER GATING ----------
+// Auto-revert: a Pro plan whose paid period has ended is treated as Free,
+// so access reverts the moment the end date passes (no trainer action needed).
 function getUserTier(){
-  try { return (JSON.parse(localStorage.getItem('devfit_user')||'{}').tier || 'pro').toLowerCase(); }
-  catch(e){ return 'pro'; }
+  try {
+    const u = JSON.parse(localStorage.getItem('devfit_user')||'{}');
+    let t = (u.tier || 'pro').toLowerCase();
+    if(t === 'pro' && u.expiry){
+      const dl = acctDaysLeft(u.expiry);
+      if(dl !== null && dl <= 0) t = 'free';
+    }
+    return t;
+  } catch(e){ return 'pro'; }
 }
 function isPro(){ return getUserTier() === 'pro'; }
 
 (function renderTier(){
   try{
-  const pro = isPro();
-  const badge = document.getElementById('tier-badge');
-  const name = document.getElementById('tier-name');
-  const desc = document.getElementById('tier-desc');
-  const upgradeBtn = document.getElementById('upgrade-btn');
-  const upgradeFeatures = document.getElementById('upgrade-features');
-  const subCard = document.getElementById('subscription-card');
-
-  if(pro){
-    badge.textContent = 'PRO';
-    badge.className = 'tier-badge pro';
-    name.textContent = 'DevFit Pro';
-    desc.textContent = 'Full access — history, charts, share, reports, sync';
-    upgradeBtn.style.display = 'none';
-    upgradeFeatures.style.display = 'none';
-  } else {
-    badge.textContent = 'FREE';
-    badge.className = 'tier-badge free';
-    name.textContent = 'DevFit Free';
-    desc.textContent = 'Current week only · plan view · basic logging';
-    const u = JSON.parse(localStorage.getItem('devfit_user')||'{}');
-    upgradeBtn.href = 'pricing.html';
-    upgradeBtn.style.display = 'block';
-    upgradeFeatures.style.display = 'block';
-    // Hide Pro-only sections for free users
-    const reportsCard = document.querySelectorAll('.card')[2]; // Reports
-    const syncCard = document.querySelectorAll('.card')[3];    // Trainer Sync
-    if(reportsCard) reportsCard.style.display = 'none';
-    if(syncCard) syncCard.style.display = 'none';
-  }
+    const pro = isPro();
+    // Reports (PDF export) is Pro-only — hide its group + card for Free users.
+    if(!pro){
+      ['reports-group','card-reports'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'none';
+      });
+    }
   }catch(e){ console.error('[renderTier]', e); }
 })();
 
@@ -1424,15 +1414,53 @@ async function checkForUpdates(){
   }
 }
 
+// ---------- DAILY REMINDERS ----------
+function remindersSupported(){ return ('Notification' in window) && ('serviceWorker' in navigator); }
+function remindersOn(){ try{ return localStorage.getItem('devfit_reminders')==='1' && Notification.permission==='granted'; }catch(e){ return false; } }
+function initReminders(){
+  const desc=document.getElementById('reminders-desc');
+  const state=document.getElementById('reminders-state');
+  if(!state) return;
+  if(!remindersSupported()){ state.textContent='N/A'; state.style.color='#888'; if(desc) desc.textContent='Not supported on this browser'; return; }
+  if(Notification.permission==='denied'){ state.textContent='Blocked'; state.style.color='#cc0000'; if(desc) desc.textContent='Notifications are blocked in your browser settings'; return; }
+  const on=remindersOn();
+  state.textContent=on?'On':'Off';
+  state.style.color=on?'#2f9e57':'#888';
+  if(desc) desc.textContent=on?'A daily nudge to log your day is on':'Get a daily nudge to log your day';
+}
+async function toggleReminders(){
+  if(!remindersSupported()){ toast('Reminders aren’t supported on this browser'); return; }
+  if(Notification.permission==='denied'){ toast('Unblock notifications in your browser settings first'); return; }
+  if(remindersOn()){
+    localStorage.setItem('devfit_reminders','0');
+    try{ const reg=await navigator.serviceWorker.ready; if(reg.periodicSync) await reg.periodicSync.unregister('devfit-daily-reminder'); }catch(e){}
+    toast('Daily reminders turned off'); initReminders(); return;
+  }
+  let perm=Notification.permission;
+  if(perm!=='granted') perm=await Notification.requestPermission();
+  if(perm!=='granted'){ toast('Allow notifications to get reminders'); initReminders(); return; }
+  localStorage.setItem('devfit_reminders','1');
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    if('periodicSync' in reg){
+      let granted=true;
+      try{ const st=await navigator.permissions.query({name:'periodic-background-sync'}); granted=(st.state==='granted'); }catch(e){}
+      if(granted) await reg.periodicSync.register('devfit-daily-reminder',{minInterval:24*60*60*1000});
+    }
+    reg.showNotification('Reminders on ✓',{body:'We’ll nudge you daily to log your progress.',icon:'./icon-192.png',badge:'./icon-192.png',tag:'devfit-confirm'});
+  }catch(e){}
+  toast('Daily reminders turned on'); initReminders();
+}
+
 // ---------- WIRE UP BUTTONS (bulletproof: direct bind + global delegation fallback) ----------
 const ACTION_MAP = {
+  'reminders-btn'             : () => toggleReminders(),
   'week-report-btn'           : () => exportWeekPDF(),
   'program-report-toggle-btn' : () => {
     document.getElementById('range-row').style.display = 'grid';
     document.getElementById('program-report-toggle-btn').style.display = 'none';
   },
   'program-report-btn'        : () => exportProgramPDF(),
-  'sync-btn'                  : () => manualSync(),
   'install-app-btn'           : () => installApp(),
   'ios-install-hint-btn'      : () => showIosHint(),
   'check-updates-btn'         : () => checkForUpdates(),
@@ -1462,6 +1490,8 @@ function wireDirect(){
 wireDirect();
 // 2. Re-bind on DOM ready (in case any element was added after script ran)
 if(document.readyState !== 'complete') document.addEventListener('DOMContentLoaded', wireDirect);
+// Reflect current reminder state in the toggle label
+initReminders();
 // 3. Global delegation — works even if direct bind failed for any reason
 document.addEventListener('click', (ev) => {
   const target = ev.target.closest('[id]');
@@ -1514,40 +1544,35 @@ body{padding-bottom:104px!important}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="devfit-db.js"></script>
 <script>
+// Silent auto-restore: pull this account's data from the cloud on load so a
+// fresh device (or a re-login) shows the saved history without any manual step.
+// Usage counters refresh once the pull lands. Fire-and-forget — never blocks UI.
 (function(){
-  function toast(msg){const t=document.getElementById('toast');if(t){t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}}
-
-  const syncBtn = document.getElementById('cloud-sync-btn');
-  const pushBtn = document.getElementById('cloud-push-btn');
-  const syncDesc = document.getElementById('cloud-sync-desc');
-
-  if(syncBtn){
-    syncBtn.addEventListener('click', async function(){
-      if(typeof DevFitDB==='undefined'){toast('Cloud sync not available');return;}
-      syncBtn.disabled=true;
-      syncDesc.textContent='Syncing…';
-      const result = await DevFitDB.forceSyncAll();
-      syncBtn.disabled=false;
-      if(result.ok){
-        syncDesc.textContent='Synced ' + result.updated + ' data type(s) — reload to see changes';
-        toast('Sync complete! Tap any tab to see latest data.');
-      } else {
-        syncDesc.textContent='Sync failed: ' + (result.reason||'unknown error');
-        toast('Sync failed — check your connection');
-      }
-    });
-  }
-
-  if(pushBtn){
-    pushBtn.addEventListener('click', async function(){
-      if(typeof DevFitDB==='undefined'){toast('Cloud sync not available');return;}
-      pushBtn.disabled=true;
-      toast('Uploading local data…');
-      await DevFitDB.pushAllLocal();
-      pushBtn.disabled=false;
-      toast('Local data pushed to cloud ✓');
-    });
-  }
+  if(typeof DevFitDB==='undefined' || !DevFitDB.forceSyncAll) return;
+  DevFitDB.forceSyncAll().then(function(res){
+    if(res && res.ok && res.updated>0){
+      try{
+        const s=localStorage.getItem('progressLog2');
+        if(s){ appData=JSON.parse(s); totalWeeks=appData.bw.length||totalWeeks; }
+      }catch(e){}
+      // Recompute the usage tiles with the freshly restored data.
+      try{
+        let weeksLogged=0, daysTracked=0;
+        for(let w=0; w<totalWeeks; w++){
+          let weekHas=false;
+          for(let d=0; d<7; d++){ if(appData.bw[w] && appData.bw[w][d]!==''){ daysTracked++; weekHas=true; } }
+          const ci=appData.weeklyCheckin[w];
+          if(ci && (ci.overload||ci.diet||ci.stress||ci.bf)) weekHas=true;
+          if(weekHas) weeksLogged++;
+        }
+        let workouts=0; try{ workouts=(loadTraining().sessions||[]).length; }catch(e){}
+        let nutDays=0; try{ const n=loadNutrition(); Object.keys(n.days||{}).forEach(k=>{ if(dayMacros(n.days[k])) nutDays++; }); }catch(e){}
+        const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+        set('usage-weeks',weeksLogged); set('usage-days',daysTracked);
+        set('usage-workouts',workouts); set('usage-nutrition',nutDays);
+      }catch(e){}
+    }
+  }).catch(function(){});
 })();
 </script>
 <script>

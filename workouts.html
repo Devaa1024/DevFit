@@ -220,7 +220,8 @@ html.nosplash #devfit-splash{display:none!important}
 
   <!-- HEADER -->
   <div class="header">
-    <img src="logo-header.png" alt="DevFit" class="header-logo" onerror="this.style.display='none'">
+    <img src="emblem-dark.png" alt="DevFit" class="header-logo dfx-emblem-dark" onerror="this.style.display='none'">
+    <img src="emblem-light.png" alt="DevFit" class="header-logo dfx-emblem-light" onerror="this.style.display='none'">
     <div>
       <div class="app-title">DevFit Training</div>
       <div class="app-sub">Plan, log, and progress</div>
@@ -324,8 +325,20 @@ html.nosplash #devfit-splash{display:none!important}
 
 // TIER HELPERS
 function getUserTier(){
-  try { return (JSON.parse(localStorage.getItem('devfit_user')||'{}').tier || 'pro').toLowerCase(); }
-  catch(e){ return 'pro'; }
+  try {
+    const u = JSON.parse(localStorage.getItem('devfit_user')||'{}');
+    let t = (u.tier || 'pro').toLowerCase();
+    // Auto-revert to Free the moment the paid period ends (access runs through the expiry day).
+    if(t === 'pro' && u.expiry){
+      const today = new Date(); today.setHours(0,0,0,0);
+      const exp = new Date(u.expiry);
+      if(!isNaN(exp)){
+        const accessEnd = new Date(exp); accessEnd.setDate(accessEnd.getDate()+1);
+        if(accessEnd <= today) t = 'free';
+      }
+    }
+    return t;
+  } catch(e){ return 'pro'; }
 }
 function isPro(){ return getUserTier() === 'pro'; }
 
