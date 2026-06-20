@@ -1260,7 +1260,7 @@ function drawExportCard(canvas, workout, session, theme){
     ctx.font=F(TW,70); ctx.fillStyle=p.accent; ctx.fillText(bigUnit, PAD+valW+18, y+bm.a);
     y += bm.a + 16;
     ctx.font=F(TW,62); ctx.fillStyle=p.fg;
-    ctx.fillText((hero.name||'Cardio').toUpperCase()+'  '+activityEmoji(hero.name), PAD, y+50);
+    ctx.fillText((hero.name||'Cardio').toUpperCase(), PAD, y+50);
     y += 92;
 
     // --- Divider ---
@@ -1270,7 +1270,7 @@ function drawExportCard(canvas, workout, session, theme){
     const cals=cardioCalories(hero.name,hero.min);
     const tiles=[
       {ic:'⏱', val:fmtDuration(hero.min), lbl:'DURATION'},
-      {ic:'🚀', val: hasKm?cardioPace(hero.min,hero.km).replace(' /km',''):'—', lbl: hasKm?'AVG PACE /KM':'AVG PACE'},
+      {ic:'⚡', val: hasKm?cardioPace(hero.min,hero.km).replace(' /km',''):'—', lbl: hasKm?'AVG PACE /KM':'AVG PACE'},
       {ic:'🔥', val: cals?String(cals):'—', lbl:'CALORIES'}
     ];
     const colW=C/3;
@@ -1285,51 +1285,41 @@ function drawExportCard(canvas, workout, session, theme){
     ctx.textAlign='left';
     y += 168;
 
-    // --- Monthly cardio goal ---
+    // --- Monthly cardio goal (single sleek gradient bar) ---
     const month=cardioMonthStats(session.date), goal=cardioGoalKm();
     const pct=Math.max(0,Math.min(100,Math.round((month.km/goal)*100)));
     setLS('2px'); ctx.font=F(BW,26); ctx.fillStyle=p.sub; ctx.fillText('MONTHLY CARDIO GOAL', PAD, y+22); setLS('0px');
-    y += 40;
-    ctx.font=F(TW,64); ctx.fillStyle=p.accent; ctx.fillText(pct+'%', PAD, y+52);
-    ctx.font=F(BW,28); ctx.fillStyle=p.sub; ctx.fillText(month.km.toFixed(1)+' / '+goal+' KM', PAD, y+92);
     ctx.textAlign='right'; ctx.font=F(BW,26); ctx.fillStyle=p.sub;
-    ctx.fillText(month.sessions+' session'+(month.sessions===1?'':'s')+' this month', W-PAD, y+92);
+    ctx.fillText(month.sessions+' session'+(month.sessions===1?'':'s')+' this month', W-PAD, y+22);
     ctx.textAlign='left';
-    y += 116;
-    const N=20, gap=8, barW=(C-(N-1)*gap)/N, barH=34, filled=Math.round(pct/100*N);
-    for(let i=0;i<N;i++){ ctx.fillStyle = i<filled ? p.accent : dim; roundRect(ctx, PAD+i*(barW+gap), y, barW, barH, 3); ctx.fill(); }
-    y += barH + 36;
+    y += 56;
+    ctx.font=F(TW,68); ctx.fillStyle=p.accent; ctx.fillText(pct+'%', PAD, y+54);
+    ctx.textAlign='right'; ctx.font=F(BW,30); ctx.fillStyle=p.fg;
+    ctx.fillText(month.km.toFixed(1)+' / '+goal+' KM', W-PAD, y+54);
+    ctx.textAlign='left';
+    y += 86;
+    const trH=22, trR=trH/2;
+    ctx.fillStyle=dim; roundRect(ctx, PAD, y, C, trH, trR); ctx.fill();
+    const fillW=Math.max(trH, C*(pct/100));
+    const grad=ctx.createLinearGradient(PAD,0,PAD+C,0);
+    grad.addColorStop(0,'#cc0000'); grad.addColorStop(1,'#ff5a5a');
+    ctx.fillStyle=grad; roundRect(ctx, PAD, y, fillW, trH, trR); ctx.fill();
 
-    // --- Achievement (only when genuinely earned) ---
-    if(isLongestThisWeek(session.date, hero.km)){
-      const ah=92;
-      ctx.fillStyle=panelBg; roundRect(ctx,PAD,y,C,ah,16); ctx.fill();
-      ctx.strokeStyle=p.divider; ctx.lineWidth=1; roundRect(ctx,PAD,y,C,ah,16); ctx.stroke();
-      ctx.fillStyle = theme==='light'?'rgba(204,0,0,0.12)':'rgba(255,58,58,0.18)';
-      ctx.beginPath(); ctx.arc(PAD+46, y+ah/2, 28, 0, Math.PI*2); ctx.fill();
-      ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font=F(TW,32); ctx.fillStyle=p.accent; ctx.fillText('🏆', PAD+46, y+ah/2+1);
-      ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-      setLS('2px'); ctx.font=F(BW,22); ctx.fillStyle=p.sub; ctx.fillText('ACHIEVEMENT UNLOCKED', PAD+92, y+36); setLS('0px');
-      ctx.font=F(TW,36); ctx.fillStyle=p.fg; ctx.fillText('LONGEST RUN THIS WEEK', PAD+92, y+72);
-      y += ah + 28;
-    }
-
-    // --- Footer: DEVFIT + STRONGER EVERY DAY + @handle ---
-    const fy = H - PAD - 8;
+    // --- Footer: DEVFIT wordmark + @handle (identical lockup to every card) ---
+    const fy = H - PAD - 6;
     ctx.textBaseline='alphabetic'; ctx.textAlign='left';
-    ctx.font='italic 700 60px "Inter", system-ui, sans-serif';
+    ctx.font='italic 700 68px "Inter", system-ui, sans-serif';
     const devColor=(theme==='transparent')?'#ffffff':p.fg;
     const dW=ctx.measureText('DEV').width;
-    ctx.fillStyle=devColor; ctx.fillText('DEV', PAD, fy-24);
-    ctx.fillStyle=p.accent; ctx.fillText('FIT', PAD+dW, fy-24);
-    setLS('3px'); ctx.font=F(BW,21); ctx.fillStyle=p.sub; ctx.fillText('STRONGER EVERY DAY', PAD, fy+8); setLS('0px');
-    ctx.textAlign='right'; ctx.font=F(BW,34); ctx.fillStyle=p.sub;
+    ctx.fillStyle=devColor; ctx.fillText('DEV', PAD, fy);
+    ctx.fillStyle=p.accent; ctx.fillText('FIT', PAD+dW, fy);
+    ctx.textAlign='right'; ctx.font=F(BW,36); ctx.fillStyle=p.sub;
     let handle='@user';
     try{ const cn=(localStorage.getItem('devfit_displayName')||'').trim();
       if(cn) handle='@'+cn.replace(/^@+/,'');
       else { const u=JSON.parse(localStorage.getItem('devfit_user')||'{}'); if(u.email) handle='@'+u.email.split('@')[0]; }
     }catch(e){}
-    ctx.fillText(handle, W-PAD, fy-20);
+    ctx.fillText(handle, W-PAD, fy);
     return;
   }
 
