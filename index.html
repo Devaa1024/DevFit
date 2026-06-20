@@ -46,12 +46,35 @@
   #week-tabs .wtab,#week-tabs .wtab-action{flex-shrink:0}
 
   /* PROGRESS SUB-TAB NAV (Daily / Weekly / Analytics) */
-  nav.prog-subnav{display:flex;gap:6px;background:rgba(17,17,17,0.55);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:5px;margin-bottom:14px;backdrop-filter:saturate(150%) blur(10px);-webkit-backdrop-filter:saturate(150%) blur(10px)}
-  nav.prog-subnav button{flex:1 1 0;min-width:0;padding:10px 6px;border:none;border-radius:8px;background:transparent;color:rgba(255,255,255,0.65);font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:700;letter-spacing:.03em;cursor:pointer;transition:all .18s cubic-bezier(.2,.8,.2,1);white-space:nowrap}
-  nav.prog-subnav button:hover{color:#fff}
-  nav.prog-subnav button.active{background:#cc0000;color:#fff;box-shadow:0 6px 16px rgba(204,0,0,0.4)}
+  nav.prog-subnav{display:flex;gap:6px;background:rgba(0,0,0,0.30);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:5px;margin-bottom:14px;backdrop-filter:saturate(150%) blur(10px);-webkit-backdrop-filter:saturate(150%) blur(10px)}
+  /* Each tab is a visible pill so active vs inactive is obvious against the dark page */
+  nav.prog-subnav button{flex:1 1 0;min-width:0;padding:10px 6px;border:none;border-radius:8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.92);font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:700;letter-spacing:.03em;cursor:pointer;transition:all .18s cubic-bezier(.2,.8,.2,1);white-space:nowrap}
+  nav.prog-subnav button:hover{background:rgba(255,255,255,0.14);color:#fff}
+  nav.prog-subnav button.active{background:#cc0000;color:#fff;box-shadow:0 6px 16px rgba(204,0,0,0.45)}
   .prog-section{display:none}
   .prog-section.active{display:block;animation:devfit-rise .35s cubic-bezier(.2,.8,.2,1) both}
+
+  /* COLLAPSIBLE PROGRAM SETUP (day-1 only — tucked away so it doesn't eat the page) */
+  details.setup-card{background:rgba(28,28,32,0.62);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-lg,16px);margin-bottom:10px;overflow:hidden}
+  details.setup-card>summary{list-style:none;cursor:pointer;padding:13px 16px;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px}
+  details.setup-card>summary::-webkit-details-marker{display:none}
+  details.setup-card>summary span{font-size:11px;font-weight:500;color:rgba(255,255,255,0.5);letter-spacing:.01em}
+  details.setup-card>summary::after{content:'▸';margin-left:auto;color:rgba(255,255,255,0.5);transition:transform .2s}
+  details.setup-card[open]>summary::after{transform:rotate(90deg)}
+  details.setup-card .setup-body{padding:0 14px 14px}
+
+  /* FRONT DASHBOARD — interactive condition snapshot */
+  .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .dash-tile{background:rgba(28,28,32,0.62);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+  .dash-lbl{font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .dash-val{font-family:'DM Sans',system-ui,sans-serif;font-size:34px;font-weight:800;line-height:1}
+  .dash-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:4px}
+  .dash-focus{padding:14px}
+  .focus-chips{display:flex;flex-wrap:wrap;gap:7px}
+  .focus-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(204,0,0,0.14);border:1px solid rgba(204,0,0,0.4);color:#ff8a8a;border-radius:18px;padding:6px 12px;font-size:12px;font-weight:700}
+  .focus-chip.fresh{background:rgba(47,158,87,0.14);border-color:rgba(47,158,87,0.4);color:#86efac}
+  .focus-chip b{color:#fff;font-weight:800}
+  .focus-allgood{font-size:12px;color:#86efac;font-weight:600}
 
   /* SHARED TAB NAV — Progress / Nutrition / Training */
   nav.devfit-tabnav{display:flex !important;background:#111;border-radius:14px;padding:6px;margin-bottom:14px;gap:4px;border:1px solid #2a2a2a;width:100%;box-sizing:border-box}
@@ -119,10 +142,10 @@
 
   /* SUMMARY */
   .summary-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .sum-card{background:#ffffff;border:1px solid var(--bd);border-radius:var(--radius-lg);padding:12px 14px}
-  .sum-label{font-size:11px;color:#555555;font-weight:500;margin-bottom:4px}
-  .sum-val{font-family:'DM Sans',system-ui,sans-serif;font-size:22px;font-weight:800;color:#111111;margin-bottom:6px}
-  .sum-badge{display:inline-block;font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px}
+  .sum-card{background:#ffffff;border:1px solid var(--bd);border-radius:12px;padding:8px 9px}
+  .sum-label{font-size:9.5px;color:#555555;font-weight:600;margin-bottom:2px;text-transform:uppercase;letter-spacing:.03em}
+  .sum-val{font-family:'DM Sans',system-ui,sans-serif;font-size:17px;font-weight:800;color:#111111;margin-bottom:3px}
+  .sum-badge{display:inline-block;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px}
   .badge-green{background:#dcfce7;color:#15803d}
   .badge-amber{background:#fef9c3;color:#92400e}
   .badge-red{background:#fee2e2;color:#991b1b}
@@ -272,7 +295,7 @@
     .day-card{padding:6px 2px;min-width:0;overflow:hidden}
     .day-card input{font-size:12px;min-width:0;width:100%}
     .day-lbl{font-size:9px;letter-spacing:.02em}
-    .sum-val{font-size:18px}
+    .sum-val{font-size:15px}
     .summary-strip{grid-template-columns:1fr 1fr}
     .checkin-grid{grid-template-columns:1fr}
     .tip-cards{grid-template-columns:1fr}
@@ -401,8 +424,10 @@ html.nosplash #devfit-splash{display:none!important}
     <a href="https://wa.me/60183679177" class="renewal-btn">Renew Now</a>
   </div>
 
-  <!-- CLIENT INFO + GOAL -->
-  <div class="card">
+  <!-- CLIENT INFO + GOAL (collapsible — day-1 setup, not needed daily) -->
+  <details class="setup-card" id="setup-card">
+    <summary>Program setup <span>start · target · duration · goal</span></summary>
+    <div class="setup-body">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
       <div>
         <div class="section-label" style="margin-bottom:5px;">Start weight (kg)</div>
@@ -436,7 +461,8 @@ html.nosplash #devfit-splash{display:none!important}
         <button class="goal-btn" id="goal-maintain" onclick="setGoal('maintain')">Maintain</button>
       </div>
     </div>
-  </div>
+    </div><!-- /setup-body -->
+  </details>
 
   <!-- PROGRESS SUB-TAB NAV -->
   <nav class="prog-subnav" id="prog-subnav">
@@ -448,6 +474,24 @@ html.nosplash #devfit-splash{display:none!important}
 
   <!-- ===== DAILY SECTION ===== -->
   <div class="prog-section active" id="sec-daily">
+
+  <!-- FRONT DASHBOARD — your condition at a glance -->
+  <div class="dash-grid">
+    <div class="dash-tile">
+      <div class="dash-lbl">This Week</div>
+      <div class="dash-val" id="streak-count" style="color:#2f9e57">0</div>
+      <div class="dash-sub">workout sessions</div>
+    </div>
+    <div class="dash-tile">
+      <div class="dash-lbl">Recovery</div>
+      <div class="dash-val" id="recovery-score" style="color:#2563eb">—</div>
+      <div class="dash-sub" id="recovery-sub">sleep · stress · load</div>
+    </div>
+  </div>
+  <div class="card dash-focus">
+    <div class="section-label">Muscle focus — train these next</div>
+    <div id="muscle-focus"></div>
+  </div>
 
   <!-- BODYWEIGHT GRID -->
   <div class="card">
@@ -477,13 +521,15 @@ html.nosplash #devfit-splash{display:none!important}
     <div class="section-label">Weekly check-in — Week <span id="checkin-week-num">1</span></div>
     <div class="checkin-grid">
       <div>
-        <div style="font-size:12px;font-weight:600;color:#ffffff;margin-bottom:8px;">Progressive overload</div>
-        <div class="overload-opts" id="overload-opts">
-          <button class="ol-btn" onclick="setOverload('improved')">Weight or reps increased</button>
-          <button class="ol-btn" onclick="setOverload('form')">Better form on majority of lifts</button>
-          <button class="ol-btn" onclick="setOverload('same')">Same as last week</button>
-          <button class="ol-btn" onclick="setOverload('regressed')">Regressed / couldn't complete sets</button>
-        </div>
+        <div style="font-size:12px;font-weight:600;color:#ffffff;margin-bottom:6px;">Progressive overload</div>
+        <select id="overload-select" onchange="setOverload(this.value)"
+          style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:var(--radius);background:#ffffff;color:#333333;outline:none;cursor:pointer;">
+          <option value="">— Select —</option>
+          <option value="improved">Weight or reps increased</option>
+          <option value="form">Better form on majority of lifts</option>
+          <option value="same">Same as last week</option>
+          <option value="regressed">Regressed / couldn't complete sets</option>
+        </select>
         <div style="margin-top:12px;">
           <div style="font-size:12px;font-weight:600;color:#ffffff;margin-bottom:6px;">Diet compliance</div>
           <select id="diet-select" onchange="appData.weeklyCheckin[currentWeek].diet=this.value;save();render()"
@@ -512,18 +558,15 @@ html.nosplash #devfit-splash{display:none!important}
             onblur="appData.weeklyCheckin[currentWeek].bf=this.value;save();render()">
           <span style="font-size:12px;color:#aaaaaa;">%</span>
         </div>
-        <div class="bf-direction">
-          <button class="bf-btn" id="bf-drop_clear"  onclick="setBF('drop_clear')">↓↓ Clearly dropped</button>
-          <button class="bf-btn" id="bf-drop_slight" onclick="setBF('drop_slight')">↓ Slightly dropped</button>
-          <button class="bf-btn" id="bf-same"        onclick="setBF('same')">→ Same</button>
-          <button class="bf-btn" id="bf-rise_slight" onclick="setBF('rise_slight')">↑ Slightly increased</button>
-          <button class="bf-btn" id="bf-rise_clear"  onclick="setBF('rise_clear')">↑↑ Clearly increased</button>
-        </div>
-        <div style="margin-top:12px;">
-          <div style="font-size:12px;font-weight:600;color:#ffffff;margin-bottom:6px;">Trainer notes</div>
-          <textarea class="notes-area" id="notes-area" placeholder="e.g. Looking leaner in shoulders, waist tighter..."
-            onblur="appData.weeklyCheckin[currentWeek].notes=this.value;save()"></textarea>
-        </div>
+        <select id="bf-select" onchange="setBF(this.value)"
+          style="width:100%;margin-top:8px;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:var(--radius);background:#ffffff;color:#333333;outline:none;cursor:pointer;">
+          <option value="">— Direction —</option>
+          <option value="drop_clear">↓↓ Clearly dropped</option>
+          <option value="drop_slight">↓ Slightly dropped</option>
+          <option value="same">→ Same</option>
+          <option value="rise_slight">↑ Slightly increased</option>
+          <option value="rise_clear">↑↑ Clearly increased</option>
+        </select>
       </div>
     </div>
   </div>
@@ -564,20 +607,6 @@ html.nosplash #devfit-splash{display:none!important}
   <!-- SUMMARY STATS -->
   <div class="card">
     <div class="summary-strip" id="summary-strip"></div>
-  </div>
-
-  <!-- STREAK + RECOVERY (free for all) -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:14px;text-align:center;">
-      <div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:6px;">Training This Week</div>
-      <div id="streak-count" style="font-size:32px;font-weight:800;color:#2f9e57;line-height:1;">0</div>
-      <div style="font-size:10px;color:#4ade80;margin-top:3px;">workout sessions</div>
-    </div>
-    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:14px;text-align:center;">
-      <div style="font-size:11px;font-weight:700;color:#1e3a8a;margin-bottom:6px;">Recovery Score</div>
-      <div id="recovery-score" style="font-size:32px;font-weight:800;color:#2563eb;line-height:1;">—</div>
-      <div style="font-size:10px;color:#93c5fd;margin-top:3px;">Sleep + stress</div>
-    </div>
   </div>
 
   </div><!-- ===== /WEEKLY SECTION ===== -->
@@ -1108,19 +1137,11 @@ function buildGrid(id,key,dotFn){
 function renderCheckin(){
   const ci=appData.weeklyCheckin[currentWeek]||freshCheckin();
   document.getElementById('checkin-week-num').textContent=currentWeek+1;
-  document.querySelectorAll('.ol-btn,.ol-btn-warn,.ol-btn-bad').forEach(b=>b.className='ol-btn');
-  if(ci.overload){
-    const vals=['improved','form','same','regressed'];
-    const clss=['selected','selected','selected-warn','selected-bad'];
-    const idx=vals.indexOf(ci.overload);
-    if(idx>=0) document.querySelectorAll('.ol-btn')[idx].className='ol-btn '+clss[idx];
-  }
+  const olSel=document.getElementById('overload-select');
+  if(olSel) olSel.value=ci.overload||'';
   document.getElementById('bf-input').value=ci.bf||'';
-  ['drop_clear','drop_slight','same','rise_slight','rise_clear'].forEach(d=>{
-    const el=document.getElementById('bf-'+d);
-    if(el) el.className='bf-btn'+(ci.bfDir===d?' sel-'+d.replace('_','-'):'');
-  });
-  document.getElementById('notes-area').value=ci.notes||'';
+  const bfSel=document.getElementById('bf-select');
+  if(bfSel) bfSel.value=ci.bfDir||'';
   const dietSel=document.getElementById('diet-select');
   if(dietSel) dietSel.value=ci.diet||'';
   const stressSel=document.getElementById('stress-select');
@@ -1140,16 +1161,95 @@ function setBF(dir){
 // are defined in shared scoring.js (loaded in <head>) — single source of truth.
 // ---------- end scoring v2 ----------
 
+// Recovery / readiness — combines the three physiological drivers used in
+// sports-science readiness models:
+//   • Sleep  (vs the 7–9 h optimal band)        — weight 50
+//   • Stress (subjective perceived stress)       — weight 30
+//   • Training load balance (ACWR)               — weight 20
+// ACWR = acute (last 7 days) : chronic (last 28 days avg) workload ratio. The
+// research "sweet spot" is ~0.8–1.3; spikes >1.5 raise injury risk and lower
+// readiness (Gabbett 2016). This makes recovery respond to over/under-training,
+// not just last night's sleep.
+function trainingLoadScore(){
+  const acute = sessionsInLastDays(7).length;          // sessions this week
+  const chronic = sessionsInLastDays(28).length / 4;   // 4-week weekly average
+  if(chronic <= 0) return acute>0 ? 0.85 : null;       // not enough history yet
+  const acwr = acute / chronic;
+  if(acwr >= 0.8 && acwr <= 1.3) return 1.0;            // optimal
+  if(acwr > 1.3 && acwr <= 1.5) return 0.7;             // ramping up
+  if(acwr > 1.5) return 0.4;                            // spike → fatigue/injury risk
+  if(acwr >= 0.5) return 0.85;                          // slightly under
+  return 0.75;                                          // well under / detraining
+}
 function calcRecoveryScore(w){
   const ci=appData.weeklyCheckin[w]||freshCheckin();
   const sleepAvg=avg(appData.sleep[w]);
   const sl=sleepScore(sleepAvg);
   const ss=stressScore(ci.stress);
-  if(sl===null&&ss===null) return null;
+  const ld=trainingLoadScore();
+  if(sl===null&&ss===null&&ld===null) return null;
   let s=0,wt=0;
-  if(sl!==null){s+=sl*60;wt+=60;}
-  if(ss!==null){s+=ss*40;wt+=40;}
-  return Math.round(s/wt);
+  if(sl!==null){s+=sl*50;wt+=50;}
+  if(ss!==null){s+=ss*30;wt+=30;}
+  if(ld!==null){s+=ld*20;wt+=20;}
+  return wt? Math.round(s/wt) : null;
+}
+
+// ----- Workout / muscle-group analysis (for the front dashboard) -----
+function sessionsInLastDays(n){
+  try{
+    const t=JSON.parse(localStorage.getItem('devfitTrainingV1')||'{}');
+    if(!t.sessions) return [];
+    const now=new Date(); now.setHours(0,0,0,0);
+    const cut=new Date(now); cut.setDate(now.getDate()-n+1);
+    const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const cutStr=fmt(cut), nowStr=fmt(now);
+    const logged=l=>l.sets&&l.sets.some(st=>(Number(st.reps)||0)>0||(Number(st.weight)||0)>0||(Number(st.min)||0)>0||(Number(st.km)||0)>0);
+    return t.sessions.filter(s=>s.date>=cutStr&&s.date<=nowStr&&s.logs&&s.logs.some(logged));
+  }catch(e){return [];}
+}
+const MUSCLE_MAP=[
+  ['Legs',      /\b(leg|legs|squat|lunge|quad|hamstring|ham|calf|calves|glute|hip thrust|rdl|deadlift|leg press|leg curl|leg ext|step.?up)\b/i],
+  ['Back',      /\b(back|row|rows|pulldown|pull.?up|pull.?down|lat|lats|chin.?up)\b/i],
+  ['Chest',     /\b(chest|bench|push.?up|pec|pecs|fly|flye|dip|dips)\b/i],
+  ['Shoulders', /\b(shoulder|shoulders|ohp|military|overhead|lateral raise|delt|delts|shrug|arnold)\b/i],
+  ['Arms',      /\b(curl|curls|tricep|triceps|bicep|biceps|preacher|hammer|pushdown|skull)\b/i],
+  ['Core',      /\b(ab|abs|core|plank|crunch|sit.?up|oblique|leg raise|hanging)\b/i],
+  ['Cardio',    /\b(run|running|jog|cycl|cycling|bike|swim|cardio|walk|elliptical|treadmill|sprint|rowing)\b/i]
+];
+function muscleOf(name){
+  for(const [g,re] of MUSCLE_MAP){ if(re.test(name||'')) return g; }
+  return null;
+}
+// Returns muscle groups present in the plan that haven't been trained in 3+ days.
+function muscleFocus(){
+  try{
+    const t=JSON.parse(localStorage.getItem('devfitTrainingV1')||'{}');
+    const plan=(t.plan&&t.plan.workouts)||[];
+    const exGroup={}; const groupsInPlan=new Set();
+    plan.forEach(wk=>(wk.exercises||[]).forEach(ex=>{
+      const g=muscleOf(ex.name); if(g){ exGroup[ex.id]=g; groupsInPlan.add(g); }
+    }));
+    if(!groupsInPlan.size) return [];
+    const logged=st=>(Number(st.reps)||0)>0||(Number(st.weight)||0)>0||(Number(st.min)||0)>0||(Number(st.km)||0)>0;
+    const lastByGroup={};
+    (t.sessions||[]).forEach(s=>{
+      (s.logs||[]).forEach(l=>{
+        const g=exGroup[l.exId]; if(!g) return;
+        if(l.sets&&l.sets.some(logged)){ if(!lastByGroup[g]||s.date>lastByGroup[g]) lastByGroup[g]=s.date; }
+      });
+    });
+    const today=new Date(); today.setHours(0,0,0,0);
+    const stale=[];
+    groupsInPlan.forEach(g=>{
+      const last=lastByGroup[g];
+      let days; if(!last) days=null; else { const d=new Date(last+'T00:00:00'); days=Math.floor((today-d)/86400000); }
+      if(days===null||days>=3) stale.push({group:g,days});
+    });
+    // most-overdue first (never-trained sorts last via large key but shown as "—")
+    stale.sort((a,b)=>(b.days==null?1000:b.days)-(a.days==null?1000:a.days));
+    return stale;
+  }catch(e){return [];}
 }
 
 function calcTrainingStreak(){
@@ -1223,6 +1323,22 @@ function renderExtraCards(){
     recovEl.textContent=recovery!==null?recovery+'%':'—';
     const color=recovery===null?'#aaa':recovery>=75?'#2f9e57':recovery>=50?'#c6902f':'#cc0000';
     recovEl.style.color=color;
+  }
+  const recovSub=document.getElementById('recovery-sub');
+  if(recovSub) recovSub.textContent = recovery===null ? 'log sleep & stress' : (recovery>=75?'well recovered':recovery>=50?'recovering':'rest needed');
+
+  // Muscle focus — groups in the plan not trained in 3+ days
+  const focusEl=document.getElementById('muscle-focus');
+  if(focusEl){
+    const stale=muscleFocus();
+    if(!stale.length){
+      focusEl.innerHTML='<div class="focus-allgood">✓ All muscle groups trained within 3 days — great balance.</div>';
+    } else {
+      focusEl.innerHTML='<div class="focus-chips">'+stale.map(s=>{
+        const when = s.days===null ? 'not yet' : (s.days>=900 ? 'not yet' : s.days+'d ago');
+        return `<span class="focus-chip"><b>${s.group}</b> ${when}</span>`;
+      }).join('')+'</div>';
+    }
   }
   // Pro gate: hide/show score sections
   const proSections=document.querySelectorAll('.pro-gate');
@@ -2096,6 +2212,13 @@ function onbFinish(){
   try{ renderGoalBtns(); }catch(e){}
   renderTabs(); render();
 }
+function localHasProgress(){
+  try{
+    const raw=localStorage.getItem('progressLog2'); if(!raw) return false;
+    const d=JSON.parse(raw);
+    return !!(d && (d.startWeight || (d.bw && d.bw[0] && d.bw[0].some(v=>v!==''&&v!=null))));
+  }catch(e){ return false; }
+}
 function startFirstRun(){
   let email=''; try{ email=(JSON.parse(localStorage.getItem('devfit_user')||'{}').email)||''; }catch(e){}
   let done=false; try{ done=!!localStorage.getItem('devfit_onboarded_'+email); }catch(e){}
@@ -2103,6 +2226,31 @@ function startFirstRun(){
   // Existing users who already have data shouldn't be interrupted — mark done silently.
   const hasData = appData.startWeight || (appData.bw && appData.bw[0] && appData.bw[0].some(v=>v!==''&&v!=null));
   if(hasData){ onbMarkDone(); showWelcomeScreen(); return; }
+
+  // No local data + not onboarded → this may be a RETURNING user on a new device
+  // or a fresh browser/tab. Pull the cloud FIRST; if their account already has
+  // data, restore it and skip onboarding entirely. Only genuinely-new accounts
+  // (cloud also empty) see the wizard. A timeout guards against a dead network.
+  if(typeof DevFitDB!=='undefined' && DevFitDB.forceSyncAll){
+    let decided=false;
+    const fallback=setTimeout(()=>{ if(!decided){ decided=true; showOnboardingOverlay(); } }, 4500);
+    DevFitDB.forceSyncAll().then(()=>{
+      if(decided) return;
+      decided=true; clearTimeout(fallback);
+      if(localHasProgress()){
+        try{ appData=JSON.parse(localStorage.getItem('progressLog2')); totalWeeks=(appData.bw&&appData.bw.length)||4; currentWeek=Math.min(currentWeek,totalWeeks-1); }catch(e){}
+        onbMarkDone();
+        try{ renderTabs(); render(); applyTierGates(); }catch(e){}
+        showWelcomeScreen();
+      } else {
+        showOnboardingOverlay();
+      }
+    }).catch(()=>{ if(!decided){ decided=true; clearTimeout(fallback); showOnboardingOverlay(); } });
+  } else {
+    showOnboardingOverlay();
+  }
+}
+function showOnboardingOverlay(){
   const ov=document.getElementById('onb-overlay');
   if(!ov){ showWelcomeScreen(); return; }
   // Personalise greeting + default the start date to this week's Monday anchor.

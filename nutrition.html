@@ -93,6 +93,12 @@
   .calc-nums-4{grid-template-columns:repeat(4,1fr)}
   @media(max-width:430px){.calc-nums-4{grid-template-columns:repeat(2,1fr)}}
   .chips-num .chip{flex:1 1 0;padding:11px 4px;font-size:14px}
+  /* Horizontal scroll variant (lifestyle picker) — saves vertical space */
+  .chips.chips-scroll{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:#cc0000 transparent;-webkit-overflow-scrolling:touch}
+  .chips.chips-scroll::-webkit-scrollbar{height:5px}
+  .chips.chips-scroll::-webkit-scrollbar-thumb{background:#cc0000;border-radius:3px}
+  .chips.chips-scroll::-webkit-scrollbar-track{background:transparent}
+  .chips.chips-scroll .chip{flex:0 0 auto;min-width:118px}
   .cr-note{margin-top:14px;background:rgba(198,144,47,0.10);border:1px solid rgba(198,144,47,0.30);border-radius:10px;padding:11px 13px;font-size:11px;line-height:1.6;color:#cbb58a}
   .cr-note b{color:#e8d3a8}
   .calc-num{background:#fff;border:1px solid var(--bd);border-radius:var(--radius);padding:9px 8px;text-align:center}
@@ -178,10 +184,11 @@
   body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 400px at 50% 50%,rgba(255,68,68,0.04),transparent 60%);z-index:-1}
 
   /* ── SLICER TABS ── */
-  .diet-slicer{display:flex;background:rgba(17,17,17,0.7);border:1px solid #2a2a2a;border-radius:12px;padding:5px;gap:4px;margin-bottom:12px;backdrop-filter:saturate(150%) blur(10px);-webkit-backdrop-filter:saturate(150%) blur(10px)}
-  .ds-tab{flex:1;background:transparent;border:none;color:rgba(255,255,255,0.62);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:10px 6px;border-radius:8px;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;transition:all .18s cubic-bezier(.2,.8,.2,1)}
-  .ds-tab:hover{color:#fff}
-  .ds-tab.active{background:#cc0000;color:#fff;box-shadow:0 6px 16px rgba(204,0,0,0.4)}
+  .diet-slicer{display:flex;background:rgba(0,0,0,0.30);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:5px;gap:6px;margin-bottom:12px;backdrop-filter:saturate(150%) blur(10px);-webkit-backdrop-filter:saturate(150%) blur(10px)}
+  /* Each tab a visible pill so active vs inactive stands out against the dark page */
+  .ds-tab{flex:1;background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.92);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:10px 6px;border-radius:8px;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;transition:all .18s cubic-bezier(.2,.8,.2,1)}
+  .ds-tab:hover{background:rgba(255,255,255,0.14);color:#fff}
+  .ds-tab.active{background:#cc0000;color:#fff;box-shadow:0 6px 16px rgba(204,0,0,0.45)}
   .diet-pane[hidden]{display:none}
 
   /* ── MEAL DIARY (MyFitnessPal-style) ── */
@@ -373,8 +380,8 @@ html.nosplash #devfit-splash{display:none!important}
         </div>
 
         <div class="calc-row">
-          <label class="clbl">Your day job / lifestyle <span class="chint">how much you move outside training</span></label>
-          <div class="chips" id="c-job">
+          <label class="clbl">Your day job / lifestyle <span class="chint">swipe · how much you move outside training</span></label>
+          <div class="chips chips-scroll" id="c-job">
             <div class="chip" data-v="1.40">Mostly sitting<small>Desk, driving, office</small></div>
             <div class="chip" data-v="1.55">On your feet<small>Teacher, retail, nurse</small></div>
             <div class="chip" data-v="1.70">Physical job<small>Trades, warehouse</small></div>
@@ -424,6 +431,7 @@ html.nosplash #devfit-splash{display:none!important}
               <span>Maintenance <b id="cr-tdee">—</b></span>
               <span>PAL <b id="cr-pal">—</b></span>
             </div>
+            <div class="cr-adjust" id="cr-adjust" style="margin-top:10px;font-size:12px;color:#cfd8dc;background:rgba(204,0,0,0.12);border:1px solid rgba(204,0,0,0.35);border-radius:10px;padding:8px 12px;line-height:1.5"></div>
           </div>
           <div class="cr-macros">
             <div class="cr-macro"><div class="mv" id="cr-p" style="color:#4a6572">—</div><div class="mu">Protein</div></div>
@@ -455,8 +463,11 @@ html.nosplash #devfit-splash{display:none!important}
             <code>PAL = job baseline + (training days ÷ 7) × intensity</code><br>
             Job baseline runs 1.40 (sitting) → 1.90 (heavy labour). Training adds on top, scaled by how often and how hard. The result is clamped to the validated human range <code>1.40–2.40</code>.</p>
 
-            <p><b>3. Goal adjustment.</b> Lose = −20%, Maintain = TDEE, Build = +10% — moderate, sustainable rates (~0.5–1% bodyweight/week).<br>
-            <span class="ref">Helms ER et al., JISSN 2014; Aragon & Schoenfeld 2013.</span></p>
+            <p><b>3. Goal adjustment — why this exact deficit/surplus.</b> We don't just take a flat percentage (20% off a large maintenance over-cuts you). We size the change to your maintenance and then <b>clamp it to the research-backed 300–500 kcal/day band</b>:<br>
+            Cut: <code>−min(500, max(300, 20%·TDEE))</code> ≈ ~0.3–0.5 kg/week of fat loss.<br>
+            Bulk: <code>+min(500, max(250, 12%·TDEE))</code> — a lean surplus that limits fat gain.<br>
+            That's why your target shows, e.g., <i>"Maintenance 2,600 − 500 = 2,100"</i> — you can always point to the exact number and the reason.<br>
+            <span class="ref">A ~500 kcal/day deficit ≈ 0.45 kg/week is the long-standing clinical standard. Helms ER et al., JISSN 2014; Aragon & Schoenfeld 2013.</span></p>
 
             <p><b>4. Macros.</b> Protein <code>2.2 g/kg</code> maintain · <code>2.0 g/kg</code> gain · <code>2.5 g/kg</code> cut (higher when cutting to protect muscle), fat at <code>25%</code> of calories, carbs fill the rest.<br>
             <span class="ref">Morton RW et al. meta-analysis, Br J Sports Med 2018;52(6):376–84.</span></p>
@@ -718,9 +729,18 @@ document.getElementById('date-pick').value=currentDate;
     let pal = Number(C.job) + (Number(C.days)/7)*Number(C.int);
     pal = Math.max(1.40, Math.min(2.40, pal));
     const tdee = bmr*pal;
-    // 3. Goal adjustment
-    const mult = C.goal==='lose'?0.80 : C.goal==='gain'?1.10 : 1.00;
-    const target = tdee*mult;
+    // 3. Goal adjustment — WORLD-STANDARD absolute deficit/surplus, clamped to the
+    // research-backed 300–500 kcal/day band. (A flat % over-cuts heavier people:
+    // 20% of a 3,500 TDEE = 700 kcal, too aggressive; clamping keeps it safe.)
+    let adjust = 0, adjustTxt = 'Eating at maintenance (TDEE)';
+    if(C.goal==='lose'){
+      adjust = -Math.round(Math.min(500, Math.max(300, tdee*0.20)));
+      adjustTxt = Math.abs(adjust)+' kcal deficit · ~'+(Math.abs(adjust)/1100).toFixed(1).replace('0.','0.')+' kg/week';
+    } else if(C.goal==='gain'){
+      adjust = Math.round(Math.min(500, Math.max(250, tdee*0.12)));
+      adjustTxt = '+'+adjust+' kcal surplus · lean gain';
+    }
+    const target = tdee + adjust;
     // 4. Macros — protein g/kg, fat 25% kcal, carbs remainder
     const pPerKg = C.goal==='lose'?2.5 : C.goal==='gain'?2.0 : 2.2;
     const protein = wt*pPerKg;
@@ -733,6 +753,11 @@ document.getElementById('date-pick').value=currentDate;
     document.getElementById('cr-bmr').textContent=Math.round(bmr).toLocaleString();
     document.getElementById('cr-tdee').textContent=Math.round(tdee).toLocaleString();
     document.getElementById('cr-pal').textContent=pal.toFixed(2);
+    const adjEl=document.getElementById('cr-adjust');
+    if(adjEl){
+      if(adjust===0){ adjEl.textContent='Maintenance — '+Math.round(tdee).toLocaleString()+' kcal/day'; }
+      else { adjEl.innerHTML='Maintenance <b>'+Math.round(tdee).toLocaleString()+'</b> '+(adjust<0?'−':'+')+' <b>'+Math.abs(adjust)+'</b> = <b>'+_calc.cal.toLocaleString()+'</b> &nbsp;·&nbsp; '+adjustTxt; }
+    }
     document.getElementById('cr-formula').textContent=formula;
     document.getElementById('cr-p').textContent=_calc.p+'g';
     document.getElementById('cr-c').textContent=_calc.c+'g';

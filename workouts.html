@@ -48,9 +48,11 @@
   @media(max-width:380px){nav.devfit-tabnav a{font-size:11px;padding:11px 4px;letter-spacing:.02em}}
 
   /* MODE SWITCH */
-  .mode-switch{display:flex;gap:4px;background:#1a1a1a;border-radius:10px;padding:4px;margin-bottom:12px;border:1px solid #2a2a2a}
-  .mode-btn{flex:1;background:transparent;border:none;color:rgba(255,255,255,0.6);font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:600;padding:8px;border-radius:7px;cursor:pointer;transition:all .15s}
-  .mode-btn.active{background:#cc0000;color:#fff;box-shadow:0 2px 6px rgba(204,0,0,0.3)}
+  .mode-switch{display:flex;gap:6px;background:rgba(0,0,0,0.30);border-radius:10px;padding:5px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.12)}
+  /* Each tab a visible pill so active vs inactive stands out against the dark page */
+  .mode-btn{flex:1;background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.92);font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:700;padding:9px 6px;border-radius:7px;cursor:pointer;transition:all .15s}
+  .mode-btn:hover{background:rgba(255,255,255,0.14);color:#fff}
+  .mode-btn.active{background:#cc0000;color:#fff;box-shadow:0 4px 12px rgba(204,0,0,0.45)}
 
   /* CARD */
   .card{background:#2d2d2d;border:1px solid #3a3a3a;border-radius:var(--radius-lg);padding:14px;margin-bottom:10px}
@@ -60,9 +62,19 @@
   .inp{font-family:'DM Sans',system-ui,sans-serif;font-size:13px;padding:8px 12px;border:1px solid var(--bd);border-radius:var(--radius);background:#fff;color:#111;outline:none;width:100%}
   .inp:focus{border-color:#cc0000}
   select.inp{cursor:pointer}
-  input.log-date{-webkit-appearance:none;appearance:none;min-width:0;margin-bottom:10px}
-  .wk-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-  .wk-chip{font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 16px;border-radius:22px;border:1.5px solid var(--bd);background:#fff;color:#333;cursor:pointer;transition:all .15s;white-space:nowrap}
+  /* Compact log header: "Session · Week N" + small inline date (was a big rectangle) */
+  .log-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .log-head .section-label{margin-bottom:0}
+  input.log-date{-webkit-appearance:none;appearance:none;min-width:0;width:auto;flex:0 0 auto;
+    font-size:12px;font-weight:700;padding:6px 10px;background:rgba(255,255,255,0.06);color:#fff;border:1px solid rgba(255,255,255,0.14);border-radius:9px}
+  input.log-date::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.6;cursor:pointer}
+  /* Day selector — single horizontal scroll row (saves space with many days) */
+  .wk-chips{display:flex;flex-wrap:nowrap;gap:8px;margin-bottom:12px;overflow-x:auto;overflow-y:hidden;
+    padding:2px 2px 8px;scrollbar-width:thin;scrollbar-color:#cc0000 transparent;-webkit-overflow-scrolling:touch}
+  .wk-chips::-webkit-scrollbar{height:5px}
+  .wk-chips::-webkit-scrollbar-thumb{background:#cc0000;border-radius:3px}
+  .wk-chips::-webkit-scrollbar-track{background:transparent}
+  .wk-chip{flex:0 0 auto;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 16px;border-radius:22px;border:1.5px solid var(--bd);background:#fff;color:#333;cursor:pointer;transition:all .15s;white-space:nowrap}
   .wk-chip.active{background:#cc0000;border-color:#cc0000;color:#fff;box-shadow:0 4px 12px rgba(204,0,0,0.3)}
 
   /* PLAN MODE */
@@ -92,9 +104,9 @@
   .session-empty{background:linear-gradient(135deg,#1a1a1a,#0f0f0f);border:1px solid #2a2a2a;border-radius:var(--radius);padding:36px 20px;text-align:center;color:#888;font-size:13px;line-height:1.6}
   .session-empty strong{color:#cc0000;font-weight:800}
 
-  .log-ex{background:#fff;border:1px solid var(--bd);border-radius:var(--radius);padding:12px;margin-bottom:8px}
-  .log-ex-name{font-family:'DM Sans',system-ui,sans-serif;font-size:14px;font-weight:800;color:#111;margin-bottom:3px}
-  .log-ex-meta{font-size:10px;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+  .log-ex{background:#fff;border:1px solid var(--bd);border-radius:var(--radius);padding:9px 11px;margin-bottom:7px}
+  .log-ex-name{font-family:'DM Sans',system-ui,sans-serif;font-size:14px;font-weight:800;color:#111;margin-bottom:2px}
+  .log-ex-meta{font-size:10px;color:#666;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
   .log-ex-target{display:inline-block;background:#fef2f2;color:#991b1b;border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;margin-right:6px}
   .log-ex-last{display:inline-block;background:#f1f5f9;color:#475569;border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700}
 
@@ -102,9 +114,16 @@
   .sets-grid .h{font-size:9px;color:#94a3b8;font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:.04em}
   .sets-grid .h:first-child{text-align:left}
   .set-num{font-size:13px;font-weight:800;color:#666;text-align:left;padding-left:4px}
-  .sets-grid input{font-family:'DM Sans',system-ui,sans-serif;font-size:14px;font-weight:700;text-align:center;border:1px solid var(--bd);border-radius:6px;padding:6px 4px;background:#fff;color:#111;outline:none;width:100%}
+  .sets-grid input{font-family:'DM Sans',system-ui,sans-serif;font-size:14px;font-weight:700;text-align:center;border:1px solid var(--bd);border-radius:6px;padding:5px 4px;background:#fff;color:#111;outline:none;width:100%}
   .sets-grid input:focus{border-color:#cc0000}
   .sets-grid .last-cell{font-size:10px;color:#94a3b8;text-align:center;font-weight:700}
+
+  /* CARDIO LOG */
+  .cardio-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+  .cardio-fld label{display:block;font-size:9px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+  .cardio-fld input{font-family:'DM Sans',system-ui,sans-serif;font-size:15px;font-weight:700;text-align:center;border:1px solid var(--bd);border-radius:6px;padding:7px 4px;background:#fff;color:#111;outline:none;width:100%}
+  .cardio-fld input:focus{border-color:#cc0000}
+  .cardio-pace{grid-column:1/-1;text-align:center;font-size:11px;font-weight:800;color:#cc0000;letter-spacing:.04em;margin-top:2px;min-height:14px}
 
   .progress-pill{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;margin-top:6px}
   .progress-pill.up{background:#dcfce7;color:#15803d}
@@ -245,8 +264,10 @@ html.nosplash #devfit-splash{display:none!important}
   <!-- LOG SESSION VIEW -->
   <div id="view-log">
     <div class="card">
-      <div class="section-label" id="log-session-label">Today's session</div>
-      <input type="date" class="inp log-date" id="log-date">
+      <div class="log-head">
+        <div class="section-label" id="log-session-label">Today's session</div>
+        <input type="date" class="inp log-date" id="log-date">
+      </div>
       <div id="log-workout-chips" class="wk-chips"></div>
       <div id="log-area"></div>
       <button class="share-btn" id="share-btn" disabled>Share Workout Card</button>
@@ -653,6 +674,24 @@ function totalVolume(sets){return sets.reduce((sum,s)=>sum+(Number(s.reps)||0)*(
 function totalReps(sets){return sets.reduce((sum,s)=>sum+(Number(s.reps)||0),0);}
 function totalSetsCount(sets){return sets.filter(s=>(Number(s.reps)||0)>0||(Number(s.weight)||0)>0).length;}
 
+// ---------- CARDIO ----------
+// Auto-detect cardio exercises by name so users can just add "Running", "Cycling",
+// "Swimming" etc. and log time/distance instead of sets×reps×weight.
+function isCardio(name){
+  return /\b(run|running|jog|jogging|cycl|cycling|bike|biking|spin|swim|swimming|cardio|walk|walking|hike|hiking|elliptical|treadmill|sprint|sprints|skipping|jump\s?rope|rowing|stair|stepper|incline\s?walk)\b/i.test(name||'');
+}
+// One log "set" for cardio holds {min, km}; pace is derived.
+function freshLog(ex){
+  if(isCardio(ex.name)) return {exId:ex.id, sets:[{min:'',km:''}]};
+  return {exId:ex.id, sets:Array.from({length:Number(ex.tSets)||3},()=>({reps:'',weight:''}))};
+}
+function cardioPace(min,km){
+  const m=Number(min)||0, d=Number(km)||0;
+  if(m<=0||d<=0) return '';
+  const p=m/d; const mm=Math.floor(p); const ss=Math.round((p-mm)*60);
+  return mm+':'+String(ss).padStart(2,'0')+' /km';
+}
+
 document.getElementById('log-date').value=todayStr();
 document.getElementById('log-date').addEventListener('change',renderLog);
 
@@ -730,12 +769,12 @@ function renderLog(){
 
   let sess=findSession(date,wId);
   if(!sess){
-    sess={id:uid(),date,workoutId:wId,logs:w.exercises.map(ex=>({exId:ex.id,sets:Array.from({length:Number(ex.tSets)||3},()=>({reps:'',weight:''}))})),notes:''};
+    sess={id:uid(),date,workoutId:wId,logs:w.exercises.map(ex=>freshLog(ex)),notes:''};
     currentSession={sess,isNew:true};
   } else {
     w.exercises.forEach(ex=>{
       if(!sess.logs.find(l=>l.exId===ex.id)){
-        sess.logs.push({exId:ex.id,sets:Array.from({length:Number(ex.tSets)||3},()=>({reps:'',weight:''}))});
+        sess.logs.push(freshLog(ex));
       }
     });
     currentSession={sess,isNew:false};
@@ -752,6 +791,32 @@ function renderLog(){
     const last=lastSessionFor(wId,ex.id,date);
     const card=document.createElement('div');
     card.className='log-ex';
+
+    // ----- CARDIO: duration + distance (no sets×reps) -----
+    if(isCardio(ex.name)){
+      const cs=(log.sets&&log.sets[0])||{min:'',km:''};
+      let metaParts=['<span class="log-ex-target">Cardio</span>'];
+      if(last && last.log.sets && last.log.sets[0]){
+        const lp=last.log.sets[0];
+        if((Number(lp.min)||0)>0||(Number(lp.km)||0)>0){
+          metaParts.push(`<span class="log-ex-last">Last: ${lp.min||'-'}min · ${lp.km||'-'}km · ${last.session.date}</span>`);
+        }
+      }
+      card.innerHTML=`
+        <div class="log-ex-name">${escapeHTML(ex.name||'(unnamed)')}</div>
+        <div class="log-ex-meta">${metaParts.join(' ')}</div>
+        <div class="cardio-grid">
+          <div class="cardio-fld"><label>Duration (min)</label>
+            <input type="number" inputmode="decimal" step="1" placeholder="min" value="${cs.min??''}" data-ex="${ex.id}" data-cf="min"></div>
+          <div class="cardio-fld"><label>Distance (km)</label>
+            <input type="number" inputmode="decimal" step="0.1" placeholder="km" value="${cs.km??''}" data-ex="${ex.id}" data-cf="km"></div>
+          <div class="cardio-pace" data-pace="${ex.id}">${cardioPace(cs.min,cs.km)}</div>
+        </div>`;
+      area.appendChild(card);
+      return;
+    }
+
+    // ----- STRENGTH: sets × reps × weight -----
     let metaParts=[];
     if(ex.tSets&&ex.tReps) metaParts.push(`<span class="log-ex-target">Target ${ex.tSets}×${ex.tReps}</span>`);
     if(last){
@@ -798,6 +863,21 @@ function renderLog(){
       updateShareBtn();
     });
   });
+  // Cardio inputs (duration / distance) → log.sets[0].{min,km} + live pace
+  area.querySelectorAll('input[data-cf]').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      const exId=e.target.dataset.ex, f=e.target.dataset.cf;
+      const log=currentSession.sess.logs.find(l=>l.exId===exId);
+      if(!log) return;
+      if(!log.sets||!log.sets[0]) log.sets=[{min:'',km:''}];
+      log.sets[0][f]=e.target.value===''?'':Number(e.target.value);
+      if(currentSession.isNew){data.sessions.push(currentSession.sess);currentSession.isNew=false;}
+      save();
+      const pEl=area.querySelector(`[data-pace="${exId}"]`);
+      if(pEl) pEl.textContent=cardioPace(log.sets[0].min,log.sets[0].km);
+      updateShareBtn();
+    });
+  });
   area.querySelectorAll('[data-add-set]').forEach(b=>{
     b.addEventListener('click',()=>{
       const log=currentSession.sess.logs.find(l=>l.exId===b.dataset.addSet);
@@ -823,8 +903,8 @@ function renderLog(){
 function updateShareBtn(){
   const btn=document.getElementById('share-btn');
   if(!currentSession || !currentSession.sess){btn.disabled=true;btn.style.display='none';return;}
-  // Allow share if any set has reps OR weight logged (bodyweight exercises have no weight)
-  const hasData=currentSession.sess.logs.some(l=>l.sets.some(s=>(Number(s.reps)||0)>0||(Number(s.weight)||0)>0));
+  // Allow share if any set has reps/weight (strength) OR min/km (cardio) logged
+  const hasData=currentSession.sess.logs.some(l=>l.sets.some(s=>(Number(s.reps)||0)>0||(Number(s.weight)||0)>0||(Number(s.min)||0)>0||(Number(s.km)||0)>0));
   btn.disabled=!hasData;
   btn.style.display=hasData?'block':'none';
 }
@@ -1034,12 +1114,30 @@ function drawExportCard(canvas, workout, session, theme){
   const PAD = 60;
   const fmtNum = n => Math.round(n).toLocaleString('en-US');
 
-  // ---- Compute exercise lines + totals (Exercises / Sets / Volume) ----
+  // ---- Compute exercise lines + totals (Exercises / Sets / Volume / Distance) ----
   const lines = [];
-  let totalEx = 0, totalSets = 0, totalVolume = 0;
+  let totalEx = 0, totalSets = 0, totalVolume = 0, totalDist = 0;
   workout.exercises.forEach(ex => {
     const log = session.logs.find(l => l.exId === ex.id);
     if(!log) return;
+
+    // Cardio: duration + distance (+ pace)
+    if(isCardio(ex.name)){
+      const cs = (log.sets && log.sets[0]) || {};
+      const min = Number(cs.min)||0, km = Number(cs.km)||0;
+      if(min<=0 && km<=0) return;
+      totalEx++;
+      totalDist += km;
+      const parts = [];
+      if(min>0) parts.push(min + ' min');
+      if(km>0)  parts.push(km + ' km');
+      const pace = cardioPace(min,km);
+      if(pace) parts.push(pace.replace(' /km','/km'));
+      lines.push({name: ex.name || 'Cardio', summary: parts.join(' · ')});
+      return;
+    }
+
+    // Strength
     const validSets = log.sets.filter(s => (Number(s.reps)||0)>0 || (Number(s.weight)||0)>0);
     if(!validSets.length) return;
 
@@ -1079,12 +1177,11 @@ function drawExportCard(canvas, workout, session, theme){
   roundRect(ctx, PAD, y, 130, 9, 4); ctx.fill();
   y += 9 + 42;
 
-  // ---- STAT ROW: Exercises · Sets · Volume ----
-  const stats = [
-    {v: String(totalEx),   l: totalEx===1?'Exercise':'Exercises', hot:false},
-    {v: String(totalSets), l: totalSets===1?'Set':'Sets',         hot:false},
-    {v: fmtNum(totalVolume) + ' kg', l: 'Volume',                 hot:true}
-  ];
+  // ---- STAT ROW: Exercises · Sets · Volume (or Distance for cardio) ----
+  const stats = [{v: String(totalEx), l: totalEx===1?'Exercise':'Exercises', hot:false}];
+  if(totalSets>0) stats.push({v: String(totalSets), l: totalSets===1?'Set':'Sets', hot:false});
+  if(totalVolume>0)      stats.push({v: fmtNum(totalVolume) + ' kg', l: 'Volume', hot:true});
+  else if(totalDist>0)   stats.push({v: (Math.round(totalDist*10)/10) + ' km', l: 'Distance', hot:true});
   {
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'left';
@@ -1127,12 +1224,9 @@ function drawExportCard(canvas, workout, session, theme){
   ctx.textBaseline = 'middle';
   showLines.forEach((line, idx) => {
     const rowMid = ly + rowH / 2;
-    // index number
-    ctx.textAlign = 'left';
-    ctx.font = F(BW, 38); ctx.fillStyle = p.sub;
-    ctx.fillText(String(idx + 1), PAD, rowMid);
     // exercise name (medium weight — distinct from the heavy title)
-    const nameX = PAD + 58;
+    const nameX = PAD;
+    ctx.textAlign = 'left';
     ctx.font = F(NW, 54); ctx.fillStyle = p.fg;
     let nameTxt = line.name;
     const nameMaxW = (W - PAD) - nameX - 360;
