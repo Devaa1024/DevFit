@@ -76,6 +76,24 @@
   .focus-chip b{color:#fff;font-weight:800}
   .focus-allgood{font-size:12px;color:#86efac;font-weight:600}
 
+  /* TODAY OVERVIEW — 4-metric front snapshot */
+  .today-ov{padding:16px 14px 18px}
+  .ov-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .ov-title{font-size:12px;font-weight:800;letter-spacing:.1em;color:rgba(255,255,255,0.72);text-transform:uppercase}
+  .ov-viewall{font-size:13px;font-weight:700;color:#ff4d4d;cursor:pointer;background:none;border:none;padding:0}
+  .ov-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+  .ov-tile{padding:0 6px;text-align:center}
+  .ov-tile + .ov-tile{border-left:1px solid rgba(255,255,255,0.08)}
+  .ov-icon{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+  .ov-icon svg{width:26px;height:26px}
+  .ov-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;color:rgba(255,255,255,0.55);text-transform:uppercase;margin-bottom:5px}
+  .ov-val{font-family:'DM Sans',system-ui,sans-serif;font-size:23px;font-weight:800;color:#fff;line-height:1}
+  .ov-val .u{font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);margin-left:1px}
+  .ov-sub{font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);margin-top:5px;min-height:14px}
+  .ov-bar{height:5px;border-radius:3px;background:rgba(255,255,255,0.12);margin-top:11px;overflow:hidden}
+  .ov-bar i{display:block;height:100%;border-radius:3px;width:0;transition:width .4s}
+  @media(max-width:380px){ .ov-tile{padding:0 3px} .ov-val{font-size:18px} .ov-icon{width:46px;height:46px} .ov-icon svg{width:22px;height:22px} .ov-lbl{font-size:9px} }
+
   /* SHARED TAB NAV — Progress / Nutrition / Training */
   nav.devfit-tabnav{display:flex !important;background:#111;border-radius:14px;padding:6px;margin-bottom:14px;gap:4px;border:1px solid #2a2a2a;width:100%;box-sizing:border-box}
   nav.devfit-tabnav a{flex:1 1 0;min-width:0;text-align:center;padding:11px 6px;border-radius:8px;font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,0.7);text-decoration:none;transition:all .15s;white-space:nowrap}
@@ -464,18 +482,53 @@ html.nosplash #devfit-splash{display:none!important}
     </div><!-- /setup-body -->
   </details>
 
-  <!-- PROGRESS SUB-TAB NAV -->
-  <nav class="prog-subnav" id="prog-subnav">
-    <button type="button" data-sec="daily" class="active" onclick="showProgSection('daily')">Daily</button>
-    <button type="button" data-sec="weekly" onclick="showProgSection('weekly')">Weekly</button>
-    <button type="button" data-sec="analytics" onclick="showProgSection('analytics')">Analytics</button>
-  </nav>
-  <div id="week-range" style="text-align:center;font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:600;color:#9a9a9a;margin:-6px 0 12px;letter-spacing:.02em;"></div>
+  <!-- TODAY OVERVIEW — front-page snapshot -->
+  <div class="card today-ov" id="today-overview">
+    <div class="ov-head">
+      <div class="ov-title">Today Overview</div>
+      <button class="ov-viewall" type="button" onclick="showProgSection('daily');var n=document.getElementById('prog-subnav');if(n)n.scrollIntoView({behavior:'smooth',block:'start'});">View all</button>
+    </div>
+    <div class="ov-grid">
+      <div class="ov-tile">
+        <div class="ov-icon" style="background:rgba(245,158,11,0.18)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9 6 7 8.5 7 12.5a5 5 0 0 0 10 0c0-2-1-3.3-2-4.5 0 1.6-1 2.3-1.6 2.5C14 8 13 4.8 12 2z"/></svg>
+        </div>
+        <div class="ov-lbl">Calories</div>
+        <div class="ov-val"><span id="ov-cal-v">—</span></div>
+        <div class="ov-sub" id="ov-cal-s"></div>
+        <div class="ov-bar"><i id="ov-cal-b" style="background:#f59e0b"></i></div>
+      </div>
+      <div class="ov-tile">
+        <div class="ov-icon" style="background:rgba(59,130,246,0.18)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="2"/><path d="M12 10V8.2"/></svg>
+        </div>
+        <div class="ov-lbl">Weight</div>
+        <div class="ov-val"><span id="ov-wt-v">—</span><span class="u" id="ov-wt-u"></span></div>
+        <div class="ov-sub" id="ov-wt-s"></div>
+        <div class="ov-bar"><i id="ov-wt-b" style="background:#3b82f6"></i></div>
+      </div>
+      <div class="ov-tile">
+        <div class="ov-icon" style="background:rgba(34,197,94,0.18)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4.5" r="1.8"/><path d="M12 8l-2.4 4.4L12 15l1 5M12 8l3.4 1.8 2.4.6M9.6 12.4 7 17"/></svg>
+        </div>
+        <div class="ov-lbl">Steps</div>
+        <div class="ov-val"><span id="ov-st-v">—</span></div>
+        <div class="ov-sub" id="ov-st-s"></div>
+        <div class="ov-bar"><i id="ov-st-b" style="background:#22c55e"></i></div>
+      </div>
+      <div class="ov-tile">
+        <div class="ov-icon" style="background:rgba(168,85,247,0.18)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4 6.3 6.3 0 0 0 20 14.5z"/></svg>
+        </div>
+        <div class="ov-lbl">Sleep</div>
+        <div class="ov-val"><span id="ov-sl-v">—</span><span class="u" id="ov-sl-u"></span></div>
+        <div class="ov-sub" id="ov-sl-s"></div>
+        <div class="ov-bar"><i id="ov-sl-b" style="background:#a855f7"></i></div>
+      </div>
+    </div>
+  </div>
 
-  <!-- ===== DAILY SECTION ===== -->
-  <div class="prog-section active" id="sec-daily">
-
-  <!-- FRONT DASHBOARD — your condition at a glance -->
+  <!-- TRAINING + RECOVERY -->
   <div class="dash-grid">
     <div class="dash-tile">
       <div class="dash-lbl">This Week</div>
@@ -492,6 +545,17 @@ html.nosplash #devfit-splash{display:none!important}
     <div class="section-label">Muscle focus — train these next</div>
     <div id="muscle-focus"></div>
   </div>
+
+  <!-- PROGRESS SUB-TAB NAV -->
+  <nav class="prog-subnav" id="prog-subnav">
+    <button type="button" data-sec="daily" class="active" onclick="showProgSection('daily')">Daily</button>
+    <button type="button" data-sec="weekly" onclick="showProgSection('weekly')">Weekly</button>
+    <button type="button" data-sec="analytics" onclick="showProgSection('analytics')">Analytics</button>
+  </nav>
+  <div id="week-range" style="text-align:center;font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:600;color:#9a9a9a;margin:-6px 0 12px;letter-spacing:.02em;"></div>
+
+  <!-- ===== DAILY SECTION ===== -->
+  <div class="prog-section active" id="sec-daily">
 
   <!-- BODYWEIGHT GRID -->
   <div class="card">
@@ -1276,6 +1340,59 @@ function calcTrainingStreak(){
   }catch(e){return 0;}
 }
 
+function renderTodayOverview(){
+  const cell=reminderTodayCell();
+  const chron=(arr)=>{ const out=[]; for(let w=0;w<(arr||[]).length;w++){ for(let d=0;d<7;d++){ const v=arr[w]&&arr[w][d]; if(v!==''&&v!=null&&!isNaN(Number(v))) out.push(Number(v)); } } return out; };
+  const todayVal=(arr)=>{ if(cell&&arr[cell.w]&&arr[cell.w][cell.d]!==''&&arr[cell.w][cell.d]!=null&&!isNaN(Number(arr[cell.w][cell.d]))) return Number(arr[cell.w][cell.d]); const c=chron(arr); return c.length?c[c.length-1]:null; };
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  const bar=(id,pct)=>{ const el=document.getElementById(id); if(el) el.style.width=Math.max(0,Math.min(100,pct))+'%'; };
+  const sub=(id,txt,col)=>{ const el=document.getElementById(id); if(el){ el.textContent=txt; el.style.color=col||'rgba(255,255,255,0.5)'; } };
+
+  // CALORIES — today's logged nutrition vs target
+  let calV=null, calT=null;
+  try{ const n=JSON.parse(localStorage.getItem('devfitNutritionV2')||'{}');
+    calT=(n.targets&&Number(n.targets.cal))||null;
+    const ds=new Date().toISOString().slice(0,10); const day=n.days&&n.days[ds];
+    let c=0; if(day){ (day.meals||[]).forEach(m=>(m.items||[]).forEach(it=>{ c+=Number(it.cal)||0; })); }
+    calV=Math.round(c);
+  }catch(e){}
+  set('ov-cal-v', calV!=null?calV.toLocaleString():'—');
+  sub('ov-cal-s', calT?('/ '+calT.toLocaleString()+' kcal'):'set a target');
+  bar('ov-cal-b', calT?(calV/calT*100):0);
+
+  // WEIGHT — latest logged + delta + progress toward goal
+  const bwC=chron(appData.bw||[]);
+  const wV=bwC.length?bwC[bwC.length-1]:null;
+  const wPrev=bwC.length>1?bwC[bwC.length-2]:null;
+  set('ov-wt-v', wV!=null?wV.toFixed(1):'—');
+  const wuU=document.getElementById('ov-wt-u'); if(wuU) wuU.textContent=wV!=null?'kg':'';
+  const sw=Number(appData.startWeight), gw=Number(appData.goal);
+  let wpct=0;
+  if(wV!=null && sw>0 && gw>0 && sw!==gw){ wpct=(gw<sw)?(sw-wV)/(sw-gw)*100:(wV-sw)/(gw-sw)*100; }
+  bar('ov-wt-b', wpct);
+  if(wV!=null && wPrev!=null){
+    const d=+(wV-wPrev).toFixed(1); const gt=(appData.goalType||'loss');
+    const good = gt==='gain' ? d>0 : gt==='maintain' ? Math.abs(d)<0.3 : d<0;
+    sub('ov-wt-s', (d>0?'+':(d<0?'– ':''))+Math.abs(d)+' kg', good?'#4ade80':(d===0?'rgba(255,255,255,0.5)':'#f87171'));
+  } else sub('ov-wt-s', wV!=null?'first log':'—');
+
+  // STEPS — today (or latest) vs 10k goal
+  const stV=todayVal(appData.steps||[]); const stGoal=10000;
+  set('ov-st-v', stV!=null?stV.toLocaleString():'—');
+  if(stV!=null){ const p=Math.round(stV/stGoal*100); sub('ov-st-s', p+'% goal'); bar('ov-st-b', p); }
+  else { sub('ov-st-s','no steps yet'); bar('ov-st-b',0); }
+
+  // SLEEP — today (or latest) hours + quality
+  const slV=todayVal(appData.sleep||[]);
+  set('ov-sl-v', slV!=null?(slV%1?slV.toFixed(1):String(slV)):'—');
+  const slU=document.getElementById('ov-sl-u'); if(slU) slU.textContent=slV!=null?'h':'';
+  if(slV!=null){
+    const q=slV>=8?'Great':slV>=7?'Good':slV>=6?'Fair':'Low';
+    const qc=slV>=7?'#c4b5fd':slV>=6?'#fbbf24':'#f87171';
+    sub('ov-sl-s', q, qc); bar('ov-sl-b', slV/8*100);
+  } else { sub('ov-sl-s','not logged'); bar('ov-sl-b',0); }
+}
+
 const MEAS_FIELDS=['waist','chest','arms','thighs','hips'];
 function renderMeasurements(){
   const ci=appData.weeklyCheckin[currentWeek]||freshCheckin();
@@ -1520,6 +1637,7 @@ function render(){
   renderMeasurements();
   bindMeasurements();
   renderExtraCards();
+  renderTodayOverview();
   updateChart();
 }
 
