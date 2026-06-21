@@ -84,8 +84,8 @@
   .ts-status{font-size:18px;font-weight:800;color:#fff;line-height:1.15;letter-spacing:.01em}
   .ts-reason{font-size:12px;color:rgba(255,255,255,0.55);margin-top:4px;line-height:1.4}
   .ts-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid rgba(255,255,255,0.08);padding-top:13px;flex-wrap:wrap}
-  .ts-streak{font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:7px}
-  .ts-streak b{color:#f59e0b;font-size:19px;font-weight:800}
+  .ts-cyc{font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);display:flex;align-items:baseline;gap:6px}
+  .ts-cyc b{color:#86efac;font-size:19px;font-weight:800}
   .ts-nextline{font-size:13px;font-weight:700;color:#86efac;display:flex;align-items:center;gap:6px;min-width:0}
   .ts-nextline span{color:#fff;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ts-empty{font-size:12px;color:rgba(255,255,255,0.5)}
@@ -548,7 +548,7 @@ html.nosplash #devfit-splash{display:none!important}
       </div>
     </div>
     <div class="ts-foot">
-      <div class="ts-streak">🔥 <b id="ts-week-n">0</b> day streak</div>
+      <div class="ts-cyc"><b id="ts-cycle-n">0/0</b> workouts this cycle</div>
       <div class="ts-nextline" id="ts-nextline"></div>
     </div>
   </div>
@@ -1416,44 +1416,50 @@ function renderTrainingStatus(){
   const ringFg=document.getElementById('ts-ring-fg');
   const ringIc=document.getElementById('ts-ring-ic');
   const reasonEl=document.getElementById('ts-reason');
-  const weekN=document.getElementById('ts-week-n');
   const nextLine=document.getElementById('ts-nextline');
   const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const chron=(arr)=>{const o=[];for(let w=0;w<(arr||[]).length;w++)for(let d=0;d<7;d++){const v=arr[w]&&arr[w][d];if(v!==''&&v!=null&&!isNaN(Number(v)))o.push(Number(v));}return o;};
   const CIRC=220;
 
-  // Readiness from last night's sleep — MEDICAL thresholds (7–9h is the optimal band)
+  // Readiness from last night's sleep — show a READINESS state, not the raw hours.
   const sleepArr=chron(appData.sleep||[]);
   const s=sleepArr.length?sleepArr[sleepArr.length-1]:null;
-  const hTxt = s!=null ? (s%1?s.toFixed(1):s)+'h' : '—';
-  let label, reason, color, fill;
-  if(s==null){ label='LOG SLEEP'; reason='Track last night to see your readiness'; color='#9ca3af'; fill=0; }
-  else if(s<4){ label='REST DAY'; reason=hTxt+' sleep — under 4h, let your body recover'; color='#cc0000'; fill=s/8; }
-  else if(s<6){ label='LOW INTENSITY'; reason=hTxt+' sleep — below optimal, keep it light today'; color='#f59e0b'; fill=s/8; }
-  else if(s<7){ label='READY TO TRAIN'; reason=hTxt+' sleep — good to go'; color='#22c55e'; fill=s/8; }
-  else if(s<=9){ label='READY TO TRAIN'; reason=hTxt+' sleep — optimal range, well rested'; color='#22c55e'; fill=1; }
-  else { label='READY TO TRAIN'; reason=hTxt+' sleep — fully rested'; color='#22c55e'; fill=1; }
+  let label, reason, color, fill, glyph;
+  if(s==null){ label='LOG SLEEP'; reason='Log last night to see your readiness'; color='#9ca3af'; fill=0; glyph='–'; }
+  else if(s<4){ label='REST DAY'; reason='Very low sleep — let your body recover'; color='#cc0000'; fill=0.33; glyph='✕'; }
+  else if(s<6){ label='LOW INTENSITY'; reason='Under-slept — keep today light'; color='#f59e0b'; fill=0.6; glyph='!'; }
+  else if(s<7){ label='READY TO TRAIN'; reason='Decent sleep — good to go'; color='#22c55e'; fill=1; glyph='✓'; }
+  else { label='READY TO TRAIN'; reason='Well rested — good to go'; color='#22c55e'; fill=1; glyph='✓'; }
   statusEl.textContent=label;
   reasonEl.textContent=reason;
-  ringIc.textContent=hTxt;
-  if(ringFg){ ringFg.style.stroke=color; ringFg.style.strokeDashoffset=String(CIRC*(1-Math.max(0,Math.min(1,fill)))); }
+  ringIc.textContent=glyph; ringIc.style.color=color;
+  if(ringFg){ ringFg.style.stroke=color; ringFg.style.strokeDashoffset=String(CIRC*(1-fill)); }
 
-  // Day streak this week
-  const days=(typeof calcTrainingStreak==='function')?calcTrainingStreak():0;
-  if(weekN) weekN.textContent=days;
-
-  // Next routine to train (most overdue / never trained, past the 48h window)
+  // Workout cycle: count distinct plan workouts logged in the CURRENT cycle.
+  // Walk newest→oldest; a repeat marks the previous cycle. Follows the user's
+  // own plan order and tolerates skips — it just suggests the next undone one.
   let plan=[], sessions=[];
   try{ const t=JSON.parse(localStorage.getItem('devfitTrainingV1')||'{}'); plan=(t.plan&&t.plan.workouts)||[]; sessions=t.sessions||[]; }catch(e){}
   const logged=l=>l.sets&&l.sets.some(x=>(Number(x.reps)||0)>0||(Number(x.weight)||0)>0||(Number(x.min)||0)>0||(Number(x.km)||0)>0);
-  if(!plan.length){ nextLine.innerHTML='<span class="ts-empty">Set up your plan in Training</span>'; return; }
-  const today=new Date(); today.setHours(0,0,0,0);
-  const daysSince=(wid)=>{ let last=null; sessions.forEach(se=>{ if(se.workoutId===wid && se.logs && se.logs.some(logged)){ if(!last||se.date>last) last=se.date; } }); if(!last) return null; const d=new Date(last+'T00:00:00'); return Math.floor((today-d)/86400000); };
-  const items=plan.map(w=>({name:w.name||'(unnamed)', days:daysSince(w.id)}));
-  const cand=items.filter(it=>it.days===null||it.days>=2);
-  const next=cand.length?cand.slice().sort((a,b)=>((b.days===null?9999:b.days)-(a.days===null?9999:a.days)))[0]:null;
-  if(next) nextLine.innerHTML='▸ Next: <span>'+esc(next.name)+'</span>';
-  else nextLine.innerHTML='▸ <span>Rest day</span>';
+  const N=plan.length;
+  const cycleEl=document.getElementById('ts-cycle-n');
+  if(!N){ if(cycleEl) cycleEl.textContent='0/0'; nextLine.innerHTML='<span class="ts-empty">Set up your workouts in Training</span>'; return; }
+  const done=sessions.filter(se=>se.logs&&se.logs.some(logged)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const cycleSet=new Set();
+  for(const se of done){
+    if(!plan.find(w=>w.id===se.workoutId)) continue;   // ignore deleted workouts
+    if(cycleSet.has(se.workoutId)) break;               // hit the previous cycle
+    cycleSet.add(se.workoutId);
+    if(cycleSet.size>=N) break;                         // full cycle done
+  }
+  const completed=cycleSet.size;
+  if(cycleEl) cycleEl.textContent=completed+'/'+N;
+  if(completed>=N){
+    nextLine.innerHTML='▸ Next: <span>'+esc(plan[0].name||'(unnamed)')+'</span> · new cycle';
+  } else {
+    const next=plan.find(w=>!cycleSet.has(w.id));
+    nextLine.innerHTML='▸ Next: <span>'+esc((next&&next.name)||'(unnamed)')+'</span>';
+  }
 }
 
 const MEAS_FIELDS=['waist','chest','arms','thighs','hips'];

@@ -705,8 +705,23 @@ function totalSetsCount(sets){return sets.filter(s=>(Number(s.reps)||0)>0||(Numb
 // Auto-detect cardio exercises by name so users can just add "Running", "Cycling",
 // "Swimming" etc. and log time/distance instead of sets×reps×weight.
 function isCardio(name){
-  return /\b(run|running|jog|jogging|cycl|cycling|bike|biking|spin|swim|swimming|cardio|walk|walking|hike|hiking|elliptical|treadmill|sprint|sprints|skipping|jump\s?rope|rowing|stair|stepper|incline\s?walk)\b/i.test(name||'');
+  // distance/endurance cardio
+  if(/\b(run|running|jog|jogging|cycl|cycling|bike|biking|spin|swim|swimming|cardio|walk|walking|hike|hiking|elliptical|treadmill|sprint|sprints|skipping|jump\s?rope|rowing|stairmaster|stair|stepper|incline\s?walk|ski|skiing|skate|skating)\b/i.test(name||'')) return true;
+  // sports / games / classes — also tracked by time, not sets×reps
+  return /\b(football|soccer|futsal|basketball|netball|volleyball|badminton|pickleball|pickle\s?ball|tennis|squash|rugby|hockey|cricket|handball|zumba|hiit|crossfit|cross\s?fit|bootcamp|aerobics|dance|dancing|boxing|kickbox|kickboxing|muay|yoga|pilates|circuit|hyrox|martial|mma|judo|karate)\b/i.test(name||'');
 }
+// Activity category drives the share-card shape + which fields we ask for:
+//   'distance' → duration + distance + pace (runs, rides, swims, hikes)
+//   'sport'    → duration only (football, badminton, pickleball…)
+//   'class'    → duration only (zumba, HIIT, spin, stairmaster…)
+function activityCategory(name){
+  const n=(name||'').toLowerCase();
+  if(/\b(football|soccer|futsal|basketball|netball|volleyball|badminton|pickleball|pickle\s?ball|tennis|squash|rugby|hockey|cricket|handball|martial|mma|judo|karate)\b/.test(n)) return 'sport';
+  if(/\b(zumba|hiit|crossfit|cross\s?fit|bootcamp|aerobics|dance|dancing|boxing|kickbox|kickboxing|muay|yoga|pilates|circuit|hyrox|spin|stairmaster|stair|stepper|elliptical|skipping|jump\s?rope)\b/.test(n)) return 'class';
+  return 'distance';
+}
+// True when the activity is time-based (no meaningful distance/pace).
+function isTimedActivity(name){ return activityCategory(name)!=='distance'; }
 // An exercise is cardio if explicitly tagged (type==='cardio') OR its name looks
 // like cardio. The explicit tag means users can add "Stairmaster" etc. via the
 // "+ Cardio" button without needing a magic keyword.
@@ -731,10 +746,19 @@ function activityEmoji(n){ n=(n||'').toLowerCase();
   if(/row/.test(n))return '🚣'; if(/walk|hike|hiking/.test(n))return '🚶';
   if(/run|running|jog|jogging|sprint/.test(n))return '🏃'; return '🔥'; }
 function activityMET(n){ n=(n||'').toLowerCase();
+  // sports / classes
+  if(/football|soccer|rugby|hyrox|hiit|crossfit|kickbox|boxing|muay|mma|squash/.test(n))return 9.0;
+  if(/futsal|basketball|hockey|handball|circuit|bootcamp|martial/.test(n))return 8.0;
+  if(/tennis|badminton|volleyball|netball|zumba|aerobics|dance|stair/.test(n))return 6.5;
+  if(/pickleball|pickle\s?ball|cricket/.test(n))return 5.5;
+  if(/yoga|pilates/.test(n))return 3.0;
+  // endurance cardio
   if(/swim/.test(n))return 8.3; if(/cycl|bike|spin/.test(n))return 7.5;
   if(/run|jog|sprint/.test(n))return 9.8; if(/row/.test(n))return 7.0;
-  if(/elliptical/.test(n))return 5.0; if(/walk|hike|tread|stair|step/.test(n))return 4.3;
+  if(/ski|skat/.test(n))return 7.0;
+  if(/elliptical/.test(n))return 5.0; if(/walk|hike|tread|step/.test(n))return 4.3;
   return 7.0; }
+function cardioSessionGoal(){ try{ const v=Number(localStorage.getItem('devfit_cardioSessGoal')); if(v>0) return v; }catch(e){} return 12; }
 function latestBodyweight(){
   try{
     const pl=JSON.parse(localStorage.getItem('progressLog2')||'{}');
@@ -902,26 +926,36 @@ function renderLog(){
     const card=document.createElement('div');
     card.className='log-ex';
 
-    // ----- CARDIO: duration + distance (no sets×reps) -----
+    // ----- CARDIO / ACTIVITY: time-based (sports/classes) or distance (runs/rides) -----
     if(exIsCardio(ex)){
       const cs=(log.sets&&log.sets[0])||{min:'',km:''};
-      let metaParts=['<span class="log-ex-target">Cardio</span>'];
+      const cat=activityCategory(ex.name);
+      const timed=cat!=='distance';   // sports/classes → duration only
+      const catLabel = cat==='sport'?'Sport':cat==='class'?'Activity':'Cardio';
+      let metaParts=['<span class="log-ex-target">'+catLabel+'</span>'];
       if(last && last.log.sets && last.log.sets[0]){
         const lp=last.log.sets[0];
         if((Number(lp.min)||0)>0||(Number(lp.km)||0)>0){
-          metaParts.push(`<span class="log-ex-last">Last: ${lp.min||'-'}min · ${lp.km||'-'}km · ${last.session.date}</span>`);
+          const lastTxt = timed ? `${lp.min||'-'}min` : `${lp.min||'-'}min · ${lp.km||'-'}km`;
+          metaParts.push(`<span class="log-ex-last">Last: ${lastTxt} · ${last.session.date}</span>`);
         }
       }
+      const fields = timed
+        ? `<div class="cardio-grid" style="grid-template-columns:1fr">
+             <div class="cardio-fld"><label>Duration (min)</label>
+               <input type="number" inputmode="decimal" step="1" placeholder="min" value="${cs.min??''}" data-ex="${ex.id}" data-cf="min"></div>
+           </div>`
+        : `<div class="cardio-grid">
+             <div class="cardio-fld"><label>Duration (min)</label>
+               <input type="number" inputmode="decimal" step="1" placeholder="min" value="${cs.min??''}" data-ex="${ex.id}" data-cf="min"></div>
+             <div class="cardio-fld"><label>Distance (km)</label>
+               <input type="number" inputmode="decimal" step="0.1" placeholder="km" value="${cs.km??''}" data-ex="${ex.id}" data-cf="km"></div>
+             <div class="cardio-pace" data-pace="${ex.id}">${cardioPace(cs.min,cs.km)}</div>
+           </div>`;
       card.innerHTML=`
         <div class="log-ex-name">${escapeHTML(ex.name||'(unnamed)')}</div>
         <div class="log-ex-meta">${metaParts.join(' ')}</div>
-        <div class="cardio-grid">
-          <div class="cardio-fld"><label>Duration (min)</label>
-            <input type="number" inputmode="decimal" step="1" placeholder="min" value="${cs.min??''}" data-ex="${ex.id}" data-cf="min"></div>
-          <div class="cardio-fld"><label>Distance (km)</label>
-            <input type="number" inputmode="decimal" step="0.1" placeholder="km" value="${cs.km??''}" data-ex="${ex.id}" data-cf="km"></div>
-          <div class="cardio-pace" data-pace="${ex.id}">${cardioPace(cs.min,cs.km)}</div>
-        </div>`;
+        ${fields}`;
       area.appendChild(card);
       return;
     }
@@ -1232,15 +1266,19 @@ function drawExportCard(canvas, workout, session, theme){
   if(_cardio.length && !_strength.length){
     const C = W - PAD*2;
     const hero = _cardio.slice().sort((a,b)=>(b.km-a.km)||(b.min-a.min))[0];
-    const hasKm = hero.km>0;
-    const panelBg = theme==='light' ? 'rgba(0,0,0,0.045)' : theme==='transparent' ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.06)';
+    const cat = activityCategory(hero.name);
+    // Distance card only when it's an endurance activity AND distance was logged;
+    // sports/classes (or distance activities logged without km) get the timed card.
+    const distanceMode = (cat==='distance' && hero.km>0);
+    const headerLabel = cat==='sport' ? 'SPORT SESSION' : cat==='class' ? 'TRAINING SESSION' : 'CARDIO SESSION';
     const dim = theme==='light' ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.14)';
     let y = PAD + 4;
 
-    // --- Header: "CARDIO SESSION" + streak badge ---
+    // --- Header: label + streak badge ---
     ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-    setLS('3px'); ctx.font=F(TW,30); ctx.fillStyle=p.fg; ctx.fillText('CARDIO SESSION', PAD, y+30); setLS('0px');
-    ctx.fillStyle=p.accent; roundRect(ctx,PAD,y+44,168,6,3); ctx.fill();
+    setLS('3px'); ctx.font=F(TW,30); ctx.fillStyle=p.fg; ctx.fillText(headerLabel, PAD, y+30);
+    const lblW=ctx.measureText(headerLabel).width; setLS('0px');
+    ctx.fillStyle=p.accent; roundRect(ctx,PAD,y+44,Math.min(lblW,300),6,3); ctx.fill();
     const streak=cardioStreakDays(session.date);
     if(streak>=2){
       const bt='🔥 '+streak+'-DAY STREAK';
@@ -1252,9 +1290,9 @@ function drawExportCard(canvas, workout, session, theme){
     }
     y += 112;
 
-    // --- Hero: big distance (or duration) + activity ---
-    const bigVal = hasKm ? hero.km.toFixed(1) : fmtDuration(hero.min);
-    const bigUnit = hasKm ? 'KM' : 'MIN';
+    // --- Hero: distance (km) for distance mode, else duration (whole minutes) ---
+    const bigVal = distanceMode ? hero.km.toFixed(1) : String(Math.round(hero.min));
+    const bigUnit = distanceMode ? 'KM' : 'MIN';
     ctx.font=F(TW,200); ctx.fillStyle=p.fg;
     const bm=vmet(bigVal,200);
     ctx.fillText(bigVal, PAD, y+bm.a);
@@ -1268,14 +1306,23 @@ function drawExportCard(canvas, workout, session, theme){
     // --- Divider ---
     ctx.fillStyle=p.divider; ctx.fillRect(PAD,y,C,1); y += 40;
 
-    // --- Stat tiles: Duration / Avg Pace / Calories ---
+    // --- Stat tiles ---
     const cals=cardioCalories(hero.name,hero.min);
-    const tiles=[
-      {ic:'⏱', val:fmtDuration(hero.min), lbl:'DURATION'},
-      {ic:'⚡', val: hasKm?cardioPace(hero.min,hero.km).replace(' /km',''):'—', lbl: hasKm?'AVG PACE /KM':'AVG PACE'},
-      {ic:'🔥', val: cals?String(cals):'—', lbl:'CALORIES'}
-    ];
-    const colW=C/3;
+    let tiles;
+    if(distanceMode){
+      tiles=[
+        {ic:'⏱', val:fmtDuration(hero.min), lbl:'DURATION'},
+        {ic:'⚡', val:cardioPace(hero.min,hero.km).replace(' /km',''), lbl:'AVG PACE /KM'},
+        {ic:'🔥', val: cals?String(cals):'—', lbl:'CALORIES'}
+      ];
+    } else {
+      const intensity=(cals&&hero.min>0)?Math.round(cals/hero.min):0;
+      tiles=[
+        {ic:'🔥', val: cals?String(cals):'—', lbl:'CALORIES'},
+        {ic:'⚡', val: intensity?String(intensity):'—', lbl:'KCAL / MIN'}
+      ];
+    }
+    const colW=C/tiles.length;
     tiles.forEach((t,i)=>{
       const cx=PAD+colW*i+colW/2;
       if(i>0){ ctx.fillStyle=p.divider; ctx.fillRect(PAD+colW*i, y+8, 1, 94); }
@@ -1287,17 +1334,23 @@ function drawExportCard(canvas, workout, session, theme){
     ctx.textAlign='left';
     y += 168;
 
-    // --- Monthly cardio goal (single sleek gradient bar) ---
-    const month=cardioMonthStats(session.date), goal=cardioGoalKm();
-    const pct=Math.max(0,Math.min(100,Math.round((month.km/goal)*100)));
-    setLS('2px'); ctx.font=F(BW,26); ctx.fillStyle=p.sub; ctx.fillText('MONTHLY CARDIO GOAL', PAD, y+22); setLS('0px');
-    ctx.textAlign='right'; ctx.font=F(BW,26); ctx.fillStyle=p.sub;
-    ctx.fillText(month.sessions+' session'+(month.sessions===1?'':'s')+' this month', W-PAD, y+22);
-    ctx.textAlign='left';
+    // --- Monthly goal (km for distance, sessions for timed) — sleek gradient bar ---
+    const month=cardioMonthStats(session.date);
+    let goalLbl, pct, rightTxt;
+    if(distanceMode){
+      const goal=cardioGoalKm();
+      pct=Math.max(0,Math.min(100,Math.round((month.km/goal)*100)));
+      goalLbl='MONTHLY CARDIO GOAL'; rightTxt=month.km.toFixed(1)+' / '+goal+' KM';
+    } else {
+      const goal=cardioSessionGoal();
+      pct=Math.max(0,Math.min(100,Math.round((month.sessions/goal)*100)));
+      goalLbl='MONTHLY SESSIONS'; rightTxt=month.sessions+' / '+goal+' sessions';
+    }
+    setLS('2px'); ctx.font=F(BW,26); ctx.fillStyle=p.sub; ctx.fillText(goalLbl, PAD, y+22); setLS('0px');
     y += 56;
     ctx.font=F(TW,68); ctx.fillStyle=p.accent; ctx.fillText(pct+'%', PAD, y+54);
     ctx.textAlign='right'; ctx.font=F(BW,30); ctx.fillStyle=p.fg;
-    ctx.fillText(month.km.toFixed(1)+' / '+goal+' KM', W-PAD, y+54);
+    ctx.fillText(rightTxt, W-PAD, y+54);
     ctx.textAlign='left';
     y += 86;
     const trH=22, trR=trH/2;
