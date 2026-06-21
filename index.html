@@ -73,11 +73,12 @@
   .train-status{padding:14px}
   .ts-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
   .ts-pill{font-size:11px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:5px 12px;border-radius:20px;white-space:nowrap}
-  .ts-meta{font-size:11.5px;color:rgba(255,255,255,0.55);margin-bottom:10px}
-  .ts-bar{height:6px;border-radius:4px;background:rgba(255,255,255,0.12);overflow:hidden;margin-bottom:12px}
-  .ts-bar i{display:block;height:100%;border-radius:4px;width:0;transition:width .4s}
-  .ts-next{font-size:13px;font-weight:700;color:#fff;margin-bottom:11px}
-  .ts-next b{color:#ff6b6b}
+  .ts-week{display:flex;align-items:baseline;gap:8px;margin:8px 0 12px}
+  .ts-week-n{font-family:'DM Sans',system-ui,sans-serif;font-size:30px;font-weight:800;color:#2f9e57;line-height:1}
+  .ts-week-l{font-size:12px;color:rgba(255,255,255,0.55);font-weight:600}
+  .ts-next{font-size:13px;font-weight:700;color:#fff;margin-bottom:10px}
+  .ts-overdue{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .ts-overdue .ts-ol-lbl{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);margin-right:2px}
   .ts-chips{display:flex;flex-wrap:wrap;gap:6px}
   .ts-chip{font-size:11px;font-weight:700;padding:5px 11px;border-radius:14px;display:inline-flex;gap:6px;align-items:center}
   .ts-chip .d{opacity:.85;font-weight:600}
@@ -458,7 +459,7 @@ html.nosplash #devfit-splash{display:none!important}
 
   <!-- CLIENT INFO + GOAL (collapsible — day-1 setup, not needed daily) -->
   <details class="setup-card" id="setup-card">
-    <summary>Program setup <span>start · target · duration · goal</span></summary>
+    <summary>Program setup <span>weights · duration · step &amp; sleep goals</span></summary>
     <div class="setup-body">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
       <div>
@@ -483,6 +484,16 @@ html.nosplash #devfit-splash{display:none!important}
       <div>
         <div class="section-label" style="margin-bottom:5px;">Program start (Week 1 Mon)</div>
         <input style="width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px;border:1px solid #d1d5db;border-radius:var(--radius);background:#fff;color:#111;outline:none;" id="programStart" type="date" onchange="save();renderTabs();render()">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <div>
+        <div class="section-label" style="margin-bottom:5px;">Daily step goal</div>
+        <input style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;padding:8px 12px;border:1px solid #d1d5db;border-radius:var(--radius);background:#fff;color:#111;outline:none;" id="targetSteps" placeholder="10000" type="number" step="500" inputmode="numeric" onblur="save();render()">
+      </div>
+      <div>
+        <div class="section-label" style="margin-bottom:5px;">Sleep goal (h)</div>
+        <input style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;padding:8px 12px;border:1px solid #d1d5db;border-radius:var(--radius);background:#fff;color:#111;outline:none;" id="targetSleep" placeholder="8" type="number" step="0.5" inputmode="decimal" onblur="save();render()">
       </div>
     </div>
     <div>
@@ -548,10 +559,9 @@ html.nosplash #devfit-splash{display:none!important}
       <div class="section-label" style="margin:0">Training Status</div>
       <div class="ts-pill ts-grey" id="ts-pill">—</div>
     </div>
-    <div class="ts-meta" id="ts-meta"></div>
-    <div class="ts-bar"><i id="ts-bar"></i></div>
+    <div class="ts-week"><span class="ts-week-n" id="ts-week-n">0</span><span class="ts-week-l">days trained this week</span></div>
     <div class="ts-next" id="ts-next"></div>
-    <div class="ts-chips" id="ts-chips"></div>
+    <div class="ts-overdue" id="ts-overdue"></div>
   </div>
 
   <!-- PROGRESS SUB-TAB NAV -->
@@ -1078,6 +1088,8 @@ function loadData(){
     setVal('goalInput', appData.goal||'');
     setVal('startWeight', appData.startWeight||'');
     setVal('programDuration', appData.programDuration||'8');
+    setVal('targetSteps', appData.targetSteps||'');
+    setVal('targetSleep', appData.targetSleep||'');
     // Show the resolved Monday anchor even when not explicitly set, so it's never blank
     setVal('programStart', appData.programStart||ymd(programStartDate()));
   }catch(e){}
@@ -1133,6 +1145,8 @@ function save(){
   appData.startWeight=document.getElementById('startWeight').value;
   appData.programStart=document.getElementById('programStart').value;
   appData.programDuration=document.getElementById('programDuration').value;
+  const _ts=document.getElementById('targetSteps'); if(_ts) appData.targetSteps=_ts.value;
+  const _sl=document.getElementById('targetSleep'); if(_sl) appData.targetSleep=_sl.value;
   try{localStorage.setItem('progressLog2',JSON.stringify(appData));}catch(e){}
   if(typeof DevFitDB!=='undefined') DevFitDB.cloudSave('progress',appData);
 }
@@ -1388,31 +1402,32 @@ function renderTodayOverview(){
     sub('ov-wt-s', (d>0?'+':(d<0?'– ':''))+Math.abs(d)+' kg', good?'#4ade80':(d===0?'rgba(255,255,255,0.5)':'#f87171'));
   } else sub('ov-wt-s', wV!=null?'first log':'—');
 
-  // STEPS — today (or latest) vs 10k goal
-  const stV=todayVal(appData.steps||[]); const stGoal=10000;
+  // STEPS — today (or latest) vs configurable goal
+  const stV=todayVal(appData.steps||[]); const stGoal=Number(appData.targetSteps)>0?Number(appData.targetSteps):10000;
   set('ov-st-v', stV!=null?stV.toLocaleString():'—');
   if(stV!=null){ const p=Math.round(stV/stGoal*100); sub('ov-st-s', p+'% goal'); bar('ov-st-b', p); }
   else { sub('ov-st-s','no steps yet'); bar('ov-st-b',0); }
 
-  // SLEEP — today (or latest) hours + quality
-  const slV=todayVal(appData.sleep||[]);
+  // SLEEP — today (or latest) hours + quality vs configurable goal
+  const slV=todayVal(appData.sleep||[]); const slGoal=Number(appData.targetSleep)>0?Number(appData.targetSleep):8;
   set('ov-sl-v', slV!=null?(slV%1?slV.toFixed(1):String(slV)):'—');
   const slU=document.getElementById('ov-sl-u'); if(slU) slU.textContent=slV!=null?'h':'';
   if(slV!=null){
-    const q=slV>=8?'Great':slV>=7?'Good':slV>=6?'Fair':'Low';
-    const qc=slV>=7?'#c4b5fd':slV>=6?'#fbbf24':'#f87171';
-    sub('ov-sl-s', q, qc); bar('ov-sl-b', slV/8*100);
+    const q=slV>=slGoal?'Great':slV>=slGoal-1?'Good':slV>=slGoal-2?'Fair':'Low';
+    const qc=slV>=slGoal-1?'#c4b5fd':slV>=slGoal-2?'#fbbf24':'#f87171';
+    sub('ov-sl-s', q, qc); bar('ov-sl-b', slV/slGoal*100);
   } else { sub('ov-sl-s','not logged'); bar('ov-sl-b',0); }
 }
 
 function renderTrainingStatus(){
   const pill=document.getElementById('ts-pill'); if(!pill) return;
-  const meta=document.getElementById('ts-meta'), barEl=document.getElementById('ts-bar');
-  const nextEl=document.getElementById('ts-next'), chipsEl=document.getElementById('ts-chips');
+  const weekN=document.getElementById('ts-week-n');
+  const nextEl=document.getElementById('ts-next');
+  const overdueEl=document.getElementById('ts-overdue');
   const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const chron=(arr)=>{const o=[];for(let w=0;w<(arr||[]).length;w++)for(let d=0;d<7;d++){const v=arr[w]&&arr[w][d];if(v!==''&&v!=null&&!isNaN(Number(v)))o.push(Number(v));}return o;};
 
-  // Readiness from last night's sleep (most recent logged)
+  // Readiness pill from last night's sleep (the one signal worth surfacing up top)
   const sleepArr=chron(appData.sleep||[]);
   const lastSleep=sleepArr.length?sleepArr[sleepArr.length-1]:null;
   let pillTxt,pillCls;
@@ -1422,56 +1437,35 @@ function renderTrainingStatus(){
   else { pillTxt='READY TO TRAIN'; pillCls='ts-green'; }
   pill.textContent=pillTxt; pill.className='ts-pill '+pillCls;
 
-  // Training data
+  // Days trained this week
+  const days=(typeof calcTrainingStreak==='function')?calcTrainingStreak():0;
+  if(weekN) weekN.textContent=days;
+
+  // Training schedule
   let plan=[], sessions=[];
   try{ const t=JSON.parse(localStorage.getItem('devfitTrainingV1')||'{}'); plan=(t.plan&&t.plan.workouts)||[]; sessions=t.sessions||[]; }catch(e){}
   const logged=l=>l.sets&&l.sets.some(s=>(Number(s.reps)||0)>0||(Number(s.weight)||0)>0||(Number(s.min)||0)>0||(Number(s.km)||0)>0);
-  const sessWk=(typeof calcTrainingStreak==='function')?calcTrainingStreak():0;
-
-  // Not-enough-data state (no sleep AND no workouts) — small message, no fake 0%
-  if(lastSleep==null && !sessions.some(s=>s.logs&&s.logs.some(logged))){
-    meta.textContent='';
-    barEl.style.width='0%';
-    nextEl.innerHTML='';
-    chipsEl.innerHTML='<div class="ts-empty">Log your sleep and a workout to see your training readiness.</div>';
-    return;
-  }
-
-  meta.textContent = (lastSleep!=null?('last night '+(lastSleep%1?lastSleep.toFixed(1):lastSleep)+'h'):'no sleep logged')
-    + ' · ' + sessWk + ' session'+(sessWk===1?'':'s')+' this week';
-
-  // Recovery bar: hours since last ANY workout toward the 48h full-recovery window
-  const today=new Date(); today.setHours(0,0,0,0);
-  let lastWk=null; sessions.forEach(s=>{ if(s.logs&&s.logs.some(logged)){ if(!lastWk||s.date>lastWk) lastWk=s.date; } });
-  let recPct=100;
-  if(lastWk){ const d=new Date(lastWk+'T00:00:00'); recPct=Math.max(0,Math.min(100,Math.round(((today-d)/3600000)/48*100))); }
-  barEl.style.width=recPct+'%';
-  barEl.style.background = recPct>=100?'#22c55e':recPct>=50?'#f59e0b':'#cc0000';
 
   if(!plan.length){
-    nextEl.innerHTML='';
-    chipsEl.innerHTML='<div class="ts-empty">Add workouts in <b style="color:#ff6b6b">Training</b> to see your schedule.</div>';
-    return;
+    nextEl.innerHTML='<span class="ts-empty">Add workouts in <b style="color:#ff6b6b">Training</b> to see what to train next.</span>';
+    overdueEl.innerHTML=''; return;
   }
 
-  // Days since each workout was last trained (48h rule → ready after 2 days)
+  const today=new Date(); today.setHours(0,0,0,0);
   const daysSince=(wid)=>{ let last=null; sessions.forEach(s=>{ if(s.workoutId===wid && s.logs && s.logs.some(logged)){ if(!last||s.date>last) last=s.date; } }); if(!last) return null; const d=new Date(last+'T00:00:00'); return Math.floor((today-d)/86400000); };
   const items=plan.map(w=>({name:w.name||'(unnamed)', days:daysSince(w.id)}));
 
-  // Next up = most overdue / never-trained that's past the 48h window
+  // What to train next: most overdue / never-trained that's past the 48h window
   const cand=items.filter(it=>it.days===null||it.days>=2);
-  let next=cand.length?cand.slice().sort((a,b)=>((b.days===null?9999:b.days)-(a.days===null?9999:a.days)))[0]:null;
-  if(next) nextEl.innerHTML='Next up: <b>'+esc(next.name)+'</b> '+(next.days===null?'· not trained yet':'· '+next.days+' day'+(next.days===1?'':'s')+' since last');
-  else nextEl.innerHTML='Next up: <b>Rest</b> · all workouts trained in the last 48h';
+  const next=cand.length?cand.slice().sort((a,b)=>((b.days===null?9999:b.days)-(a.days===null?9999:a.days)))[0]:null;
+  if(next) nextEl.innerHTML='<b style="color:#86efac">Next up:</b> '+esc(next.name)+(next.days===null?' · not trained yet':' · '+next.days+'d ago');
+  else nextEl.innerHTML='<b style="color:#86efac">Rest day</b> · everything trained in the last 48h';
 
-  chipsEl.innerHTML=items.map(it=>{
-    let cls,badge;
-    if(it.days===null){ cls='ts-green'; badge='new'; }
-    else if(it.days<=1){ cls='ts-amber'; badge=it.days+'d'; }
-    else if(it.days<=4){ cls='ts-green'; badge=it.days+'d'; }
-    else { cls='ts-red'; badge=it.days+'d'; }
-    return '<span class="ts-chip '+cls+'"><b>'+esc(it.name)+'</b><span class="d">'+badge+'</span></span>';
-  }).join('');
+  // Only the routines overdue for 3+ days (the rest are fine — keep the card clean)
+  const overdue=items.filter(it=>it.days!==null&&it.days>=3).sort((a,b)=>b.days-a.days);
+  overdueEl.innerHTML = overdue.length
+    ? '<span class="ts-ol-lbl">Not trained:</span>'+overdue.map(it=>'<span class="ts-chip '+(it.days>=5?'ts-red':'ts-amber')+'"><b>'+esc(it.name)+'</b><span class="d">'+it.days+'d</span></span>').join('')
+    : '';
 }
 
 const MEAS_FIELDS=['waist','chest','arms','thighs','hips'];
