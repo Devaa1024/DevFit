@@ -2415,40 +2415,66 @@ applyNutritionTierGates();
   document.getElementById('food-search-btn').addEventListener('click',doSearch);
   document.getElementById('food-search-input').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
 
-  // Barcode scanner
+  // Barcode scanner — uses ZXing (works on iOS Safari + Android + desktop)
+  // BarcodeDetector is Chrome/Android only; ZXing is the universal fallback.
+  let _zxingReader=null;
+
   function stopScanner(){
-    if(_scanInt){clearInterval(_scanInt);_scanInt=null;}
+    if(_zxingReader){try{_zxingReader.reset();}catch(e){} _zxingReader=null;}
     if(_scanStream){_scanStream.getTracks().forEach(t=>t.stop());_scanStream=null;}
     const v=document.getElementById('scanner-video');
-    if(v)v.srcObject=null;
+    if(v) v.srcObject=null;
     document.getElementById('scanner-overlay').classList.remove('show');
   }
   document.getElementById('scanner-close').addEventListener('click',stopScanner);
 
+  // Lazy-load ZXing from CDN on first scan attempt
+  let _zxingPromise=null;
+  function loadZXing(){
+    if(_zxingPromise) return _zxingPromise;
+    _zxingPromise=new Promise((res,rej)=>{
+      if(window.ZXing){res(window.ZXing);return;}
+      const s=document.createElement('script');
+      s.src='https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';
+      s.onload=()=>res(window.ZXing);
+      s.onerror=()=>rej(new Error('ZXing failed to load'));
+      document.head.appendChild(s);
+    });
+    return _zxingPromise;
+  }
+
   async function startScanner(){
     document.getElementById('food-overlay').classList.remove('show');
-    if(!('BarcodeDetector' in window)){
-      const code=prompt('Camera scanner not supported on this browser.\nEnter the barcode number from the packaging:');
-      if(code&&code.trim())await handleBarcode(code.trim());
-      else document.getElementById('food-overlay').classList.add('show');
-      return;
-    }
+    const hint=document.getElementById('scanner-hint');
+    if(hint) hint.textContent='Loading scanner…';
     try{
-      _scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
-      const video=document.getElementById('scanner-video');
-      video.srcObject=_scanStream;
+      const ZXing=await loadZXing();
+      const reader=new ZXing.BrowserMultiFormatReader();
+      _zxingReader=reader;
       document.getElementById('scanner-overlay').classList.add('show');
-      const detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code']});
-      _scanInt=setInterval(async()=>{
-        try{
-          const hits=await detector.detect(video);
-          if(hits.length){stopScanner();await handleBarcode(hits[0].rawValue);}
-        }catch(e){}
-      },300);
+      if(hint) hint.textContent='Point camera at barcode · EAN-13 · UPC-A · Code-128 · QR';
+      const video=document.getElementById('scanner-video');
+      // decodeFromConstraints starts the camera & decodes every frame automatically
+      await reader.decodeFromConstraints(
+        {video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}},
+        video,
+        (result,err)=>{
+          if(result){
+            stopScanner();
+            handleBarcode(result.getText());
+          }
+          // err fires on every no-read frame — ignore
+        }
+      );
     }catch(e){
+      stopScanner();
       document.getElementById('food-overlay').classList.add('show');
-      if(e.name==='NotAllowedError')alert('Camera access denied. Allow camera permission in your browser to scan barcodes.');
-      else alert('Could not open camera. Try searching by name instead.');
+      if(e.name==='NotAllowedError')
+        alert('Camera access denied.\nAllow camera permission in your browser settings and try again.');
+      else if(e.message&&e.message.includes('ZXing'))
+        alert('Scanner library failed to load. Check your connection and try again.');
+      else
+        alert('Could not start camera. Try searching by name instead.');
     }
   }
 
