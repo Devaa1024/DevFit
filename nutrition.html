@@ -1855,6 +1855,7 @@ applyNutritionTierGates();
   .src-usda{background:rgba(34,197,94,0.18);color:#4ade80}
   .src-off{background:rgba(59,130,246,0.18);color:#60a5fa}
   .src-local{background:rgba(204,0,0,0.20);color:#ff6b6b}
+  .src-kalori{background:rgba(255,165,0,0.20);color:#ffa500}
   .food-loading,.food-empty{padding:28px 16px;text-align:center;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;color:#555}
   .scanner-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:10100;display:none;align-items:center;justify-content:center;flex-direction:column;padding:1.2rem}
   .scanner-overlay.show{display:flex}
@@ -2001,6 +2002,9 @@ applyNutritionTierGates();
   // server-side. Set USDA_KEY in Vercel env to lift the rate limit; until then it
   // falls back to DEMO_KEY automatically. OpenFoodFacts above is the no-key primary.
   const USDA_PROXY='/api/usda';
+  // Kalori API (kalori-api.my) — Malaysian-specific food database (free, no key).
+  // Proxied through api/kalori.js for CORS + edge caching.
+  const KALORI_PROXY='/api/kalori';
 
   let _sel=null;
   let _scanStream=null;
@@ -2068,6 +2072,26 @@ applyNutritionTierGates();
     return(j.foods||[]).map(parseUSDA).filter(f=>f.cal100>0);
   }
 
+  function parseKalori(item){
+    // kalori-api.my returns values per serving; we normalise to per-100g.
+    // Field names may vary across API versions — handle both snake_case & camelCase.
+    const name = String(item.name || item.food_name || item.foodName || '').trim() || 'Unknown';
+    const servingG = Number(item.serving_weight_grams || item.servingWeightGrams || item.serving_size || item.servingSize || 100);
+    const ratio = servingG > 0 ? (100 / servingG) : 1;
+    const cal   = Math.max(0, Number(item.calories   || item.energy    || 0) * ratio);
+    const p     = Math.max(0, Number(item.protein    || item.proteins  || 0) * ratio);
+    const c     = Math.max(0, Number(item.carbs || item.carbohydrates || item.carbohydrate || 0) * ratio);
+    const f     = Math.max(0, Number(item.fat || item.fats || item.total_fat || 0) * ratio);
+    return { name, brand: '', cal100: Math.round(cal), p100: Math.round(p*10)/10, c100: Math.round(c*10)/10, f100: Math.round(f*10)/10, sq: servingG, serving_size: servingG + 'g', source: 'KALORI' };
+  }
+  async function kaloriSearch(q){
+    const url = KALORI_PROXY + '?q=' + encodeURIComponent(q);
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('kalori ' + r.status);
+    const j = await r.json();
+    return (j.data || []).filter(i => i && (i.calories || i.energy || i.cal)).map(parseKalori);
+  }
+
   async function offBarcode(code){
     const r=await fetch(OFF_PRODUCT+encodeURIComponent(code)+'.json?fields=code,product_name,brands,nutriments,serving_size,serving_quantity');
     const j=await r.json();
@@ -2097,9 +2121,11 @@ applyNutritionTierGates();
     el.innerHTML=items.map((f,i)=>{
       const badge=f.source==='LOCAL'
         ? '<span class="src-badge src-local">DevFit</span>'
-        : f.source==='USDA'
-          ? '<span class="src-badge src-usda">USDA</span>'
-          : '<span class="src-badge src-off">Branded</span>';
+        : f.source==='KALORI'
+          ? '<span class="src-badge src-kalori">MY</span>'
+          : f.source==='USDA'
+            ? '<span class="src-badge src-usda">USDA</span>'
+            : '<span class="src-badge src-off">Branded</span>';
       const brand=f.brand?('<span class="food-item-brand">'+esc(f.brand)+'</span> &middot; '):'';
       return '<div class="food-item" data-idx="'+i+'" tabindex="0">'+
         '<div class="food-item-name">'+esc(f.name)+badge+'</div>'+
@@ -2357,30 +2383,32 @@ applyNutritionTierGates();
     const el=document.getElementById('food-results');
     el.innerHTML='<div class="food-loading">Searching food databases…</div>';
     const local=localSearch(q);                  // instant, offline, curated
-    const [usda,off]=await Promise.allSettled([usdaSearch(q),offSearch(q)]);
+    const [usda,off,kalori]=await Promise.allSettled([usdaSearch(q),offSearch(q),kaloriSearch(q)]);
     const u=usda.status==='fulfilled'?usda.value:[];
     const o=off.status==='fulfilled'?off.value:[];
-    if(!local.length&&!u.length&&!o.length){
+    const k=kalori.status==='fulfilled'?kalori.value:[];
+    if(!local.length&&!u.length&&!o.length&&!k.length){
       if(usda.status==='rejected'&&off.status==='rejected')
         el.innerHTML='<div class="food-empty">Search failed. Check your connection and try again.</div>';
       else el.innerHTML='<div class="food-empty">No results found. Try different keywords.</div>';
       return;
     }
-    // Rank: curated local first, then exact/prefix matches; nudge generic + complete-macro items up
+    // Rank: curated local first, then Kalori MY, then exact/prefix matches
     const ql=q.toLowerCase();
     function score(f){
       const n=f.name.toLowerCase();
       let s=0;
-      if(f.source==='LOCAL')s+=50;                 // curated/local always near top
+      if(f.source==='LOCAL')s+=50;     // curated local always near top
+      if(f.source==='KALORI')s+=30;    // Malaysian DB second priority
       if(n===ql)s+=100; else if(n.startsWith(ql))s+=60; else if(n.includes(ql))s+=30;
       if(f.source==='USDA')s+=8;
       if(f.cal100>0&&(f.p100||f.c100||f.f100))s+=5;
       return s;
     }
     const seen=new Set();
-    const merged=local.concat(u).concat(o).filter(f=>{
-      const k=f.source+'|'+f.name.toLowerCase()+'|'+Math.round(f.cal100);
-      if(seen.has(k))return false; seen.add(k); return true;
+    const merged=local.concat(k).concat(u).concat(o).filter(f=>{
+      const key=f.name.toLowerCase()+'|'+Math.round(f.cal100);
+      if(seen.has(key))return false; seen.add(key); return true;
     }).sort((a,b)=>score(b)-score(a)).slice(0,60);
     renderResults(merged);
   }
