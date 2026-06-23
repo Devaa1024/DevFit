@@ -985,6 +985,38 @@ function weekOfDate(dateStr){ const s=progStart(); if(!s) return null; const d=n
 
 // Which workout is loaded in the log view (replaces the old dropdown).
 let selectedWorkoutId='';
+
+// ---- Resume-in-place ---------------------------------------------------------
+// iOS/Android discard a backgrounded PWA to save memory; returning to it reloads
+// the page from scratch (felt like the session "restarting"). Logged sets are
+// already saved on every keystroke — here we also persist the OPEN workout and
+// SCROLL position so resuming drops you back exactly where you left off.
+const RESUME_KEY='devfit_logResume';
+function saveResume(){
+  try{
+    if(currentMode!=='log') return;
+    localStorage.setItem(RESUME_KEY, JSON.stringify({
+      wk: selectedWorkoutId,
+      date: (document.getElementById('log-date')||{}).value || todayStr(),
+      y: window.scrollY || window.pageYOffset || 0,
+      ts: Date.now()
+    }));
+  }catch(e){}
+}
+function readResume(){
+  try{
+    const r=JSON.parse(localStorage.getItem(RESUME_KEY)||'null');
+    if(!r || (Date.now()-(r.ts||0)) > 12*3600*1000) return null;  // ignore stale (>12h)
+    return r;
+  }catch(e){ return null; }
+}
+// Restore the open workout BEFORE the first render (same training day only).
+(function(){ const r=readResume(); if(r && r.date===todayStr() && r.wk) selectedWorkoutId=r.wk; })();
+// Persist on lock-screen, app-switch, tab close, and (throttled) on scroll.
+let _resumeT=null;
+window.addEventListener('scroll',()=>{ if(_resumeT) return; _resumeT=setTimeout(()=>{ _resumeT=null; saveResume(); },400); },{passive:true});
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') saveResume(); });
+window.addEventListener('pagehide',saveResume);
 // Auto-pick the workout to log: resume one already logged on this date, else the
 // least-recently trained (simple rotation), else the first in plan order.
 function autoPickWorkout(date){
@@ -1040,7 +1072,7 @@ function renderLog(){
   chips.innerHTML=data.plan.workouts.map(w=>
     `<button type="button" class="wk-chip${w.id===wId?' active':''}" data-wid="${w.id}">${escapeHTML(w.name||'(unnamed)')}</button>`
   ).join('');
-  chips.querySelectorAll('.wk-chip').forEach(b=>b.addEventListener('click',()=>{ selectedWorkoutId=b.dataset.wid; renderLog(); }));
+  chips.querySelectorAll('.wk-chip').forEach(b=>b.addEventListener('click',()=>{ selectedWorkoutId=b.dataset.wid; saveResume(); renderLog(); }));
 
   const w=data.plan.workouts.find(x=>x.id===wId);
   if(!w){area.innerHTML='';return;}
@@ -1418,6 +1450,26 @@ function drawExportCard(canvas, workout, session, theme){
     const dim = theme==='light' ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.14)';
     let y = PAD + 4;
 
+    // --- Background art: soft brand glow + a giant faint sport-glyph watermark.
+    //     Gives the card sport identity / depth (no photography needed) and kills
+    //     the empty white space. Skipped on transparent to stay clean over wallpaper.
+    if(theme!=='transparent'){
+      const gx=W-PAD-30, gy=PAD+300, gr=560;
+      const rg=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);
+      const ga=theme==='light'?0.07:0.16;
+      rg.addColorStop(0, theme==='light'?'rgba(204,0,0,'+ga+')':'rgba(255,58,58,'+ga+')');
+      rg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+      const wm=cardioGlyph(hero.name);
+      ctx.save();
+      ctx.globalAlpha = theme==='light'?0.06:0.10;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.font='400 560px system-ui,"Apple Color Emoji","Segoe UI Emoji",sans-serif';
+      ctx.fillText(wm, W-60, H-50);
+      ctx.restore();
+      ctx.globalAlpha=1; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    }
+
     // --- Header: sport glyph + label + streak badge ---
     ctx.textAlign='left'; ctx.textBaseline='alphabetic';
     const glyph=cardioGlyph(hero.name);
@@ -1792,6 +1844,13 @@ if('serviceWorker' in navigator){
 }
 
 renderLog();
+// Resume scroll position if the OS reloaded a backgrounded session (same day).
+(function(){
+  const r=readResume();
+  if(r && r.date===todayStr() && currentMode==='log' && (r.y||0)>40){
+    requestAnimationFrame(()=>setTimeout(()=>window.scrollTo(0, r.y), 60));
+  }
+})();
 </script>
 
 <!-- DEVFIT GLASS BOTTOM NAV -->
