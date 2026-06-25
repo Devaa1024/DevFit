@@ -1725,14 +1725,14 @@ function drawExportCard(canvas, workout, session, theme){
     totalSets += setCount;
     validSets.forEach(s => { totalVolume += (Number(s.weight)||0) * (Number(s.reps)||0); });
 
-    // Right-side summary now includes REPS so the volume reads sensibly:
-    // "100 kg × 8 × 3 sets" (top working set's weight × reps × set count).
+    // Right-side summary: weight · sets · reps  →  "100 kg · 3 sets · 8 reps".
     const top = validSets.reduce((a,b)=> (Number(b.weight)||0) > (Number(a.weight)||0) ? b : a);
     const topW = Number(top.weight)||0, topR = Number(top.reps)||0;
     const setTxt = `${setCount} ${setCount>1?'sets':'set'}`;
+    const repTxt = topR>0 ? `${topR} ${topR>1?'reps':'rep'}` : '';
     let summary;
-    if(hasWeight) summary = topR>0 ? `${topW} kg × ${topR} × ${setTxt}` : `${topW} kg × ${setTxt}`;
-    else          summary = topR>0 ? `${topR} reps × ${setTxt}` : setTxt;
+    if(hasWeight) summary = repTxt ? `${topW} kg · ${setTxt} · ${repTxt}` : `${topW} kg · ${setTxt}`;
+    else          summary = repTxt ? `${setTxt} · ${repTxt}` : setTxt;
     lines.push({name: ex.name || 'Exercise', summary});
   });
 
@@ -1810,7 +1810,7 @@ function drawExportCard(canvas, workout, session, theme){
     ctx.textAlign = 'left';
     ctx.font = F(NW, 54); ctx.fillStyle = p.fg;
     let nameTxt = line.name;
-    const nameMaxW = (W - PAD) - nameX - 430;   // reserve room for "100 kg × 8 × 3 sets"
+    const nameMaxW = (W - PAD) - nameX - 470;   // reserve room for "100 kg · 3 sets · 8 reps"
     while(ctx.measureText(nameTxt).width > nameMaxW && nameTxt.length > 3){ nameTxt = nameTxt.slice(0, -1); }
     if(nameTxt !== line.name) nameTxt = nameTxt.slice(0, -1) + '…';
     ctx.fillText(nameTxt, nameX, rowMid);
